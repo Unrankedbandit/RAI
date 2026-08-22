@@ -1,16 +1,21 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import MapGL, { Layer, Source } from "react-map-gl/maplibre";
 import type { MapRef } from "react-map-gl/maplibre";
 import type { Feature } from "geojson";
 import "maplibre-gl/dist/maplibre-gl.css";
 
-import { clsx } from "@/lib/clsx";
+import { analyze } from "@/lib/agent/client";
+import { slugify } from "@/lib/agent/liveStore";
+import { ParcelRail } from "@/components/parcels/ParcelRail";
+import { recordRecent, type SavedParcel } from "@/lib/parcels/watchlist";
 import {
   COUNTIES,
   STATEWIDE_COUNTY_NAME,
   queryParcelAtPoint,
+  searchParcels,
   type CountyConfig,
   type ParcelResult,
 } from "@/lib/parcels/counties";
@@ -18,9 +23,10 @@ import {
 /**
  * California Parcel Viewer — full-height MapLibre surface.
  * Keyless CARTO Positron basemap, a Regrid raster tile overlay for parcel
- * boundaries (zoom 13+), click-to-identify against the county open-GIS
- * endpoints / CA DWR statewide mosaic (lib/parcels), the clicked parcel
- * highlighted in brand orange, and a right-side attribute panel.
+ * boundaries (zoom 13+), click-to-identify + APN/address text search against
+ * the county open-GIS endpoints / CA DWR statewide mosaic (lib/parcels), the
+ * selected parcel highlighted in brand orange, and the right-side ParcelRail
+ * (selected parcel, watchlist, recent searches).
  * Client-only — ParcelViewerClient loads this via next/dynamic ssr:false.
  */
 
@@ -33,6 +39,11 @@ const REGRID_TILES =
   "https://tiles.arcgis.com/tiles/KzeiCaQsMoeCfoCq/arcgis/rest/services/Regrid_Nationwide_Parcel_Boundaries_v1/MapServer/tile/{z}/{y}/{x}";
 
 const ORANGE = "#ff8400";
+
+// Brand-orange crosshair/dot cursor for the map canvas (inline SVG data-uri).
+// Passed to MapGL's `cursor` prop (sets it on the canvas) and inherited from
+// the map style, with `crosshair` as the browser fallback.
+const MAP_CURSOR = `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20'><circle cx='10' cy='10' r='5' fill='none' stroke='%23ff8400' stroke-width='2'/><circle cx='10' cy='10' r='1.5' fill='%23ff8400'/></svg>") 10 10, crosshair`;
 
 // Fit California on load.
 const CA_CENTER: [number, number] = [-119.4, 37.2];
@@ -109,13 +120,6 @@ const STATUS_LABEL: Record<CountyConfig["status"], string> = {
   "mosaic-only": "Mosaic",
 };
 
-// Data-status badge: grey / near-black / orange only (design-system rule).
-const STATUS_BADGE: Record<CountyConfig["status"], string> = {
-  live: "bg-strong-soft text-strong-ink",
-  partial: "bg-watch-soft text-watch-ink",
-  "mosaic-only": "bg-risk-soft text-risk-ink",
-};
-
 type PanelState =
   | { status: "idle" }
   | { status: "loading"; county: string }
@@ -123,13 +127,54 @@ type PanelState =
   | { status: "error" }
   | { status: "found"; result: ParcelResult; queriedCounty: string };
 
-function formatRawValue(v: unknown): string {
-  if (v === null || v === undefined || v === "") return "—";
-  if (typeof v === "object") return JSON.stringify(v);
-  return String(v);
+/** Bbox-center of any GeoJSON geometry — good enough for fly-to targets. */
+function geometryCenter(
+  geom: GeoJSON.Geometry | null,
+): [number, number] | null {
+  if (!geom) return null;
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  const walk = (coords: unknown): void => {
+    if (!Array.isArray(coords)) return;
+    if (typeof coords[0] === "number" && typeof coords[1] === "number") {
+      const [x, y] = coords as [number, number];
+      if (x < minX) minX = x;
+      if (y < minY) minY = y;
+      if (x > maxX) maxX = x;
+      if (y > maxY) maxY = y;
+      return;
+    }
+    coords.forEach(walk);
+  };
+  walk((geom as { coordinates?: unknown }).coordinates);
+  if (!Number.isFinite(minX)) return null;
+  return [(minX + maxX) / 2, (minY + maxY) / 2];
+}
+
+/** Shape the watchlist's recordRecent expects (fallbackKey = search text / click coords). */
+function toSavedParcel(
+  result: ParcelResult,
+  fallbackKey: string,
+  lng?: number,
+  lat?: number,
+): SavedParcel {
+  return {
+    key: result.apn ?? result.address ?? fallbackKey,
+    county: result.county,
+    apn: result.apn,
+    address: result.address,
+    acres: result.acres,
+    landUse: result.landUse,
+    lng,
+    lat,
+    savedAt: Date.now(),
+  };
 }
 
 export default function ParcelViewer() {
+  const router = useRouter();
   const mapRef = useRef<MapRef | null>(null);
   // Latest-request-wins guard so stale responses never overwrite a newer click.
   const requestRef = useRef(0);
@@ -138,6 +183,10 @@ export default function ParcelViewer() {
     STATEWIDE_COUNTY_NAME,
   );
   const [panel, setPanel] = useState<PanelState>({ status: "idle" });
+  const [searchText, setSearchText] = useState("");
+  // Why the last search came up empty (no match vs county has no attribute
+  // search) — shown as a small caption, since the rail only gets panelStatus.
+  const [searchNote, setSearchNote] = useState<string | null>(null);
 
   const sortedCounties = useMemo(
     () => [...COUNTIES].sort((a, b) => a.name.localeCompare(b.name)),
@@ -160,6 +209,7 @@ export default function ParcelViewer() {
     (name: string) => {
       setSelectedCounty(name);
       setPanel({ status: "idle" });
+      setSearchNote(null);
       requestRef.current++; // cancel any in-flight identify
       const statewide = name === STATEWIDE_COUNTY_NAME;
       mapRef.current?.flyTo({
@@ -181,6 +231,7 @@ export default function ParcelViewer() {
           ? STATEWIDE_COUNTY_NAME
           : cfg.name;
       setPanel({ status: "loading", county: queryCounty });
+      setSearchNote(null);
       try {
         const result = await queryParcelAtPoint(queryCounty, lng, lat);
         if (req !== requestRef.current) return;
@@ -189,6 +240,11 @@ export default function ParcelViewer() {
             ? { status: "found", result, queriedCounty: queryCounty }
             : { status: "empty" },
         );
+        if (result) {
+          recordRecent(
+            toSavedParcel(result, `${lat.toFixed(5)},${lng.toFixed(5)}`, lng, lat),
+          );
+        }
       } catch {
         if (req !== requestRef.current) return;
         setPanel({ status: "error" });
@@ -197,18 +253,77 @@ export default function ParcelViewer() {
     [selectedCounty, countyByName],
   );
 
+  // Text search runs against the currently selected county only.
+  const handleSearch = useCallback(async () => {
+    const text = searchText.trim();
+    if (!text) return;
+    const req = ++requestRef.current;
+    const cfg = countyByName.get(selectedCounty);
+    const supported =
+      selectedCounty !== STATEWIDE_COUNTY_NAME &&
+      !!cfg &&
+      cfg.status !== "mosaic-only" &&
+      !!cfg.endpoint;
+    setSearchNote(null);
+    if (!supported) {
+      setPanel({ status: "empty" });
+      setSearchNote(
+        "Text search needs a live county — the statewide mosaic has no attribute search. Pick a Live or Partial county above.",
+      );
+      return;
+    }
+    setPanel({ status: "loading", county: selectedCounty });
+    const results = await searchParcels(selectedCounty, text);
+    if (req !== requestRef.current) return;
+    const first = results[0];
+    if (!first) {
+      setPanel({ status: "empty" });
+      setSearchNote(`No parcels in ${selectedCounty} match “${text}”.`);
+      return;
+    }
+    setPanel({ status: "found", result: first, queriedCounty: first.county });
+    const center = geometryCenter(first.geometry);
+    if (center) {
+      mapRef.current?.flyTo({ center, zoom: 16, duration: 1200 });
+    }
+    recordRecent(toSavedParcel(first, text, center?.[0], center?.[1]));
+  }, [searchText, selectedCounty, countyByName]);
+
+  // Kick the selected parcel into the agent pipeline; fall back to the plain
+  // scanning page when the backend is down (same pattern as IntakeDropzone).
+  const handleResearch = useCallback(
+    async (p: ParcelResult) => {
+      setPanel({ status: "loading", county: p.county });
+      try {
+        const { jobId } = await analyze({
+          name: `Parcel ${p.apn ?? p.address ?? "unknown"} — ${p.acres ?? "?"} ac${p.landUse ? ` · ${p.landUse}` : ""}`,
+          location: `${p.county} County, CA`,
+          docs: [],
+        });
+        router.push(
+          `/scanning?job=${jobId}&project=parcel-${slugify(p.apn ?? p.address ?? "unknown")}`,
+        );
+      } catch {
+        setPanel({ status: "found", result: p, queriedCounty: p.county });
+        router.push("/scanning");
+      }
+    },
+    [router],
+  );
+
+  const handleFlyTo = useCallback((lng: number, lat: number) => {
+    mapRef.current?.flyTo({ center: [lng, lat], zoom: 15, duration: 1200 });
+  }, []);
+
+  const handleCloseSelected = useCallback(() => {
+    setPanel({ status: "idle" });
+  }, []);
+
   // GeoJSON for the highlight layers — geometry:null results simply clear it.
   const selectedFeature = useMemo<Feature | null>(() => {
     if (panel.status !== "found" || !panel.result.geometry) return null;
     return { type: "Feature", geometry: panel.result.geometry, properties: {} };
   }, [panel]);
-
-  const foundStatus: CountyConfig["status"] | null =
-    panel.status === "found"
-      ? panel.queriedCounty === STATEWIDE_COUNTY_NAME
-        ? "mosaic-only"
-        : (countyByName.get(panel.queriedCounty)?.status ?? "mosaic-only")
-      : null;
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-canvas">
@@ -220,7 +335,8 @@ export default function ParcelViewer() {
           zoom: CA_ZOOM,
         }}
         mapStyle={MAP_STYLE}
-        style={{ width: "100%", height: "100%" }}
+        style={{ width: "100%", height: "100%", cursor: MAP_CURSOR }}
+        cursor={MAP_CURSOR}
         attributionControl={{ compact: false }}
         onClick={(e) => void handleMapClick(e.lngLat.lng, e.lngLat.lat)}
       >
@@ -250,6 +366,7 @@ export default function ParcelViewer() {
             <Layer
               id="selected-parcel-point"
               type="circle"
+              filter={["==", ["geometry-type"], "Point"]}
               paint={{
                 "circle-color": ORANGE,
                 "circle-radius": 7,
@@ -283,86 +400,85 @@ export default function ParcelViewer() {
             ))}
           </select>
         </label>
+        <form
+          className="relative flex items-center"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void handleSearch();
+          }}
+        >
+          <svg
+            viewBox="0 0 16 16"
+            className="pointer-events-none absolute left-2.5 h-3.5 w-3.5 text-faint"
+            aria-hidden="true"
+          >
+            <circle
+              cx="7"
+              cy="7"
+              r="4.5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
+            <path
+              d="M10.5 10.5L14 14"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          </svg>
+          <input
+            type="text"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            placeholder="Search APN or address…"
+            aria-label="Search APN or address in the selected county"
+            className="w-[220px] rounded-full bg-canvas py-1.5 pl-8 pr-3 text-[12.5px] text-ink outline-none ring-1 ring-hairline placeholder:text-faint focus:ring-2 focus:ring-vista"
+          />
+        </form>
         <span className="ml-auto text-[12px] text-faint">
           {counts.live} live · {counts.partial} partial · {counts.mosaic} via
           statewide mosaic
         </span>
       </div>
 
-      {/* right-side info panel */}
-      {panel.status !== "idle" && (
-        <aside className="absolute bottom-14 right-3 top-[76px] flex w-[320px] max-w-[calc(100vw-24px)] flex-col overflow-hidden rounded-[11px] border border-hairline bg-surface-2 shadow-card">
-          <div className="flex flex-none items-center justify-between border-b border-hairline px-4 py-3">
-            <span className="text-[13px] font-semibold text-ink">
-              {panel.status === "loading"
-                ? "Identifying parcel…"
-                : panel.status === "found"
-                  ? "Parcel"
-                  : panel.status === "empty"
-                    ? "No parcel"
-                    : "Lookup failed"}
-            </span>
-            <button
-              type="button"
-              aria-label="Close panel"
-              onClick={() => setPanel({ status: "idle" })}
-              className="text-faint hover:text-ink"
-            >
-              <svg viewBox="0 0 12 12" className="h-3 w-3" aria-hidden="true">
-                <path
-                  d="M2 2l8 8M10 2l-8 8"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </button>
-          </div>
-
-          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
-            {panel.status === "loading" && (
-              <div className="animate-pulse">
-                <div className="text-[12.5px] text-muted">
-                  Querying {panel.county}…
-                </div>
-                <div className="mt-3 space-y-2">
-                  <div className="h-3 w-3/4 rounded bg-hairline" />
-                  <div className="h-3 w-1/2 rounded bg-hairline" />
-                  <div className="h-3 w-2/3 rounded bg-hairline" />
-                </div>
-              </div>
-            )}
-
-            {panel.status === "empty" && (
-              <p className="text-[12.5px] text-muted">
-                No parcel found here.{" "}
-                <span className="text-faint">
-                  Try zooming in or picking another spot.
-                </span>
-              </p>
-            )}
-
-            {panel.status === "error" && (
-              <p className="text-[12.5px] text-muted">
-                Couldn’t reach the county data endpoint — the parcel lookup
-                failed. Try again in a moment.
-              </p>
-            )}
-
-            {panel.status === "found" && (
-              <ParcelDetails
-                result={panel.result}
-                status={foundStatus ?? "mosaic-only"}
+      {/* why a search came up empty (no match vs county has no attribute search) */}
+      {searchNote && (
+        <div className="absolute left-3 top-[76px] flex max-w-[360px] items-start gap-2 rounded-[11px] border border-hairline bg-surface-2 px-3 py-2 text-[12px] leading-snug text-muted shadow-card">
+          <span className="min-w-0 flex-1">{searchNote}</span>
+          <button
+            type="button"
+            aria-label="Dismiss message"
+            onClick={() => setSearchNote(null)}
+            className="flex-none text-faint hover:text-ink"
+          >
+            <svg viewBox="0 0 12 12" className="h-3 w-3" aria-hidden="true">
+              <path
+                d="M2 2l8 8M10 2l-8 8"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
               />
-            )}
-          </div>
-        </aside>
+            </svg>
+          </button>
+        </div>
       )}
+
+      {/* right-side rail: selected parcel, watchlist, recent searches */}
+      <div className="absolute bottom-14 right-3 top-[76px] flex w-[360px] max-w-[calc(100vw-24px)] flex-col">
+        <ParcelRail
+          selected={panel.status === "found" ? panel.result : null}
+          panelStatus={panel.status}
+          onCloseSelected={handleCloseSelected}
+          onResearch={(p) => void handleResearch(p)}
+          onFlyTo={handleFlyTo}
+        />
+      </div>
 
       {/* data sources footer */}
       <div className="absolute bottom-3 left-3 max-w-[min(600px,calc(100%-120px))] rounded-[8px] border border-hairline bg-canvas/95 px-3 py-2 text-[11.5px] leading-snug text-faint shadow-card backdrop-blur">
         <span className="text-muted">
-          Click the map to identify a parcel.
+          Click the map to identify a parcel, or search by APN/address.
         </span>{" "}
         Boundaries: Regrid (Jul 2026) · Attributes: county open GIS endpoints +
         CA DWR statewide mosaic · verified 2026-08-22
@@ -372,107 +488,6 @@ export default function ParcelViewer() {
       <div className="absolute bottom-3 right-3 rounded-[5px] border border-hairline bg-canvas/95 px-2 py-1 text-[11px] text-faint shadow-card backdrop-blur">
         Parcels © Regrid
       </div>
-    </div>
-  );
-}
-
-function ParcelDetails({
-  result,
-  status,
-}: {
-  result: ParcelResult;
-  status: CountyConfig["status"];
-}) {
-  const rawEntries = Object.entries(result.raw ?? {});
-  return (
-    <div>
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="break-words font-mono text-[13px] font-medium text-ink">
-            {result.apn ?? "—"}
-          </div>
-          <div className="mt-0.5 text-[11.5px] text-faint">
-            APN · {result.county}
-          </div>
-        </div>
-        <span
-          className={clsx(
-            "flex-none rounded-full px-2 py-0.5 text-[11px] font-medium",
-            STATUS_BADGE[status],
-          )}
-        >
-          {STATUS_LABEL[status]}
-        </span>
-      </div>
-
-      <dl className="mt-3 divide-y divide-hairline border-y border-hairline">
-        <Field label="Address">{result.address ?? "—"}</Field>
-        <Field label="Owner">{result.owner ?? "—"}</Field>
-        <Field label="Acreage" mono>
-          {result.acres != null
-            ? `${result.acres.toLocaleString(undefined, {
-                maximumFractionDigits: 2,
-              })} ac`
-            : "—"}
-        </Field>
-        <Field label="Land use">{result.landUse ?? "—"}</Field>
-        <Field label="County">{result.county}</Field>
-      </dl>
-
-      {!result.geometry && (
-        <p className="mt-2 text-[11.5px] text-faint">
-          Attributes only — no boundary geometry returned for this parcel.
-        </p>
-      )}
-
-      {rawEntries.length > 0 && (
-        <details className="mt-3">
-          <summary className="cursor-pointer select-none text-[12px] font-medium text-muted hover:text-ink">
-            All attributes ({rawEntries.length})
-          </summary>
-          <dl className="mt-2 space-y-1.5">
-            {rawEntries.map(([k, v]) => (
-              <div key={k} className="flex gap-2 text-[11.5px]">
-                <dt
-                  className="w-[38%] flex-none truncate text-faint"
-                  title={k}
-                >
-                  {k}
-                </dt>
-                <dd className="min-w-0 flex-1 break-words font-mono text-ink">
-                  {formatRawValue(v)}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </details>
-      )}
-    </div>
-  );
-}
-
-function Field({
-  label,
-  mono = false,
-  children,
-}: {
-  label: string;
-  mono?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-baseline justify-between gap-3 py-1.5">
-      <dt className="flex-none text-[11.5px] uppercase tracking-wide text-faint">
-        {label}
-      </dt>
-      <dd
-        className={clsx(
-          "min-w-0 text-right text-[12.5px]",
-          mono ? "font-mono text-ink" : "text-ink",
-        )}
-      >
-        {children}
-      </dd>
     </div>
   );
 }
