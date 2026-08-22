@@ -69,7 +69,13 @@ LIAISON = """You are the diligence liaison. Convert findings into actionable wor
 (1) RFIs to the developer for every missing document/claim; (2) agency action list — which
 agencies must be engaged, what action, why, and realistic deadlines; (3) verification requests
 for third-party claims (offtake, interconnection, supplier lead times); (4) conditions precedent
-for investment committee approval. Be specific: name the real agency and the real program."""
+for investment committee approval; (5) the critical-path timeline the UI renders — the dated
+milestones and deadlines this deal must hit (land/site control, permit applications and
+approvals, construction start, financial close, interconnection, the ITC deadline), each with
+an ISO YYYY-MM-DD date (estimate from the record when no exact date exists — an undated
+element never renders), kind (milestone or deadline), a one-line detail, and severity
+(critical/high for dated conflicts that can kill the deal, low for secured items).
+Be specific: name the real agency and the real program."""
 
 ANALYST = """You are the diligence analyst answering questions about a project that has
 already been analyzed. The finished report is in your context: readiness score, dimension

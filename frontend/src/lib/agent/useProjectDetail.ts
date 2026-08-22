@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { getProjectDetail } from "@/lib/mockData";
 import type { ProjectDetail } from "@/lib/types";
 import { toSentinel } from "./adapter";
+import { getReport, listProjects } from "./client";
 import { subscribeLiveRuns, type LiveRun } from "./liveStore";
-import { getLiveRunRaw } from "./liveStore";
+import { getLiveRunRaw, slugify } from "./liveStore";
 
 export type DetailSource = "live" | "mock" | "missing";
 
@@ -34,6 +35,33 @@ export function useProjectDetail(id: string | undefined): ProjectDetailState {
     () => null, // server: never live
   );
 
+  // Share-link path: a report this browser didn't run isn't in sessionStorage.
+  // Fetch it from the backend — portfolio ids are job ids, and the route id is
+  // the project slug, so match both. Makes /projects/<slug> a public permalink
+  // on the public deployment (the API lane there is unauthenticated).
+  const [fetched, setFetched] = useState<{ forId: string; detail: ProjectDetail } | null>(null);
+  useEffect(() => {
+    if (!id || raw || getProjectDetail(id)) return;
+    let cancelled = false;
+    (async () => {
+      const rows = await listProjects();
+      const row = rows.find((r) => r.id === id || slugify(r.project) === id);
+      if (!row) return;
+      const report = await getReport(row.id);
+      if (cancelled) return;
+      setFetched({ forId: id, detail: toSentinel(report, { id }) });
+    })().catch(() => {
+      // No backend entry — the mock/missing fallback stands.
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [id, raw]);
+
+  // A stale fetch result for a previous route id is ignored at read time, so
+  // the effect never needs to synchronously reset state (react-hooks rule).
+  const fetchedDetail = fetched && fetched.forId === id ? fetched.detail : null;
+
   return useMemo(() => {
     if (!id) return { detail: undefined, source: "missing" as const };
 
@@ -59,6 +87,8 @@ export function useProjectDetail(id: string | undefined): ProjectDetailState {
       }
     }
 
+    if (fetchedDetail) return { detail: fetchedDetail, source: "live" as const };
+
     return { detail: mock, source: mock ? ("mock" as const) : ("missing" as const) };
-  }, [id, raw]);
+  }, [id, raw, fetchedDetail]);
 }

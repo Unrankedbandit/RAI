@@ -36,11 +36,22 @@ export interface AgentAgencyAction {
   deadline: string | null;
 }
 
+export interface AgentTimelineEntry {
+  label: string;
+  date: string; // ISO YYYY-MM-DD
+  kind: "milestone" | "deadline";
+  detail: string;
+  severity: "critical" | "high" | "medium" | "low";
+}
+
 export interface AgentActionPack {
   rfis: string[];
   agency_actions: AgentAgencyAction[];
   verification_requests: string[];
   conditions_precedent: string[];
+  /** Critical path for the timeline strip. Optional: reports written before
+   *  this contract don't carry it — the adapter falls back to deadlines. */
+  timeline?: AgentTimelineEntry[];
 }
 
 export interface AgentAcquiredData {

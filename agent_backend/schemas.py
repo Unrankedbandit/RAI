@@ -110,11 +110,29 @@ class AgencyAction(BaseModel):
     deadline: str | None = None
 
 
+class TimelineEntry(BaseModel):
+    """One critical-path element for the UI timeline strip.
+
+    The frontend renders these verbatim as milestone dots / deadline markers,
+    so dates must be ISO YYYY-MM-DD — estimate from the record when an exact
+    date is absent (an undated element is useless to the strip).
+    """
+    label: str
+    date: str  # ISO YYYY-MM-DD
+    kind: Literal["milestone", "deadline"] = "milestone"
+    detail: str = ""
+    severity: Severity = "medium"
+
+
 class ActionPack(BaseModel):
     rfis: list[str] = Field(default_factory=list)
     agency_actions: list[AgencyAction] = Field(default_factory=list)
     verification_requests: list[str] = Field(default_factory=list)
     conditions_precedent: list[str] = Field(default_factory=list)
+    # The critical path the UI timeline strip renders. Optional so reports
+    # written before this contract still validate; empty -> adapter falls back
+    # to parsing agency-action deadlines.
+    timeline: list[TimelineEntry] = Field(default_factory=list)
 
 
 class ChatAnswer(BaseModel):

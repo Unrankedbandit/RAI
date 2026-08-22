@@ -21,9 +21,24 @@ export function ShareModal({ open, onClose }: { open: boolean; onClose: () => vo
   const { project, teamMembers, documents } = useProject();
   const [members, setMembers] = useState<TeamMember[]>(teamMembers);
   const [draft, setDraft] = useState("");
+  const [copied, setCopied] = useState(false);
   const [checked, setChecked] = useState<Set<string>>(
     () => new Set(documents.filter((d) => DEFAULT_CHECKED.has(d.title)).map((d) => d.id)),
   );
+
+  // The project route is a permalink: useProjectDetail re-fetches the report
+  // from the backend when the opener's sessionStorage doesn't hold the run.
+  const shareLink =
+    typeof window === "undefined" ? "" : `${window.location.origin}/projects/${project.id}`;
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareLink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // Clipboard API unavailable (insecure context) — the input is selectable.
+    }
+  };
 
   const addMember = () => {
     const val = draft.trim();
@@ -75,6 +90,26 @@ export function ShareModal({ open, onClose }: { open: boolean; onClose: () => vo
 
             {/* Body */}
             <div className="p-5">
+              <div className="mb-[9px] text-[12.5px] font-semibold text-faint">
+                Public link — anyone with it can view this report
+              </div>
+              <div className="mb-[18px] flex gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={shareLink}
+                  onFocus={(e) => e.target.select()}
+                  className="flex-1 rounded-[1px] border border-hairline bg-surface-2 px-3 py-[9px] text-sm text-ink outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={copyLink}
+                  className="cursor-pointer rounded-full bg-oxford px-[15px] py-2 text-sm font-medium text-white"
+                >
+                  {copied ? "Copied" : "Copy"}
+                </button>
+              </div>
+
               <div className="mb-[9px] text-[12.5px] font-semibold text-faint">
                 Add team members
               </div>

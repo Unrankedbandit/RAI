@@ -232,6 +232,17 @@ export async function isBackendUp(): Promise<boolean> {
 
 export type JobStatus =
   | { kind: "status"; message: string }
+  | {
+      /** Structured trace event ({"event": {kind, msg, agent?, ...}}). The
+       *  backend may attach model/tier fields — those are deliberately NOT
+       *  forwarded; the UI must never render model names. */
+      kind: "trace";
+      agent?: string;
+      phase?: string;
+      msg: string;
+      level?: string;
+      eventKind?: string;
+    }
   | { kind: "gate_review"; gaps: GateGap[]; timeoutS: number }
   | { kind: "gate_resolved"; mode: "approved" | "timeout"; approved: string[] }
   | { kind: "done" }
@@ -245,10 +256,14 @@ export interface GateGap {
   severity?: string;
 }
 
-/** Trace-event frames arrive wrapped: {"event": {kind, msg, level, ts, data?}}. */
+/** Trace-event frames arrive wrapped: {"event": {kind, msg, level, ts, agent?, phase?, data?}}. */
 type TraceFrame = {
   event?: {
     kind?: string;
+    msg?: unknown;
+    level?: unknown;
+    agent?: unknown;
+    phase?: unknown;
     data?: {
       gaps?: unknown;
       timeoutS?: unknown;
@@ -354,11 +369,27 @@ export function streamJob(
       return; // A frame we cannot parse is dropped, never fatal.
     }
 
-    // Trace-event frames ({"event": {kind, ...}}) — currently only the
-    // mid-run review gate; unknown kinds are dropped like any other frame.
-    const gate = parseGateFrame(frame);
-    if (gate) {
-      onEvent(gate);
+    // Trace-event frames ({"event": {kind, ...}}): the mid-run review gate
+    // has its own contract; everything else is forwarded as a generic trace
+    // so the run view can attribute activity to an agent box (or, when the
+    // frame names no agent, file it under the ambient run log).
+    if (frame.event) {
+      const gate = parseGateFrame(frame);
+      if (gate) {
+        onEvent(gate);
+        return;
+      }
+      const ev = frame.event;
+      if (typeof ev.msg === "string" && ev.msg) {
+        onEvent({
+          kind: "trace",
+          agent: typeof ev.agent === "string" ? ev.agent : undefined,
+          phase: typeof ev.phase === "string" ? ev.phase : undefined,
+          msg: ev.msg,
+          level: typeof ev.level === "string" ? ev.level : undefined,
+          eventKind: typeof ev.kind === "string" ? ev.kind : undefined,
+        });
+      }
       return;
     }
 
