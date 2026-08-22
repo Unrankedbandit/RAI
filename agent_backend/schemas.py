@@ -144,3 +144,6 @@ class Report(BaseModel):
     action_pack: ActionPack
     recommended_next_action: str | None = None
     acquired_data: list[AcquiredData] = Field(default_factory=list)
+    # Which hackathon login started this run (gate header X-Hax-User). Optional
+    # and schema-compatible: older reports simply have null.
+    user: str | None = None

@@ -10,7 +10,7 @@ import traceback
 import uuid
 from pathlib import Path
 
-from fastapi import BackgroundTasks, FastAPI, File, HTTPException, UploadFile
+from fastapi import BackgroundTasks, FastAPI, File, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -34,6 +34,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://parcel.josephbissell.com",
+        "https://rai-parcels.josephbissell.com",
+        "https://rai-projects.josephbissell.com",
         "https://mockup.josephbissell.com",
         "https://rai.josephbissell.com",
         "http://localhost:5173",
@@ -98,7 +100,7 @@ async def uploads(files: list[UploadFile] = File(...)):
 
 
 @app.post("/api/projects/analyze")
-async def analyze(req: AnalyzeRequest):
+async def analyze(req: AnalyzeRequest, x_hax_user: str | None = Header(None)):
     from .agents.base import PROVIDER
     job_id = uuid.uuid4().hex[:12]
     queue: asyncio.Queue = asyncio.Queue()
@@ -153,7 +155,7 @@ async def analyze(req: AnalyzeRequest):
         try:
             report = await run_pipeline(
                 req.name, req.location, req.docs, on_status=status, trace=trace,
-                gap_gate=gate,
+                gap_gate=gate, user=x_hax_user,
             )
             path = STORE / f"{job_id}.json"
             path.write_text(report.model_dump_json(indent=2), encoding="utf-8")
@@ -352,6 +354,7 @@ async def portfolio():
     pairs.sort(key=lambda t: t[1].readiness)
     return [
         {"id": pid, "project": r.project, "location": r.location, "readiness": r.readiness,
-         "decision": r.decision, "dimensions": [d.model_dump() for d in r.dimensions]}
+         "decision": r.decision, "user": r.user,
+         "dimensions": [d.model_dump() for d in r.dimensions]}
         for pid, r in pairs
     ]
