@@ -49,6 +49,28 @@ const MAP_CURSOR = `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2
 const CA_CENTER: [number, number] = [-119.4, 37.2];
 const CA_ZOOM = 5.2;
 
+// Nominatim geocoder (jsonv2, US-only, no key) — the statewide text-search
+// path: geocode the query to a point, then identify the parcel there.
+const NOMINATIM = "https://nominatim.openstreetmap.org/search";
+
+interface GeocodeHit {
+  lat: string;
+  lon: string;
+  display_name?: string;
+}
+
+async function geocodePlace(text: string): Promise<GeocodeHit | null> {
+  // CA-biased and bounded: this viewer's parcel data is California-only, so a
+  // geocode outside the state can never identify a parcel.
+  const res = await fetch(
+    `${NOMINATIM}?format=jsonv2&q=${encodeURIComponent(text)}&countrycodes=us&viewbox=-124.4,42.0,-114.1,32.5&bounded=1&limit=1`,
+    { headers: { accept: "application/json" } },
+  );
+  if (!res.ok) throw new Error(`geocoder ${res.status}`);
+  const rows = (await res.json()) as GeocodeHit[];
+  return rows[0] ?? null;
+}
+
 // Approximate geographic centers for all 58 CA counties — fly-to targets.
 const COUNTY_CENTERS: Record<string, [number, number]> = {
   Alameda: [-121.9, 37.65],
@@ -320,6 +342,9 @@ export default function ParcelViewer() {
 
   const pickSuggestion = useCallback(
     (p: ParcelResult) => {
+      // A pick supersedes any in-flight map click and pending typeahead fetch.
+      requestRef.current++;
+      suggestSeqRef.current++;
       applySearchResult(p, p.apn ?? p.address ?? searchText.trim());
       setSuggestOpen(false);
       setSuggestions(null);
@@ -330,6 +355,8 @@ export default function ParcelViewer() {
   const handleSearch = useCallback(async () => {
     const text = searchText.trim();
     if (!text) return;
+    // Submitting cancels any pending debounced typeahead fetch.
+    suggestSeqRef.current++;
     // If the dropdown is open with results, Enter picks the active option.
     if (suggestOpen && suggestions && suggestions.length > 0) {
       pickSuggestion(suggestions[Math.min(activeOption, suggestions.length - 1)]);
@@ -338,10 +365,39 @@ export default function ParcelViewer() {
     const req = ++requestRef.current;
     setSearchNote(null);
     if (!countySearchSupported) {
-      setPanel({ status: "empty" });
-      setSearchNote(
-        "Text search needs a live county — the statewide mosaic has no attribute search. Pick a Live or Partial county above.",
-      );
+      // The statewide mosaic has no attribute search — geocode the text to a
+      // point, fly there, and identify the parcel at that point instead.
+      setPanel({ status: "loading", county: selectedCounty });
+      try {
+        const hit = await geocodePlace(text);
+        if (req !== requestRef.current) return;
+        if (!hit) {
+          setPanel({ status: "empty" });
+          setSearchNote(
+            `No place matched “${text}” — try an address or city, or pick a Live county for APN search.`,
+          );
+          return;
+        }
+        const lng = parseFloat(hit.lon);
+        const lat = parseFloat(hit.lat);
+        const result = await queryParcelAtPoint(STATEWIDE_COUNTY_NAME, lng, lat);
+        // Fly only after the second stale-guard — a superseded request must
+        // not move the map either.
+        if (req !== requestRef.current) return;
+        mapRef.current?.flyTo({ center: [lng, lat], zoom: 16, duration: 1200 });
+        if (!result) {
+          setPanel({ status: "empty" });
+          setSearchNote(
+            `No parcel at “${hit.display_name ?? text}” in the statewide mosaic — try zooming in and clicking the parcel.`,
+          );
+          return;
+        }
+        applySearchResult(result, text);
+      } catch {
+        if (req !== requestRef.current) return;
+        setPanel({ status: "error" });
+        setSearchNote("Place search failed — check the connection and try again.");
+      }
       return;
     }
     setPanel({ status: "loading", county: selectedCounty });
@@ -547,8 +603,9 @@ export default function ParcelViewer() {
               )}
               {!suggestLoading && !countySearchSupported && (
                 <li className="px-3 py-2.5 text-xs leading-snug text-faint">
-                  Text search needs a live county — pick a Live or Partial
-                  county above.
+                  Statewide mode — press Enter to fly to a place and identify
+                  its parcel. For APN/address text search, pick a Live county
+                  above.
                 </li>
               )}
               {!suggestLoading &&
