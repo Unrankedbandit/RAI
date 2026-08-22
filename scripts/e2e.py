@@ -16,8 +16,8 @@ import sys
 import urllib.request
 import urllib.error
 
-BACKEND = "http://localhost:8000"
-FRONTEND = "http://localhost:3000"
+BACKEND = os.environ.get("E2E_BACKEND", "http://localhost:8000")
+FRONTEND = os.environ.get("E2E_FRONTEND", "http://localhost:3000")
 
 passed, failed = [], []
 
