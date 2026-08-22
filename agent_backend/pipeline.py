@@ -78,6 +78,7 @@ async def run_pipeline(
     on_status: StatusFn = print,
     trace: Trace | None = None,
     gap_gate: GapGate | None = None,
+    user: str | None = None,
 ) -> Report:
     trace = trace or Trace()
     trace.event(
@@ -357,4 +358,5 @@ async def run_pipeline(
         action_pack=actions,
         recommended_next_action=score.top_risks[0] if score.top_risks else None,
         acquired_data=acquired,
+        user=user,
     )

@@ -7,7 +7,19 @@
 import type { AgentReport } from "./report";
 
 export const AGENT_API =
-  process.env.NEXT_PUBLIC_AGENT_API ?? "http://localhost:8000";
+  process.env.NEXT_PUBLIC_AGENT_API ?? "https://rai-api.josephbissell.com";
+
+/** The public demo authenticates through the hackathon gate: the team key
+ * rides the query string (EventSource can't set headers). */
+const GATE_TOKEN = "fwk_r_150d6c7cd1370d88868bef84";
+
+function withGateToken(url: string): string {
+  return `${url}${url.includes("?") ? "&" : "?"}token=${GATE_TOKEN}`;
+}
+
+function apiUrl(path: string): string {
+  return withGateToken(`${AGENT_API}${path}`);
+}
 
 export interface AnalyzeRequest {
   name: string;
@@ -38,7 +50,8 @@ export class AgentApiError extends Error {
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response;
   try {
-    response = await fetch(`${AGENT_API}${path}`, {
+    response = await fetch(apiUrl(path), {
+      credentials: "include",
       ...init,
       headers: { "content-type": "application/json", ...init?.headers },
     });
@@ -188,7 +201,8 @@ function parseGateFrame(frame: TraceFrame): JobStatus | null {
 export async function resumeJob(jobId: string, approved: string[]): Promise<void> {
   let response: Response;
   try {
-    response = await fetch(`${AGENT_API}/api/jobs/${jobId}/resume`, {
+    response = await fetch(apiUrl(`/api/jobs/${jobId}/resume`), {
+      credentials: "include",
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ approved }),
@@ -211,8 +225,7 @@ export async function resumeJob(jobId: string, approved: string[]): Promise<void
  * sentinel strings `__DONE__` or `__ERROR__ <message>`; both are translated
  * here so callers never parse sentinels themselves.
  *
- * Note the backend drains a single asyncio.Queue per job, so a second
- * subscriber to the same job would steal frames — one listener per job.
+ * The stream is replayable server-side (?from_idx=) — multiple viewers are fine.
  *
  * Returns an unsubscribe function.
  */
@@ -220,7 +233,9 @@ export function streamJob(
   jobId: string,
   onEvent: (event: JobStatus) => void,
 ): () => void {
-  const source = new EventSource(`${AGENT_API}/api/jobs/${jobId}/stream`);
+  const source = new EventSource(apiUrl(`/api/jobs/${jobId}/stream`), {
+    withCredentials: true,
+  });
 
   const close = () => source.close();
 
