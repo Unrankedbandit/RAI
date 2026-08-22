@@ -17,18 +17,18 @@ export function ReportsTab() {
   const [exportOpen, setExportOpen] = useState(false);
 
   const btnPill =
-    "rounded-full border border-hairline bg-canvas px-[15px] py-2 text-[12.5px] font-medium text-muted cursor-pointer";
+    "rounded-full border border-hairline bg-canvas px-[15px] py-2 text-sm font-medium text-muted cursor-pointer";
 
   return (
     <div className="max-w-[820px] rounded-[11px] border border-hairline bg-canvas p-[26px_28px] shadow-card">
       {/* Report header */}
       <div className="mb-[18px] flex items-start justify-between border-b border-hairline pb-[18px]">
         <div>
-          <div className="mb-[9px] inline-block rounded-full border border-hairline bg-surface-2 px-[11px] py-1 text-[10.5px] font-semibold text-muted">
+          <div className="mb-[9px] inline-block rounded-full border border-hairline bg-surface-2 px-[11px] py-1 text-[12.5px] font-semibold text-muted">
             {report.badge}
           </div>
           <div className="mb-1 text-[18px] font-semibold text-ink">{report.title}</div>
-          <div className="text-[12px] text-faint">{report.preparedBy}</div>
+          <div className="text-[12.5px] text-faint">{report.preparedBy}</div>
         </div>
 
         <div className="relative flex shrink-0 gap-2">
@@ -52,10 +52,10 @@ export function ReportsTab() {
                 transition={{ duration: 0.15 }}
                 className="absolute right-0 top-[42px] z-20 w-[300px] rounded-[5px] border border-hairline bg-canvas p-4 shadow-pop"
               >
-                <div className="mb-1.5 text-[12.5px] font-semibold text-ink">
+                <div className="mb-1.5 text-sm font-semibold text-ink">
                   Export this memo?
                 </div>
-                <div className="mb-3 text-[11.5px] leading-[1.55] text-muted">
+                <div className="mb-3 text-[12.5px] leading-[1.55] text-muted">
                   Generates a PDF snapshot of the current findings and scores. This is a
                   draft — it won&apos;t be sent to anyone, only saved for you to share
                   manually.
@@ -67,14 +67,14 @@ export function ReportsTab() {
                   <button
                     type="button"
                     onClick={() => setExportOpen(false)}
-                    className="flex-1 cursor-pointer rounded-[1px] border border-hairline bg-canvas p-2 text-[12px] text-ink"
+                    className="flex-1 cursor-pointer rounded-[1px] border border-hairline bg-canvas p-2 text-[12.5px] text-ink"
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
                     onClick={() => setExportOpen(false)}
-                    className="flex-1 cursor-pointer rounded-[1px] border border-ink bg-ink p-2 text-[12px] text-white"
+                    className="flex-1 cursor-pointer rounded-[1px] border border-oxford bg-oxford p-2 text-[12.5px] text-white"
                   >
                     Export
                   </button>
@@ -87,15 +87,15 @@ export function ReportsTab() {
 
       {/* Executive summary */}
       <div className="mb-[22px]">
-        <div className="mb-[10px] text-[11px] font-semibold text-faint">
+        <div className="mb-[10px] text-[12.5px] font-semibold text-faint">
           Executive summary
         </div>
-        <div className="text-[13px] leading-[1.65] text-muted">{report.summary}</div>
+        <div className="text-sm leading-[1.65] text-muted">{report.summary}</div>
       </div>
 
       {/* Scores by component */}
       <div className="mb-[22px]">
-        <div className="mb-[10px] text-[11px] font-semibold text-faint">
+        <div className="mb-[10px] text-[12.5px] font-semibold text-faint">
           Scores by component
         </div>
         <div className="grid grid-cols-5 gap-2">
@@ -104,14 +104,14 @@ export function ReportsTab() {
               key={p.name}
               className="rounded-[1px] border border-hairline p-[10px] text-center"
             >
-              <div className="mb-1 text-[11px] font-semibold text-ink">{p.name}</div>
+              <div className="mb-1 text-[12.5px] font-semibold text-ink">{p.name}</div>
               <div
                 className="mb-[3px] text-[16px] font-semibold"
                 style={{ color: bandColorVar[p.band] }}
               >
                 {p.score}
               </div>
-              <div className="text-[10px] text-faint">{p.statusText}</div>
+              <div className="text-xs text-faint">{p.statusText}</div>
             </div>
           ))}
         </div>
@@ -119,26 +119,26 @@ export function ReportsTab() {
 
       {/* Key findings */}
       <div className="mb-[22px]">
-        <div className="mb-[10px] text-[11px] font-semibold text-faint">Key findings</div>
+        <div className="mb-[10px] text-[12.5px] font-semibold text-faint">Key findings</div>
         {report.findings.map((finding, i) => (
           <div
             key={finding.title}
             className={`pb-[10px] ${i === 0 ? "" : "border-t border-hairline pt-[10px]"}`}
           >
-            <div className="mb-[3px] text-[12.5px] font-semibold text-ink">
+            <div className="mb-[3px] text-sm font-semibold text-ink">
               {finding.title}
             </div>
-            <div className="text-[12px] leading-[1.55] text-muted">{finding.text}</div>
+            <div className="text-[12.5px] leading-[1.55] text-muted">{finding.text}</div>
           </div>
         ))}
       </div>
 
       {/* Recommended next actions */}
       <div className="mb-[22px]">
-        <div className="mb-[10px] text-[11px] font-semibold text-faint">
+        <div className="mb-[10px] text-[12.5px] font-semibold text-faint">
           Recommended next actions
         </div>
-        <ol className="list-decimal pl-[18px] text-[12.5px] leading-[1.85] text-muted">
+        <ol className="list-decimal pl-[18px] text-sm leading-[1.85] text-muted">
           {report.recommendedActions.map((action) => {
             const dash = action.indexOf("—");
             return (
@@ -159,8 +159,8 @@ export function ReportsTab() {
 
       {/* Source basis */}
       <div>
-        <div className="mb-[10px] text-[11px] font-semibold text-faint">Source basis</div>
-        <div className="text-[11.5px] leading-[1.65] text-faint">{report.sourceBasis}</div>
+        <div className="mb-[10px] text-[12.5px] font-semibold text-faint">Source basis</div>
+        <div className="text-[12.5px] leading-[1.65] text-faint">{report.sourceBasis}</div>
       </div>
     </div>
   );

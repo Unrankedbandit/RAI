@@ -117,6 +117,10 @@ async def _openai_chat(messages: list[dict], role_prompt: str, tools: dict) -> d
         except httpx.HTTPStatusError as e:
             last = e
             code = e.response.status_code
+            # The bridge's body says WHY (invalid key vs unknown model vs
+            # gateway timeout) — a bare "401"/"404" in the narration has
+            # sent people hunting in the wrong layer twice already.
+            e.add_note(f"bridge body: {e.response.text[:400]}")
             # 429 = rate limit, 403 = Cloudflare ban, 5xx/524 = gateway timeout.
             # 400 is retried too — this bridge intermittently 400s on valid
             # requests (observed on the same payload that succeeds on retry),
@@ -153,6 +157,7 @@ class Agent:
         tools: dict[str, ToolFn] | None = None,
         on_status: Callable[[str], None] | None = None,
         trace: "Trace | None" = None,
+        max_steps: int | None = None,
     ):
         self.name = name
         self.role_prompt = role_prompt
@@ -160,6 +165,10 @@ class Agent:
         self.tools = tools or {}
         self.on_status = on_status or (lambda msg: None)
         self.trace = (trace or Trace()).bind(agent=name)
+        # Per-agent override of the loop budget: the fast-lane consolidated
+        # researcher covers ~10 diligence components and the module default
+        # (8) truncates it mid-coverage.
+        self.max_steps = max_steps or MAX_STEPS
 
     def _tool_specs(self) -> list[dict]:
         return [
@@ -187,7 +196,7 @@ class Agent:
 
         approx_chars = sum(len(str(m.get("content") or "")) for m in messages)
         with self.trace.span(
-            "llm", f"step {step}/{MAX_STEPS} → {LLM_MODEL}",
+            "llm", f"step {step}/{self.max_steps} → {LLM_MODEL}",
             messages=len(messages), promptChars=approx_chars, effort=EFFORT,
         ) as sp:
             try:
@@ -214,18 +223,37 @@ class Agent:
         """Same loop over an OpenAI-compatible endpoint (message format differs:
         system rides as a message, tool results are role=tool messages)."""
         self.on_status(f"[{self.name}] starting ({LLM_OPENAI_MODEL})")
+        ctx = json.dumps(context or {}, default=str)
+        if len(ctx) > 9000:
+            # Same trap as the anthropic path's tool.truncated: silent
+            # truncation hides why an agent "ignored" input it never saw.
+            self.trace.warn(
+                "context.truncated",
+                f"initial context is {len(ctx)} chars, truncated to 9000",
+            )
         messages: list[dict[str, Any]] = [
             {
                 "role": "user",
                 "content": (
-                    f"{task}\n\nContext:\n{json.dumps(context or {}, default=str)[:9000]}\n\n"
+                    f"{task}\n\nContext:\n{ctx[:9000]}\n\n"
                     f"Use tools if you need more information. When done, reply with ONLY JSON "
                     f"matching this schema:\n{json.dumps(self.contract.model_json_schema())}"
                 ),
             },
         ]
-        for _ in range(MAX_STEPS):
-            msg = await _openai_chat(messages, self.role_prompt, self.tools)
+        for _ in range(self.max_steps):
+            try:
+                msg = await _openai_chat(messages, self.role_prompt, self.tools)
+            except Exception as e:
+                # First tracing on this provider path: an auth/config failure
+                # here previously surfaced only as a truncated "degraded" line.
+                import httpx
+                if isinstance(e, httpx.HTTPStatusError):
+                    self.trace.error(
+                        "llm.http", f"{e.response.status_code} from the bridge",
+                        body=e.response.text[:600],
+                    )
+                raise
             tool_calls = msg.get("tool_calls") or []
 
             if not tool_calls:
@@ -255,10 +283,18 @@ class Agent:
                     )
                 except Exception as e:  # tool failures are observations, not crashes
                     output = f"tool error: {e}"
+                rendered = str(output)
+                if len(rendered) > 8000:
+                    # Mirror the anthropic path: silent truncation hides why an
+                    # agent "ignored" a document it was given.
+                    self.trace.warn(
+                        "tool.truncated",
+                        f"{fn_name} returned {len(rendered)} chars, truncated to 8000",
+                    )
                 messages.append({
                     "role": "tool",
                     "tool_call_id": call["id"],
-                    "content": str(output)[:8000],
+                    "content": rendered[:8000],
                 })
 
         raise AgentDidNotConverge(self.name)
@@ -285,9 +321,9 @@ class Agent:
         retries = 0
         with self.trace.span(
             "agent", f"{self.name} → {self.contract.__name__}",
-            tools=sorted(self.tools), maxSteps=MAX_STEPS,
+            tools=sorted(self.tools), maxSteps=self.max_steps,
         ) as agent_span:
-            for step in range(1, MAX_STEPS + 1):
+            for step in range(1, self.max_steps + 1):
                 response = await self._chat(messages, step)
 
                 if response.stop_reason == "refusal":
@@ -345,9 +381,6 @@ class Agent:
 
                     with self.trace.span("tool", f"{call.name}", args=args) as ts:
                         if call.name not in self.tools:
-                            # Not an exception — the model hallucinated a tool.
-                            # Worth flagging: it usually means the whitelist and
-                            # the role prompt disagree.
                             self.trace.warn(
                                 "tool.unknown",
                                 f"{self.name} called {call.name!r}, not in its whitelist",
@@ -357,14 +390,10 @@ class Agent:
                             ts["ok"] = False
                         else:
                             try:
-                                # Tools are synchronous and some are slow — a
-                                # scrape or fetch takes seconds. Calling them
-                                # inline would block the event loop and stall
-                                # every other agent in the same gather.
                                 output = await asyncio.to_thread(self.tools[call.name], **args)
                                 is_error = False
                                 ts["ok"] = True
-                            except Exception as e:  # tool failures are observations, not crashes
+                            except Exception as e:
                                 output, is_error = f"tool error: {e}", True
                                 ts["ok"] = False
                                 ts["error"] = str(e)[:300]
@@ -373,8 +402,6 @@ class Agent:
                         rendered = str(output)
                         ts["resultChars"] = len(rendered)
                         if len(rendered) > 8000:
-                            # Silent truncation hides why an agent "ignored" a
-                            # document it was given.
                             ts["truncated"] = True
                             self.trace.warn(
                                 "tool.truncated",
@@ -388,18 +415,16 @@ class Agent:
                         "is_error": is_error,
                     })
 
-                # Every tool_result for a turn goes back in ONE user message —
-                # splitting them trains the model out of parallel tool calls.
                 messages.append({"role": "user", "content": results})
 
-            agent_span["steps"] = MAX_STEPS
+            agent_span["steps"] = self.max_steps
             agent_span["retries"] = retries
             self.trace.error(
                 "agent.no_converge",
-                f"{self.name} exhausted {MAX_STEPS} steps without producing valid "
+                f"{self.name} exhausted {self.max_steps} steps without producing valid "
                 f"{self.contract.__name__} ({retries} schema retries)",
             )
             raise AgentDidNotConverge(
-                f"{self.name} did not converge in {MAX_STEPS} steps "
+                f"{self.name} did not converge in {self.max_steps} steps "
                 f"({retries} invalid-output retries) for contract {self.contract.__name__}"
             )

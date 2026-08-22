@@ -233,3 +233,64 @@ export type RiskFactorDefinition = {
   name: PillarName;
   definition: string;
 };
+
+/* ---------- Findings (cross-project contradiction ledger) ---------- */
+/* Findings are a NEW data model — distinct from Factor, which is per-pillar */
+/* and per-project. Status/severity colors resolve through lib/findings.ts,  */
+/* never inline in components.                                               */
+
+/** Workflow state of a finding — drives the status lozenge. */
+export type FindingStatus = "Open" | "In review" | "Resolved" | "Blocked";
+
+/** Triage severity — drives the flag color. */
+export type FindingSeverity = "High" | "Medium" | "Low";
+
+/** One side of an evidence pair: the value asserted and where. */
+export type FindingEvidenceSide = {
+  /** The exact claim value, e.g. "$186.0M". */
+  value: string;
+  /** Source label, e.g. "financial_model_v3.xlsx · Sheet 2" or "ISO public queue". */
+  source: string;
+  /** Optional excerpt text — the value is mark-highlighted inside it. */
+  excerpt?: string;
+};
+
+/** A finding's activity-log line — the audit trail in miniature. */
+export type FindingActivity = {
+  /** "RAI" for system events, otherwise owner initials. */
+  actor: string;
+  text: string;
+  timestamp: string;
+};
+
+/** A relation edge to another finding (clickable card on the detail page). */
+export type LinkedFinding = {
+  findingId: string;
+  relation: "Caused by" | "Blocks";
+  title: string;
+  status: FindingStatus;
+};
+
+export type Finding = {
+  /** Human-facing key, e.g. "F-1042". */
+  id: string;
+  /** Project id, e.g. "project-alpha". */
+  projectId: string;
+  title: string;
+  /** The colliding workstreams, e.g. "Finance × Materials". */
+  workstream: string;
+  severity: FindingSeverity;
+  status: FindingStatus;
+  detectedAt: string;
+  /** Relative label shown in the queue, e.g. "2h ago". */
+  updatedAt: string;
+  ownerInitials: string[];
+  /** One line — the table/preview subtext, instead of just a status pill. */
+  resolutionSummary: string;
+  whyItMatters: string;
+  recommendedAction: string;
+  /** Present only for contradictions; gap findings have no pair. */
+  evidence?: { left: FindingEvidenceSide; right: FindingEvidenceSide };
+  linkedFindings?: LinkedFinding[];
+  activity: FindingActivity[];
+};

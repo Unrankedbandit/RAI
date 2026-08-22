@@ -1,4 +1,7 @@
-import { bandColorVar } from "@/lib/band";
+"use client";
+
+import { motion } from "framer-motion";
+import { bandColorVar, bandTextClass } from "@/lib/band";
 import type { Project, RiskBand } from "@/lib/types";
 
 type Summary = {
@@ -23,9 +26,17 @@ function namesFor(projects: Project[], status: Project["status"]): string {
 }
 
 /**
+ * Shared card chrome: hairline border that deepens on hover with a subtle
+ * 1px lift. Motion (fade/slide-up) is layered on via framer-motion.
+ */
+const cardChrome =
+  "rounded-[5px] border border-hairline bg-canvas px-4 py-[14px] shadow-card transition hover:-translate-y-px hover:border-hairline";
+
+/**
  * Portfolio stat row: a portfolio-activation ring card followed by three
  * count cards (on track / needs review / at risk). The ring arc and the count
- * values all resolve their colour through the band system.
+ * values all resolve their colour through the band system. Cards fade/slide
+ * in on mount with a ~60ms stagger.
  */
 export function PortfolioSummary({
   summary,
@@ -42,21 +53,24 @@ export function PortfolioSummary({
         count={summary.count}
       />
       <CountCard
+        index={1}
         label="On track"
         value={summary.onTrack}
-        valueClass="text-strong-ink"
+        band="strong"
         sub={namesFor(projects, "on-track")}
       />
       <CountCard
+        index={2}
         label="Needs review"
         value={summary.needsReview}
-        valueClass="text-watch-ink"
+        band="watch"
         sub={namesFor(projects, "needs-review")}
       />
       <CountCard
+        index={3}
         label="At risk"
         value={summary.atRisk}
-        valueClass="text-risk-ink"
+        band="risk"
         sub={namesFor(projects, "at-risk")}
       />
     </div>
@@ -72,36 +86,57 @@ function RingCard({
   band: RiskBand;
   count: number;
 }) {
-  const r = 27;
+  const size = 64;
+  const stroke = 7;
+  const center = size / 2;
+  const r = (size - stroke) / 2;
   const circumference = 2 * Math.PI * r;
   const offset = circumference * (1 - score / 100);
 
   return (
-    <div className="flex items-center gap-3.5 rounded-[5px] border border-hairline bg-white px-4 py-[14px] shadow-card">
-      <svg width="58" height="58" viewBox="0 0 66 66" className="shrink-0">
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className={`flex items-center gap-3.5 ${cardChrome}`}
+    >
+      <svg
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
+        className="shrink-0"
+      >
         <circle
-          cx="33"
-          cy="33"
+          cx={center}
+          cy={center}
           r={r}
           fill="none"
           stroke="var(--color-hairline)"
-          strokeWidth="7"
+          strokeWidth={stroke}
         />
-        <circle
-          cx="33"
-          cy="33"
+        <motion.circle
+          cx={center}
+          cy={center}
           r={r}
           fill="none"
           stroke={bandColorVar[band]}
-          strokeWidth="7"
+          strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          transform="rotate(-90 33 33)"
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset: offset }}
+          transition={{ duration: 0.9, ease: "easeOut", delay: 0.15 }}
+          transform={`rotate(-90 ${center} ${center})`}
+        />
+        <circle
+          cx={center}
+          cy={center}
+          r={r - stroke / 2 - 2}
+          fill="var(--color-surface-2)"
         />
         <text
-          x="33"
-          y="38"
+          x={center}
+          y={center + 5}
           textAnchor="middle"
           fontSize="15"
           fontWeight="600"
@@ -110,36 +145,56 @@ function RingCard({
           {score}
         </text>
       </svg>
-      <div>
-        <div className="mb-1.5 text-[11px] font-medium text-faint">
+      <div className="min-w-0">
+        <div className="mb-1.5 text-xs font-medium uppercase tracking-wide text-faint">
           Portfolio activation
         </div>
-        <div className="text-[11px] text-muted">
+        <div className="text-[12.5px] text-muted">
           Average across {count} projects
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
 function CountCard({
+  index,
   label,
   value,
-  valueClass,
+  band,
   sub,
 }: {
+  index: number;
   label: string;
   value: number;
-  valueClass: string;
+  band: RiskBand;
   sub: string;
 }) {
   return (
-    <div className="rounded-[5px] border border-hairline bg-white px-4 py-[14px] shadow-card">
-      <div className="mb-1.5 text-[11px] font-medium text-faint">{label}</div>
-      <div className={`text-[22px] font-semibold leading-none ${valueClass}`}>
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: "easeOut", delay: index * 0.06 }}
+      className={cardChrome}
+    >
+      <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-faint">
+        <span
+          className="inline-block h-[7px] w-[7px] flex-none rounded-full"
+          style={{ backgroundColor: bandColorVar[band] }}
+        />
+        {label}
+      </div>
+      <div
+        className={`text-2xl font-semibold leading-none ${bandTextClass[band]}`}
+      >
         {value}
       </div>
-      <div className="mt-[3px] text-[11px] text-muted">{sub}</div>
-    </div>
+      <div
+        className="mt-[3px] truncate text-[12.5px] text-muted"
+        title={sub || undefined}
+      >
+        {sub || "—"}
+      </div>
+    </motion.div>
   );
 }

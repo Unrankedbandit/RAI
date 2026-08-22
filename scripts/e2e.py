@@ -84,7 +84,10 @@ except Exception as e:
 
 if job_id:
     try:
-        with urllib.request.urlopen(f"{BACKEND}/api/jobs/{job_id}/stream", timeout=90) as resp:
+        # Read timeout must exceed the quietest inter-phase gap: agents narrate
+        # per tool call, but one slow bridge turn can sit silent for minutes
+        # (a Liaison phase was observed at ~4.5 min between statuses).
+        with urllib.request.urlopen(f"{BACKEND}/api/jobs/{job_id}/stream", timeout=300) as resp:
             for raw in resp:
                 line = raw.decode("utf-8", "replace").strip()
                 if not line.startswith("data: "):
@@ -101,6 +104,22 @@ if job_id:
                 if frames > 50:
                     break
         ok("SSE narration frames flow", frames >= 1, f"{frames} frames")
+        # With a real model key the run takes minutes, not seconds: keep
+        # watching the trace endpoint until the job lands in a terminal state.
+        if terminal is None and (os.getenv("LLM_API_KEY") or os.getenv("ANTHROPIC_API_KEY")):
+            import time
+            deadline = time.time() + 720
+            while time.time() < deadline and terminal is None:
+                time.sleep(15)
+                try:
+                    events = json.loads(get(f"{BACKEND}/api/jobs/{job_id}/trace").read())["events"]
+                    for ev in events:
+                        if ev.get("type") == "job.done":
+                            terminal = "__DONE__"
+                        elif ev.get("type") == "job.failed":
+                            terminal = f"__ERROR__ {ev.get('message', '')}"
+                except Exception:
+                    pass
         ok("SSE reaches terminal state", terminal is not None, "no sentinel")
         if terminal and terminal.startswith("__ERROR__"):
             auth = "authentication" in terminal or "api_key" in terminal.lower() or "ANTHROPIC" in terminal
@@ -127,6 +146,18 @@ try:
         print("     probe file cleaned up")
 except Exception:
     pass
+
+# cleanup the report this run persisted, or the sentinel freshness gate trips
+# on the extra file in agent_backend/reports/
+if job_id:
+    try:
+        report_file = os.path.join(os.path.dirname(__file__), "..", "agent_backend",
+                                   "reports", f"{job_id}.json")
+        if os.path.exists(report_file):
+            os.remove(report_file)
+            print("     e2e report cleaned up")
+    except Exception:
+        pass
 
 # 5. Frontend serves the app shell (skipped when no Next dev server runs, e.g. CI)
 if os.getenv("E2E_SKIP_FRONTEND"):

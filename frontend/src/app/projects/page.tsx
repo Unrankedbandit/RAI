@@ -3,29 +3,41 @@ import { PortfolioSummary } from "@/components/portfolio/PortfolioSummary";
 import { NewProjectDropbox } from "@/components/portfolio/NewProjectDropbox";
 import { ProjectList } from "@/components/portfolio/ProjectList";
 import { PortfolioMap } from "@/components/portfolio/PortfolioMap";
+import { Button } from "@/components/ui/Button";
+import { bandColorVar } from "@/lib/band";
 import { projects, portfolioSummary, riskFactorDefinitions } from "@/lib/mockData";
 
 export default function ProjectsPage() {
   const summary = portfolioSummary();
 
   return (
-    <PortfolioShell maxWidth={1100} wideWidth={1500}>
+    <PortfolioShell>
       {/* head-row */}
       <div className="mb-5 flex flex-wrap items-start justify-between gap-2.5">
         <div>
-          <div className="mb-1 text-[22px] font-semibold text-ink">
+          <div className="mb-1 text-2xl font-semibold text-ink">
             Current projects
           </div>
-          <div className="text-[13.5px] text-muted">
-            {summary.count} active projects · flagged before the 2030 ITC deadline
+          <div className="flex items-center gap-2 text-[15px] text-muted">
+            <span className="relative flex h-[7px] w-[7px] flex-none">
+              <span
+                className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-60"
+                style={{ backgroundColor: bandColorVar[summary.avgBand] }}
+              />
+              <span
+                className="relative inline-flex h-[7px] w-[7px] rounded-full"
+                style={{ backgroundColor: bandColorVar[summary.avgBand] }}
+              />
+            </span>
+            <span>
+              <span className="font-semibold text-ink">{summary.count}</span>{" "}
+              active projects · flagged before the 2030 ITC deadline
+            </span>
           </div>
         </div>
-        <button
-          type="button"
-          className="rounded-full border border-hairline bg-canvas px-4 py-2 text-[12.5px] font-medium text-muted hover:text-ink"
-        >
+        <Button variant="secondary" className="border border-hairline">
           Export report
-        </button>
+        </Button>
       </div>
 
       {/* dropzone */}

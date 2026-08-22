@@ -119,7 +119,7 @@ export function AskRail({
         className="flex h-full w-11 flex-none cursor-pointer items-center justify-center border-l border-hairline bg-canvas"
         onClick={onToggle}
       >
-        <div className="flex rotate-180 items-center gap-[9px] text-[12.5px] font-semibold text-ink [writing-mode:vertical-rl]">
+        <div className="flex rotate-180 items-center gap-[9px] text-sm font-semibold text-ink [writing-mode:vertical-rl]">
           <span className="h-[7px] w-[7px] rounded-full bg-faint" />
           Ask Questions
         </div>
@@ -139,12 +139,12 @@ export function AskRail({
           <button
             type="button"
             onClick={onToggle}
-            className="rounded-full border border-hairline px-[9px] py-1 text-[10.5px] text-faint hover:text-ink"
+            className="rounded-full border border-hairline px-[9px] py-1 text-[12.5px] text-faint hover:text-ink"
           >
             Collapse
           </button>
         </div>
-        <div className="ml-4 mt-[3px] text-[11.5px] text-faint">
+        <div className="ml-4 mt-[3px] text-[12.5px] text-faint">
           Grounded in this project&apos;s findings
         </div>
       </div>
@@ -153,7 +153,7 @@ export function AskRail({
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-[18px]">
         {/* Top recommendations */}
         <div className="mb-1 flex-none border-b border-hairline pb-[14px]">
-          <div className="mb-3 text-[12.5px] leading-[1.5] text-ink">
+          <div className="mb-3 text-sm leading-[1.5] text-ink">
             Two actions would have the highest impact on {project.name}&apos;s
             Activation Score:
           </div>
@@ -164,24 +164,24 @@ export function AskRail({
               className="border-t border-hairline py-[11px] first:border-t-0 first:pt-0"
             >
               <div className="mb-[5px] flex items-start justify-between gap-[10px]">
-                <div className="text-[12.5px] font-medium leading-[1.4] text-ink">
+                <div className="text-sm font-medium leading-[1.4] text-ink">
                   <span className="font-normal text-faint">{action.rank}.</span>{" "}
                   {action.title}
                 </div>
-                <span className="flex-none rounded-full bg-strong-soft px-[10px] py-[3px] text-[11.5px] font-semibold text-strong-ink">
+                <span className="flex-none rounded-full bg-strong-soft px-[10px] py-[3px] text-[12.5px] font-semibold text-strong-ink">
                   +{action.scoreDelta}
                 </span>
               </div>
               <a
                 href="#"
-                className="text-[11px] text-muted underline underline-offset-2 hover:text-ink"
+                className="text-[12.5px] text-muted underline underline-offset-2 hover:text-ink"
               >
                 View supporting evidence
               </a>
             </div>
           ))}
 
-          <div className="mt-1 border-t border-hairline pt-3 text-[12px] leading-[1.5] text-muted">
+          <div className="mt-1 border-t border-hairline pt-3 text-[12.5px] leading-[1.5] text-muted">
             Projected Activation Score after mitigation:{" "}
             <strong className="font-semibold text-ink">
               {projectedScoreAfterMitigation} / 100
@@ -200,13 +200,13 @@ export function AskRail({
           {messages.map((msg, i) =>
             msg.role === "user" ? (
               <div key={i} className="my-[10px] flex justify-end">
-                <div className="max-w-[82%] rounded-[7px_7px_0_7px] bg-oxford px-[13px] py-[9px] text-[12px] leading-[1.45] text-white">
+                <div className="max-w-[82%] rounded-[7px_7px_0_7px] bg-oxford px-[13px] py-[9px] text-[12.5px] leading-[1.45] text-white">
                   {msg.text}
                 </div>
               </div>
             ) : (
               <div key={i} className="mb-[10px] flex justify-start">
-                <div className="max-w-[92%] rounded-[7px_7px_7px_0] bg-surface-2 px-[13px] py-[10px] text-[12px] leading-[1.5] text-muted">
+                <div className="max-w-[92%] rounded-[7px_7px_7px_0] bg-surface-2 px-[13px] py-[10px] text-[12.5px] leading-[1.5] text-muted">
                   {msg.text}
                 </div>
               </div>
@@ -227,7 +227,7 @@ export function AskRail({
 
         {/* Bottom block: chips + input */}
         <div className="flex-none">
-          <div className="mb-2 text-[10.5px] font-medium text-faint">
+          <div className="mb-2 text-[12.5px] font-medium text-faint">
             Ask a question
           </div>
           <div className="flex flex-wrap gap-[6px]">
@@ -236,7 +236,7 @@ export function AskRail({
                 key={q.question}
                 type="button"
                 onClick={() => void ask(q.question)}
-                className="cursor-pointer rounded-full border border-hairline bg-surface-2 px-[10px] py-[6px] text-[10.5px] text-muted hover:border-oxford hover:text-ink"
+                className="cursor-pointer rounded-full border border-hairline bg-surface-2 px-[10px] py-[6px] text-[12.5px] text-muted hover:border-oxford hover:text-ink"
               >
                 {q.question}
               </button>
@@ -252,7 +252,7 @@ export function AskRail({
                 if (e.key === "Enter") submit();
               }}
               placeholder="Ask about this project..."
-              className="flex-1 border-none bg-transparent py-2 pl-3 pr-2.5 text-[12.5px] text-ink focus:outline-none"
+              className="flex-1 border-none bg-transparent py-2 pl-3 pr-2.5 text-sm text-ink focus:outline-none"
             />
             <button
               type="button"

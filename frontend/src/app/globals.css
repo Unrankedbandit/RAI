@@ -50,6 +50,56 @@
   --font-mono: var(--font-jetbrains);
 }
 
+/*
+  Dark theme — applied via <html data-theme="dark"> (set pre-paint by the
+  inline script in layout.tsx, switched by ui/ThemeToggle.tsx).
+  Same ink-hue family as the light palette: canvas is ink-tinted and
+  surface-2 sits slightly LIGHTER than canvas so cards read as raised.
+
+  --color-brand (#ff8400), --color-risk (#ff8400) and --color-oxford (#0b0829)
+  are deliberately NOT overridden: brand/flagged is the hue anchor in both
+  themes, and oxford stays the permanent high-contrast fill so
+  bg-oxford text-white buttons work unchanged in dark mode.
+
+  WCAG 2.1 contrast ratios (computed via relative luminance):
+    ink/canvas 15.23:1 · muted/canvas 7.89:1 · faint/canvas 5.31:1
+    ink/surface-2 14.02:1 · muted/surface-2 7.27:1 · faint/surface-2 4.89:1
+    strong-ink/strong-soft 6.23:1 · watch-ink/watch-soft 12.83:1
+    risk-ink/risk-soft 8.10:1 · vista/canvas (focus ring) 8.65:1
+    ink/select (::selection) 10.35:1
+*/
+:root[data-theme="dark"] {
+  color-scheme: dark; /* native scrollbars / form controls follow the theme */
+
+  /* Neutrals / structural */
+  --color-ink: #ece9f8; /* primary text */
+  --color-muted: #aaa8c4; /* secondary text */
+  --color-faint: #8a88a3; /* tertiary / muted labels — 4.5:1+ on canvas & surface-2 */
+  --color-hairline: #2b2944; /* subtle cool line, visible on canvas */
+  --color-canvas: #151327; /* ink-tinted main surface */
+  --color-surface-2: #1d1b31; /* raised card surface — lighter than canvas */
+
+  /* Brand / accents */
+  --color-brand-soft: #3a240e; /* dark orange tint (shared with risk-soft) */
+  --color-vista: #a3b1e6; /* lightened so the focus ring reads on dark */
+  --color-vista-soft: #20223a;
+  --color-select: #46301a; /* interactive selection fill — orange-tinted, never a border */
+
+  /* Status — grey / near-white / orange ONLY */
+  --color-strong: #a2a7b3; /* cleared / on-track (grey, not green) */
+  --color-strong-soft: #26262e;
+  --color-strong-ink: #a2a7b3;
+  --color-watch: #e9e9f0; /* watch flips to light — near-black is unreadable on dark */
+  --color-watch-soft: #232330;
+  --color-watch-ink: #e9e9f0;
+  --color-risk-soft: #3a240e;
+  --color-risk-ink: #ffb066; /* lightened orange — 8.1:1 on risk-soft */
+
+  /* Elevation — stronger black alpha so shadows stay visible on dark */
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 6px 14px rgba(0, 0, 0, 0.4);
+  --shadow-pop: 0 10px 24px rgba(0, 0, 0, 0.5), 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
 html,
 body {
   height: 100%;
@@ -88,4 +138,80 @@ h6 {
 ::selection {
   background: var(--color-select);
   color: var(--color-ink);
+}
+
+/* --------------------------------------------------------------------------
+   MapLibre popup overrides — portfolio map (PortfolioMapView.tsx).
+   Aligns maplibre's popup chrome with the RAI design system (11px radius,
+   hairline border, card shadow, Poppins) and styles the band-coloured
+   project markers, incl. the subtle pulse on selected / at-risk pins.
+   -------------------------------------------------------------------------- */
+.maplibregl-popup .maplibregl-popup-content {
+  min-width: 220px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-hairline);
+  border-radius: 11px;
+  background: var(--color-canvas);
+  box-shadow: var(--shadow-card);
+  color: var(--color-ink);
+  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.maplibregl-popup .maplibregl-popup-close-button {
+  padding: 4px 8px 0 0;
+  color: var(--color-faint);
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* Popup tip matches the card surface so it reads as part of the card. */
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
+  border-top-color: var(--color-canvas);
+}
+.maplibregl-popup-anchor-top .maplibregl-popup-tip {
+  border-bottom-color: var(--color-canvas);
+}
+.maplibregl-popup-anchor-left .maplibregl-popup-tip {
+  border-right-color: var(--color-canvas);
+}
+.maplibregl-popup-anchor-right .maplibregl-popup-tip {
+  border-left-color: var(--color-canvas);
+}
+
+/* Project marker dot — fill colour is set inline via bandColorVar[band]. */
+.rai-marker-dot {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #ffffff;
+  border-radius: 9999px;
+  box-shadow:
+    0 0 0 1px var(--color-hairline),
+    0 2px 6px rgba(11, 8, 41, 0.25);
+  cursor: pointer;
+}
+
+/* Subtle expanding ring on the selected / at-risk marker (neutral ink). */
+.rai-marker-pulse {
+  animation: rai-marker-pulse 2.2s ease-out infinite;
+}
+
+@keyframes rai-marker-pulse {
+  0% {
+    box-shadow:
+      0 0 0 1px var(--color-hairline),
+      0 2px 6px rgba(11, 8, 41, 0.25),
+      0 0 0 0 rgba(11, 8, 41, 0.35);
+  }
+  70% {
+    box-shadow:
+      0 0 0 1px var(--color-hairline),
+      0 2px 6px rgba(11, 8, 41, 0.25),
+      0 0 0 10px rgba(11, 8, 41, 0);
+  }
+  100% {
+    box-shadow:
+      0 0 0 1px var(--color-hairline),
+      0 2px 6px rgba(11, 8, 41, 0.25),
+      0 0 0 0 rgba(11, 8, 41, 0);
+  }
 }

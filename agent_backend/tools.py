@@ -75,6 +75,10 @@ def web_fetch(url: str) -> str:
     """Fetch and read a specific source document or regulation page."""
     import httpx
     r = httpx.get(url, timeout=30, follow_redirects=True)
+    if r.status_code >= 400:
+        # A 404 page stripped of tags reads like real content — the scout
+        # can't tell a dead link from a source. State the failure explicitly.
+        return f"FETCH FAILED: HTTP {r.status_code} for {url} — do not cite this URL; try another source or kb_lookup."
     text = re.sub(r"<[^>]+>", " ", r.text)
     return re.sub(r"\s+", " ", text)[:8000]
 

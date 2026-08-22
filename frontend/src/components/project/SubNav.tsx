@@ -28,7 +28,7 @@ export function SubNav({
             key={tab.id}
             onClick={() => onChange(tab.id)}
             className={clsx(
-              "whitespace-nowrap rounded-full px-4 py-2 text-[12.5px] font-medium transition-colors",
+              "whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-colors",
               isActive
                 ? "bg-canvas text-ink shadow-card"
                 : "text-muted hover:text-ink",
