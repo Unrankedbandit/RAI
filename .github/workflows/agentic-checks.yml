@@ -1,0 +1,120 @@
+name: Agentic checks
+
+# PR-time guards so the team doesn't step on each other's toes:
+#  1. toe-guard — comments when this PR touches files that other OPEN PRs
+#     also touch, and warns loudly when contract/schema surfaces are modified.
+#  2. The heavy gates (schema validation, Sentinel conformance, freshness)
+#     live in ci.yml; this workflow is advisory — it must never block a PR,
+#     so every API phase degrades to a warning instead of a failure.
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: agentic-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  toe-guard:
+    name: Overlap + contract-surface guard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check overlap with other open PRs and contract surfaces
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const myNumber = context.payload.pull_request.number;
+            const notes = [];
+
+            // ---- my changed files -----------------------------------------
+            let myFiles = [];
+            try {
+              myFiles = (await github.paginate(
+                github.rest.pulls.listFiles, { owner, repo, pull_number: myNumber, per_page: 100 }
+              )).map(f => f.filename);
+            } catch (e) {
+              notes.push(`could not list this PR's files: ${e.message}`);
+              core.warning(notes[notes.length - 1]);
+            }
+
+            // ---- 1. overlap with other open PRs ---------------------------
+            const overlaps = [];
+            try {
+              const prs = await github.paginate(
+                github.rest.pulls.list, { owner, repo, state: 'open', per_page: 100 }
+              );
+              for (const pr of prs) {
+                if (pr.number === myNumber) continue;
+                try {
+                  const files = (await github.paginate(
+                    github.rest.pulls.listFiles, { owner, repo, pull_number: pr.number, per_page: 100 }
+                  )).map(f => f.filename);
+                  const both = myFiles.filter(f => files.includes(f));
+                  if (both.length) overlaps.push({ number: pr.number, title: pr.title, both });
+                } catch (e) {
+                  notes.push(`could not read files of PR #${pr.number}: ${e.message}`);
+                }
+              }
+            } catch (e) {
+              notes.push(`could not list open PRs: ${e.message}`);
+              core.warning(notes[notes.length - 1]);
+            }
+
+            // ---- 2. contract/schema surfaces ------------------------------
+            const CONTRACT = [
+              'frontend/src/lib/types.ts',
+              'frontend/src/lib/mockData.ts',
+              'agent_backend/schemas.py',
+              'agent_backend/sentinel_adapter.py',
+              'frontend/src/lib/agent/adapter.ts',
+              'scripts/validate-sentinel.mjs',
+            ];
+            const touchedContract = myFiles.filter(f =>
+              CONTRACT.includes(f) ||
+              f.startsWith('agent_backend/reports/') ||
+              f.startsWith('agent_backend/sentinel-samples/') ||
+              f.startsWith('research/')
+            );
+
+            // ---- compose one comment --------------------------------------
+            let body = '## 👣 Toe-guard\n\n';
+            if (!overlaps.length) {
+              body += 'No file overlap with other open PRs — clear to merge without coordination.\n';
+            } else {
+              body += '⚠️ **This PR touches files that other open PRs also modify — coordinate before merging:**\n\n';
+              for (const o of overlaps) {
+                const list = o.both.slice(0, 10).map(f => `\`${f}\``).join(', ');
+                body += `- **#${o.number} — ${o.title}**: ${list}${o.both.length > 10 ? ` (+${o.both.length - 10} more)` : ''}\n`;
+              }
+              body += '\n';
+            }
+
+            if (touchedContract.length) {
+              body += '\n## ⚠️ Contract surface touched\n\n';
+              body += 'This PR modifies schema/contract files. The **Sentinel contract check** in CI must stay green, ';
+              body += 'and if you edited `agent_backend/reports/**` you must regenerate fixtures: ';
+              body += '`python -m agent_backend.sentinel_adapter` (CI enforces freshness).\n\n';
+              body += touchedContract.map(f => `- \`${f}\``).join('\n');
+            }
+
+            if (notes.length) {
+              body += '\n\n<sub>⚠️ partial run: ' + notes.join('; ') + ' — some checks were skipped due to API/permission limits.</sub>';
+            }
+
+            // ---- post (never fail the job on comment errors) ---------------
+            try {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: myNumber, body,
+              });
+            } catch (e) {
+              core.warning(`toe-guard could not comment on the PR: ${e.message}`);
+              core.notice(body, { title: 'Toe-guard (comment failed, inline instead)' });
+            }

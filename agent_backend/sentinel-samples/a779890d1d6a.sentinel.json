@@ -1,0 +1,928 @@
+{
+  "project": {
+    "id": "a779890d1d6a",
+    "name": "RAI Solar A \u2014 Boulder City (live run)",
+    "location": "Clark County, NV",
+    "capacityMW": 0,
+    "latitude": 0,
+    "longitude": 0,
+    "activationScore": 41.75,
+    "band": "watch",
+    "scoreReason": "Tax-credit kill criterion: 30% solar ITC (~$60M) forfeited under OBBBA \u2014 Jul 4, 2026 BOC deadline passed, construction 2028-2029, and the finance facts contain no ITC/PTC, BOC, or continuity-safe-harbor analysis; BOC evidence must be a condition precedent (storage ITC survives)",
+    "status": "at-risk",
+    "pillars": [
+      {
+        "name": "Land",
+        "score": 52.0,
+        "band": "watch",
+        "unlocked": false,
+        "statusText": "4 in watch",
+        "subAgents": [
+          "extractor:land-docs",
+          "scout:zoning",
+          "researcher:land_use"
+        ],
+        "factors": [
+          {
+            "id": "land-flag-0",
+            "name": "Parcel-level Energy Resource designation only assumed \u2014 doc's own red flag says it must no",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "Parcel-level Energy Resource designation only assumed \u2014 doc's own red flag says it must not be inferred from regional proximity; doc's 78 rejected as unconditioned",
+            "sources": []
+          },
+          {
+            "id": "land-flag-1",
+            "name": "No executed land control: only a planned Q3 2026 term sheet; site control is a FERC Order ",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "No executed land control: only a planned Q3 2026 term sheet; site control is a FERC Order 2023 cluster-entry gate",
+            "sources": []
+          },
+          {
+            "id": "land-flag-2",
+            "name": "Gen-tie corridor unverified; possible BLM crossing would trigger ROW grant + NEPA + Wester",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "Gen-tie corridor unverified; possible BLM crossing would trigger ROW grant + NEPA + Western Solar Plan conformance (Townsite Solar 2 precedent: 2-3 yrs, now under IBLA appeal)",
+            "sources": []
+          },
+          {
+            "id": "land-flag-3",
+            "name": "Positives: 6.0 ac/MW plausible, >1 GW operating Eldorado Valley solar complex, structurall",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "Positives: 6.0 ac/MW plausible, >1 GW operating Eldorado Valley solar complex, structurally pro-solar city (leases ~35% of city revenue)",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Law",
+        "score": 40.0,
+        "band": "watch",
+        "unlocked": false,
+        "statusText": "4 in watch",
+        "subAgents": [
+          "researcher:state_law",
+          "researcher:federal_law",
+          "researcher:ecology_epa"
+        ],
+        "factors": [
+          {
+            "id": "law-flag-0",
+            "name": "KILL CRITERION: OBBBA physical-work BOC deadline (Jul 4, 2026) passed as of doc's own Aug ",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "KILL CRITERION: OBBBA physical-work BOC deadline (Jul 4, 2026) passed as of doc's own Aug 14, 2026 source date; construction starts 2028-2029 and no BOC/continuity evidence exists \u2014 30% solar ITC (~$60M) forfeited; only storage ITC survives",
+            "sources": []
+          },
+          {
+            "id": "law-flag-1",
+            "name": "Zoning citation error: doc cites BCMC 'Chapter 19' but governing ordinance is BCMC Title 1",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "Zoning citation error: doc cites BCMC 'Chapter 19' but governing ordinance is BCMC Title 11 \u2014 'permitted use' conclusion must be re-verified against the correct title at parcel level",
+            "sources": []
+          },
+          {
+            "id": "law-flag-2",
+            "name": "Tortoise 100%-coverage protocol surveys starting Q4 2026 likely miss the Sep-Oct 2026 wind",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "Tortoise 100%-coverage protocol surveys starting Q4 2026 likely miss the Sep-Oct 2026 window \u2192 +6 months to layout freeze, cascading into design/construction",
+            "sources": []
+          },
+          {
+            "id": "law-flag-3",
+            "name": "Clark County MSHCP \u00a710 disturbance fee (~$550/ac \u2248 $0.6M on 1,080 ac) not itemized; UEPA/P",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "Clark County MSHCP \u00a710 disturbance fee (~$550/ac \u2248 $0.6M on 1,080 ac) not itemized; UEPA/PUCN siting-cert applicability unresolved",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Finance",
+        "score": 25.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "4 flags open",
+        "subAgents": [
+          "researcher:financials",
+          "cross-examiner"
+        ],
+        "factors": [
+          {
+            "id": "finance-flag-0",
+            "name": "CAPEX $1.12/Wac is 21-28% below PV-only benchmarks ($1.43 LBNL / $1.56 NREL ATB); BESS sco",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "CAPEX $1.12/Wac is 21-28% below PV-only benchmarks ($1.43 LBNL / $1.56 NREL ATB); BESS scope never stated \u2014 at $200-350/kWh the 320 MWh battery adds $64-112M, a realistic $40-70M+ shortfall vs combined $240-280M",
+            "sources": []
+          },
+          {
+            "id": "finance-flag-1",
+            "name": "~$60M solar ITC loss is a ~30% cost swing \u2014 triple the +10% stress the doc claims to survi",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "~$60M solar ITC loss is a ~30% cost swing \u2014 triple the +10% stress the doc claims to survive; stress test calibrated to a below-market base",
+            "sources": []
+          },
+          {
+            "id": "finance-flag-2",
+            "name": "Guardrails miscalibrated: $24M interconnection re-run trigger (11.9%) exceeds the demonstr",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Guardrails miscalibrated: $24M interconnection re-run trigger (11.9%) exceeds the demonstrated +10% ($20.2M) viability bound \u2014 upgrades of $20.2-24M break economics without firing the trigger",
+            "sources": []
+          },
+          {
+            "id": "finance-flag-3",
+            "name": "8% escalation reserve below prudent 10-15% and set equal to the 8% re-run trigger \u2014 zero b",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "8% escalation reserve below prudent 10-15% and set equal to the 8% re-run trigger \u2014 zero buffer; no debt sizing, DSCR, contingency, offtake price, or P50/P90 disclosed",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Materials",
+        "score": 42.0,
+        "band": "watch",
+        "unlocked": false,
+        "statusText": "4 in watch",
+        "subAgents": [
+          "researcher:supply_chain"
+        ],
+        "factors": [
+          {
+            "id": "materials-flag-0",
+            "name": "GSU/large transformer lead times 128-144 wks already exceed the doc's 24-month trigger; Q4",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "GSU/large transformer lead times 128-144 wks already exceed the doc's 24-month trigger; Q4 2029 COD with 6-month float requires PO ~Sep 2026-Jan 2027 \u2014 the 2028-2029 procurement window is 1.5-2+ years too late",
+            "sources": []
+          },
+          {
+            "id": "materials-flag-1",
+            "name": "'Reserve before 30% design' (2027-2028) is borderline-to-late; no transformer PO executed ",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "'Reserve before 30% design' (2027-2028) is borderline-to-late; no transformer PO executed per KB red-flag checklist",
+            "sources": []
+          },
+          {
+            "id": "materials-flag-2",
+            "name": "BESS supply (FEOC-compliant cells, 26-52 wk integrator slots) unaddressed despite storage ",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "BESS supply (FEOC-compliant cells, 26-52 wk integrator slots) unaddressed despite storage being effectively mandatory in NV",
+            "sources": []
+          },
+          {
+            "id": "materials-flag-3",
+            "name": "Construction water budget (300-600 AF over ~2 yrs, $0.5-2M) not quantified; module AD/CVD ",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "Construction water budget (300-600 AF over ~2 yrs, $0.5-2M) not quantified; module AD/CVD and Section 232 escalation exposure unhedged",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Demand",
+        "score": 58.0,
+        "band": "watch",
+        "unlocked": false,
+        "statusText": "3 in watch",
+        "subAgents": [
+          "researcher:demand",
+          "researcher:interconnection"
+        ],
+        "factors": [
+          {
+            "id": "demand-flag-0",
+            "name": "'Optional' BESS contradicts NV market reality: summer evening peak makes 4-hr storage effe",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "'Optional' BESS contradicts NV market reality: summer evening peak makes 4-hr storage effectively mandatory (Gemini 690 MW + 1,400 MWh norm; Oct 2024 PUCN approval of 1,019 MW + 590 MW storage) \u2014 if BESS is truly out of scope, revenue and the doc's demand score (81) are overstated",
+            "sources": []
+          },
+          {
+            "id": "demand-flag-1",
+            "name": "No offtake price target vs ~$45-65/MWh blended NV new-build benchmark; no P50/P90 (regiona",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "No offtake price target vs ~$45-65/MWh blended NV new-build benchmark; no P50/P90 (regional expectation ~490-540 GWh/yr, 27.9-32.3% CF measured at Copper Mountain)",
+            "sources": []
+          },
+          {
+            "id": "demand-flag-2",
+            "name": "Positives: RPS 50% by 2030, strongest POI geography in S. Nevada (Eldorado/Marketplace-Mea",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "Positives: RPS 50% by 2030, strongest POI geography in S. Nevada (Eldorado/Marketplace-Mead hub), Greenlink West 525 kV energizing 2027, multiple offtake paths (NV Energy IRP, NRS 704B exits, data-center bilateral), PPA prices rising ~9%/yr",
+            "sources": []
+          }
+        ]
+      }
+    ]
+  },
+  "eyebrow": "Solar \u00b7 0 MW \u00b7 Clark County, NV",
+  "runSummary": "0 documents analyzed \u00b7 24 open items",
+  "scoreBandLabel": "Watch \u00b7 42/100",
+  "scoreNote": "Tax-credit kill criterion: 30% solar ITC (~$60M) forfeited under OBBBA \u2014 Jul 4, 2026 BOC deadline passed, construction 2028-2029, and the finance facts contain no ITC/PTC, BOC, or continuity-safe-harbor analysis; BOC evidence must be a condition precedent (storage ITC survives)",
+  "evidence": {
+    "ev-contradiction-0": {
+      "id": "ev-contradiction-0",
+      "factorName": "Contradiction: $1.12/Wac is 21-28% below PV-only benchmarks ($257-281M for ",
+      "kind": "contradiction",
+      "summary": "$1.12/Wac is 21-28% below PV-only benchmarks ($257-281M for 180 MWac). The doc never states whether the BESS is inside the $202M; at $200-350/kWh the battery adds $64-112M, so a realistic combined cost is $240-280M+ (KB), a $40-70M+ shortfall. The +10% stress case ($222M) is still below the low PV-only benchmark and excludes BESS entirely - the stress test is calibrated to a below-market base.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "live-boulder-city.pdf p.1",
+          "location": "cross-document check",
+          "highlight": "$202M EPC + owner costs for 180 MWac (= $1.12/Wac)",
+          "extractedLabel": "claim",
+          "extractedValue": "$202M EPC + owner costs for 180 MWac (= $1.12/Wac)"
+        },
+        {
+          "title": "KB benchmarks: LBNL 2023 $1.43/Wac; NREL ATB $1.56/Wac; BESS $200-350/kWh turnkey",
+          "location": "cross-document check",
+          "highlight": "Economics remain viable under +10% CAPEX stress",
+          "extractedLabel": "claim",
+          "extractedValue": "Economics remain viable under +10% CAPEX stress"
+        }
+      ],
+      "comparison": {
+        "dimension": "$1.12/Wac is 21-28% below PV-only benchmarks ($257-281M for ",
+        "rows": [
+          {
+            "label": "live-boulder-city.pdf p.1",
+            "a": "$202M EPC + owner costs for 180 MWac (= $1.12/Wac)",
+            "b": ""
+          },
+          {
+            "label": "KB benchmarks: LBNL 2023 $1.43/Wac; NREL ATB $1.56/Wac; BESS $200-350/kWh turnkey",
+            "a": "Economics remain viable under +10% CAPEX stress",
+            "b": ""
+          },
+          {
+            "label": "Conflict",
+            "a": "",
+            "b": "contradictory"
+          }
+        ]
+      }
+    },
+    "ev-contradiction-1": {
+      "id": "ev-contradiction-1",
+      "factorName": "Contradiction: As of the doc's own source-access date (Aug 14, 2026) the Ju",
+      "kind": "contradiction",
+      "summary": "As of the doc's own source-access date (Aug 14, 2026) the Jul 4, 2026 BOC deadline has passed and construction starts 2028-2029, so the 30% solar ITC (~$60M on $202M) is forfeited absent BOC evidence - a ~30% cost swing, triple the +10% stress the doc claims to survive. The finance facts contain no tax-credit, BOC, or continuity analysis at all.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "live-boulder-city.pdf p.1, p.3",
+          "location": "cross-document check",
+          "highlight": "Target COD Q4 2029",
+          "extractedLabel": "claim",
+          "extractedValue": "Target COD Q4 2029"
+        },
+        {
+          "title": "KB: OBBBA - solar ITC/PTC requires physical-work BOC by Jul 4, 2026 (no 5% safe harbor for >1.5 MW solar); continuity safe harbor needs PIS by Dec 31, 2030; storage ITC survives",
+          "location": "cross-document check",
+          "highlight": "Construction 2028-2029",
+          "extractedLabel": "claim",
+          "extractedValue": "Construction 2028-2029"
+        }
+      ],
+      "comparison": {
+        "dimension": "As of the doc's own source-access date (Aug 14, 2026) the Ju",
+        "rows": [
+          {
+            "label": "live-boulder-city.pdf p.1, p.3",
+            "a": "Target COD Q4 2029",
+            "b": ""
+          },
+          {
+            "label": "KB: OBBBA - solar ITC/PTC requires physical-work BOC by Jul 4, 2026 (no 5% safe harbor for >1.5 MW solar); continuity safe harbor needs PIS by Dec 31, 2030; storage ITC survives",
+            "a": "Construction 2028-2029",
+            "b": ""
+          },
+          {
+            "label": "Conflict",
+            "a": "",
+            "b": "contradictory"
+          }
+        ]
+      }
+    },
+    "ev-contradiction-2": {
+      "id": "ev-contradiction-2",
+      "factorName": "Contradiction: Real lead times (128-144 wk) already exceed the doc's 24-mon",
+      "kind": "contradiction",
+      "summary": "Real lead times (128-144 wk) already exceed the doc's 24-month trigger. Backward from Q4 2029 COD with 6-month float, the PO must be placed ~Sep 2026-Jan 2027; even delivery-at-COD requires ordering by ~Mar-Jul 2027. The 2028-2029 procurement window is 1.5-2+ years too late, and 'before 30% design' (2027-2028) is borderline-to-late.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "live-boulder-city.pdf p.3",
+          "location": "cross-document check",
+          "highlight": "Procurement and construction 2028-2029",
+          "extractedLabel": "claim",
+          "extractedValue": "Procurement and construction 2028-2029"
+        },
+        {
+          "title": "KB: 2025-26 GSU/large transformer lead times 128-144 weeks (2.5-2.8 yrs); >=6 months delivery-to-COD float required",
+          "location": "cross-document check",
+          "highlight": "COD Q4 2029",
+          "extractedLabel": "claim",
+          "extractedValue": "COD Q4 2029"
+        }
+      ],
+      "comparison": {
+        "dimension": "Real lead times (128-144 wk) already exceed the doc's 24-mon",
+        "rows": [
+          {
+            "label": "live-boulder-city.pdf p.3",
+            "a": "Procurement and construction 2028-2029",
+            "b": ""
+          },
+          {
+            "label": "KB: 2025-26 GSU/large transformer lead times 128-144 weeks (2.5-2.8 yrs); >=6 months delivery-to-COD float required",
+            "a": "COD Q4 2029",
+            "b": ""
+          },
+          {
+            "label": "Conflict",
+            "a": "",
+            "b": "contradictory"
+          }
+        ]
+      }
+    },
+    "ev-contradiction-3": {
+      "id": "ev-contradiction-3",
+      "factorName": "Contradiction: $24M is 11.9% of $202M, but viability is only demonstrated t",
+      "kind": "contradiction",
+      "summary": "$24M is 11.9% of $202M, but viability is only demonstrated to +10% ($20.2M). Upgrades of $20.2-24M break the modeled economics without firing the re-run trigger - the two financial guardrails are miscalibrated, and network-upgrade cost shock is the #1 interconnection dropout driver (KB).",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "live-boulder-city.pdf p.1, p.3",
+          "location": "cross-document check",
+          "highlight": "Re-run model if interconnection upgrade estimate exceeds $24M",
+          "extractedLabel": "claim",
+          "extractedValue": "Re-run model if interconnection upgrade estimate exceeds $24M"
+        }
+      ],
+      "comparison": {
+        "dimension": "$24M is 11.9% of $202M, but viability is only demonstrated t",
+        "rows": [
+          {
+            "label": "live-boulder-city.pdf p.1, p.3",
+            "a": "Re-run model if interconnection upgrade estimate exceeds $24M",
+            "b": ""
+          }
+        ]
+      }
+    },
+    "ev-contradiction-4": {
+      "id": "ev-contradiction-4",
+      "factorName": "Contradiction: Application-to-COD is ~36 months vs a ~60-month norm, requir",
+      "kind": "contradiction",
+      "summary": "Application-to-COD is ~36 months vs a ~60-month norm, requiring cluster-study completion ~mid-2027, essentially immediately after application. Only a planned term sheet (not site control) is evidenced, and no queue position or executed study exists.",
+      "confidence": "Needs review",
+      "sources": [
+        {
+          "title": "live-boulder-city.pdf p.3",
+          "location": "cross-document check",
+          "highlight": "Interconnection application Q4 2026-Q2 2027",
+          "extractedLabel": "claim",
+          "extractedValue": "Interconnection application Q4 2026-Q2 2027"
+        },
+        {
+          "title": "KB: NV Energy BAA (NEVP OASIS) FERC Order 2023 cluster - site control gates entry; IR-to-COD ~5 yrs; cluster study must complete ~mid-2027 for a Q4 2029 COD",
+          "location": "cross-document check",
+          "highlight": "COD Q4 2029",
+          "extractedLabel": "claim",
+          "extractedValue": "COD Q4 2029"
+        }
+      ],
+      "comparison": {
+        "dimension": "Application-to-COD is ~36 months vs a ~60-month norm, requir",
+        "rows": [
+          {
+            "label": "live-boulder-city.pdf p.3",
+            "a": "Interconnection application Q4 2026-Q2 2027",
+            "b": ""
+          },
+          {
+            "label": "KB: NV Energy BAA (NEVP OASIS) FERC Order 2023 cluster - site control gates entry; IR-to-COD ~5 yrs; cluster study must complete ~mid-2027 for a Q4 2029 COD",
+            "a": "COD Q4 2029",
+            "b": ""
+          },
+          {
+            "label": "Conflict",
+            "a": "",
+            "b": "contradictory"
+          }
+        ]
+      }
+    },
+    "ev-contradiction-5": {
+      "id": "ev-contradiction-5",
+      "factorName": "Contradiction: Surveys starting Q4 2026 at best catch the tail of the Sep-O",
+      "kind": "contradiction",
+      "summary": "Surveys starting Q4 2026 at best catch the tail of the Sep-Oct 2026 protocol window; missing it adds ~6 months to layout freeze, cascading into 2027-2028 design and 2028-2029 construction. The ~$0.6M MSHCP disturbance fee is not itemized in the $202M.",
+      "confidence": "Needs review",
+      "sources": [
+        {
+          "title": "live-boulder-city.pdf p.3",
+          "location": "cross-document check",
+          "highlight": "Biological/cultural surveys Q4 2026-Q2 2027",
+          "extractedLabel": "claim",
+          "extractedValue": "Biological/cultural surveys Q4 2026-Q2 2027"
+        },
+        {
+          "title": "KB: tortoise 100%-coverage protocol surveys gate layout freeze; miss the Sep-Oct 2026 window = +6 months; MSHCP fee ~$550/ac (~$0.6M on 1,080 ac)",
+          "location": "cross-document check",
+          "highlight": "Tortoise/sensitive-species surveys required before layout freeze",
+          "extractedLabel": "claim",
+          "extractedValue": "Tortoise/sensitive-species surveys required before layout freeze"
+        }
+      ],
+      "comparison": {
+        "dimension": "Surveys starting Q4 2026 at best catch the tail of the Sep-O",
+        "rows": [
+          {
+            "label": "live-boulder-city.pdf p.3",
+            "a": "Biological/cultural surveys Q4 2026-Q2 2027",
+            "b": ""
+          },
+          {
+            "label": "KB: tortoise 100%-coverage protocol surveys gate layout freeze; miss the Sep-Oct 2026 window = +6 months; MSHCP fee ~$550/ac (~$0.6M on 1,080 ac)",
+            "a": "Tortoise/sensitive-species surveys required before layout freeze",
+            "b": ""
+          },
+          {
+            "label": "Conflict",
+            "a": "",
+            "b": "contradictory"
+          }
+        ]
+      }
+    },
+    "ev-contradiction-6": {
+      "id": "ev-contradiction-6",
+      "factorName": "Contradiction: Calling the BESS 'optional' lets the screening show a PV-onl",
+      "kind": "contradiction",
+      "summary": "Calling the BESS 'optional' lets the screening show a PV-only-scale CAPEX, but in the NV Energy market 4-hour storage is effectively required for the project to be economic. If BESS is in scope, CAPEX is understated by $64-112M; if truly out of scope, the revenue and DEMAND score (81) are overstated. The document cannot have both.",
+      "confidence": "Needs review",
+      "sources": [
+        {
+          "title": "live-boulder-city.pdf p.1",
+          "location": "cross-document check",
+          "highlight": "Battery storage is optional (80 MW / 320 MWh)",
+          "extractedLabel": "claim",
+          "extractedValue": "Battery storage is optional (80 MW / 320 MWh)"
+        },
+        {
+          "title": "KB: NV summer evening peak makes 4-hr BESS effectively mandatory economically (Gemini 690 MW + 1,400 MWh norm; Oct 2024 PUCN approval of 1,019 MW + 590 MW storage)",
+          "location": "cross-document check",
+          "highlight": "$202M EPC + owner costs base case",
+          "extractedLabel": "claim",
+          "extractedValue": "$202M EPC + owner costs base case"
+        }
+      ],
+      "comparison": {
+        "dimension": "Calling the BESS 'optional' lets the screening show a PV-onl",
+        "rows": [
+          {
+            "label": "live-boulder-city.pdf p.1",
+            "a": "Battery storage is optional (80 MW / 320 MWh)",
+            "b": ""
+          },
+          {
+            "label": "KB: NV summer evening peak makes 4-hr BESS effectively mandatory economically (Gemini 690 MW + 1,400 MWh norm; Oct 2024 PUCN approval of 1,019 MW + 590 MW storage)",
+            "a": "$202M EPC + owner costs base case",
+            "b": ""
+          },
+          {
+            "label": "Conflict",
+            "a": "",
+            "b": "contradictory"
+          }
+        ]
+      }
+    },
+    "ev-contradiction-7": {
+      "id": "ev-contradiction-7",
+      "factorName": "Contradiction: The corridor is an unverified assumption and the doc is sile",
+      "kind": "contradiction",
+      "summary": "The corridor is an unverified assumption and the doc is silent on a BLM crossing. If the gen-tie crosses BLM land, a 2-3 year NEPA/ROW process (plus appeal risk) from a Q4 2026-Q2 2027 application collides with the 2028 construction start and Q4 2029 COD; no schedule contingency exists.",
+      "confidence": "Needs review",
+      "sources": [
+        {
+          "title": "live-boulder-city.pdf p.3",
+          "location": "cross-document check",
+          "highlight": "Feasible gen-tie corridor assumed at screening",
+          "extractedLabel": "claim",
+          "extractedValue": "Feasible gen-tie corridor assumed at screening"
+        },
+        {
+          "title": "KB: gen-tie crossing BLM triggers ROW grant + NEPA + Western Solar Plan conformance; Townsite Solar 2 BLM NEPA ~2-3 yrs, now under IBLA appeal",
+          "location": "cross-document check",
+          "highlight": "Construction 2028-2029 subject to permits and interconnection",
+          "extractedLabel": "claim",
+          "extractedValue": "Construction 2028-2029 subject to permits and interconnection"
+        }
+      ],
+      "comparison": {
+        "dimension": "The corridor is an unverified assumption and the doc is sile",
+        "rows": [
+          {
+            "label": "live-boulder-city.pdf p.3",
+            "a": "Feasible gen-tie corridor assumed at screening",
+            "b": ""
+          },
+          {
+            "label": "KB: gen-tie crossing BLM triggers ROW grant + NEPA + Western Solar Plan conformance; Townsite Solar 2 BLM NEPA ~2-3 yrs, now under IBLA appeal",
+            "a": "Construction 2028-2029 subject to permits and interconnection",
+            "b": ""
+          },
+          {
+            "label": "Conflict",
+            "a": "",
+            "b": "contradictory"
+          }
+        ]
+      }
+    },
+    "ev-contradiction-8": {
+      "id": "ev-contradiction-8",
+      "factorName": "Contradiction: The 17,107-acre figure is verified real, but the doc cites '",
+      "kind": "contradiction",
+      "summary": "The 17,107-acre figure is verified real, but the doc cites 'Chapter 19' while research identifies the governing code as BCMC Title 11. The citation error underpins the LAW factor (72) and the 'permitted use' conclusion; it must be corrected and parcel-level designation confirmed against the correct title.",
+      "confidence": "Needs review",
+      "sources": [
+        {
+          "title": "live-boulder-city.pdf p.4 Source Notes",
+          "location": "cross-document check",
+          "highlight": "Boulder City Municipal Code, Chapter 19 - Energy Resource Zone permits solar generation and transmission facilities",
+          "extractedLabel": "claim",
+          "extractedValue": "Boulder City Municipal Code, Chapter 19 - Energy Resource Zone permits solar generation and transmission facilities"
+        }
+      ],
+      "comparison": {
+        "dimension": "The 17,107-acre figure is verified real, but the doc cites '",
+        "rows": [
+          {
+            "label": "live-boulder-city.pdf p.4 Source Notes",
+            "a": "Boulder City Municipal Code, Chapter 19 - Energy Resource Zone permits solar generation and transmission facilities",
+            "b": ""
+          }
+        ]
+      }
+    },
+    "ev-contradiction-9": {
+      "id": "ev-contradiction-9",
+      "factorName": "Contradiction: The 78 score rests on an assumed, unverified zoning designat",
+      "kind": "contradiction",
+      "summary": "The 78 score rests on an assumed, unverified zoning designation that the doc's own red flag says must not be inferred from proximity. Scoring land risk LOW-MODERATE while the core siting assumption is unconfirmed is internally inconsistent; the score should be conditioned on parcel-level zoning and legal-access verification.",
+      "confidence": "Needs review",
+      "sources": [
+        {
+          "title": "live-boulder-city.pdf p.1, p.3",
+          "location": "cross-document check",
+          "highlight": "LAND risk LOW-MODERATE, score 78/100",
+          "extractedLabel": "claim",
+          "extractedValue": "LAND risk LOW-MODERATE, score 78/100"
+        }
+      ],
+      "comparison": {
+        "dimension": "The 78 score rests on an assumed, unverified zoning designat",
+        "rows": [
+          {
+            "label": "live-boulder-city.pdf p.1, p.3",
+            "a": "LAND risk LOW-MODERATE, score 78/100",
+            "b": ""
+          }
+        ]
+      }
+    },
+    "ev-contradiction-10": {
+      "id": "ev-contradiction-10",
+      "factorName": "Contradiction: The 8% reserve is below the prudent 10-15% range and is set ",
+      "kind": "contradiction",
+      "summary": "The 8% reserve is below the prudent 10-15% range and is set exactly equal to the 8% re-run trigger, so the reserve is fully consumed at precisely the point the model is declared unreliable - zero buffer between reserve exhaustion and unverified economics.",
+      "confidence": "Needs review",
+      "sources": [
+        {
+          "title": "live-boulder-city.pdf p.1, p.3",
+          "location": "cross-document check",
+          "highlight": "Escalation reserve: 8% of equipment package",
+          "extractedLabel": "claim",
+          "extractedValue": "Escalation reserve: 8% of equipment package"
+        },
+        {
+          "title": "KB: 8% escalation reserve is thin; 10-15% prudent",
+          "location": "cross-document check",
+          "highlight": "Re-run model if EPC index rises more than 8%",
+          "extractedLabel": "claim",
+          "extractedValue": "Re-run model if EPC index rises more than 8%"
+        }
+      ],
+      "comparison": {
+        "dimension": "The 8% reserve is below the prudent 10-15% range and is set ",
+        "rows": [
+          {
+            "label": "live-boulder-city.pdf p.1, p.3",
+            "a": "Escalation reserve: 8% of equipment package",
+            "b": ""
+          },
+          {
+            "label": "KB: 8% escalation reserve is thin; 10-15% prudent",
+            "a": "Re-run model if EPC index rises more than 8%",
+            "b": ""
+          },
+          {
+            "label": "Conflict",
+            "a": "",
+            "b": "contradictory"
+          }
+        ]
+      }
+    }
+  },
+  "timeline": [
+    {
+      "id": "tl-0",
+      "label": "Clark County Department of Environment and Sustainability (MSHCP and Air Quality",
+      "date": "2026-10-01",
+      "kind": "milestone",
+      "band": "watch",
+      "position": 0.0
+    },
+    {
+      "id": "tl-1",
+      "label": "Boulder City Community Development Department, Planning Commission, and City Cou",
+      "date": "2026-10-01",
+      "kind": "milestone",
+      "band": "watch",
+      "position": 0.0
+    },
+    {
+      "id": "tl-2",
+      "label": "Boulder City municipal land program / Public Works \u2014 Execute the solar land leas",
+      "date": "2026-10-01",
+      "kind": "milestone",
+      "band": "watch",
+      "position": 0.0
+    },
+    {
+      "id": "tl-3",
+      "label": "BLM Southern Nevada District Office / Las Vegas Field Office \u2014 Determine whether",
+      "date": "2026-10-01",
+      "kind": "milestone",
+      "band": "watch",
+      "position": 0.0
+    },
+    {
+      "id": "tl-4",
+      "label": "Nevada SHPO \u2014 Complete Class III cultural surveys and SHPO consultation (Section",
+      "date": "2026-10-01",
+      "kind": "milestone",
+      "band": "watch",
+      "position": 0.0
+    },
+    {
+      "id": "tl-5",
+      "label": "Public Utilities Commission of Nevada (PUCN) \u2014 File the UEPA permit application ",
+      "date": "2027-01-01",
+      "kind": "milestone",
+      "band": "watch",
+      "position": 5.9
+    },
+    {
+      "id": "tl-6",
+      "label": "Nevada Division of Water Resources (State Engineer) \u2014 Apply for temporary water ",
+      "date": "2027-01-01",
+      "kind": "milestone",
+      "band": "watch",
+      "position": 5.9
+    },
+    {
+      "id": "tl-7",
+      "label": "ITC deadline",
+      "date": "2030-12-31",
+      "kind": "deadline",
+      "band": "watch",
+      "position": 100.0
+    }
+  ],
+  "documents": [],
+  "priorityActions": [
+    {
+      "id": "pa-1",
+      "rank": 1,
+      "title": "Tax counsel opinion on ITC/PTC eligibility; if no qualifying BOC by Jul 4, 2026, economics",
+      "detail": "Tax counsel opinion on ITC/PTC eligibility; if no qualifying BOC by Jul 4, 2026, economics re-underwritten without the ~$60M solar ITC and still meeting hurdles; storage ITC and continuity-safe-harbor plan (PIS by Dec 31, 2030) documented.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-contradiction-1"
+    },
+    {
+      "id": "pa-2",
+      "rank": 2,
+      "title": "Reconciled CAPEX fully itemized including BESS ($64-112M if in scope), MSHCP fee (~$0.6M),",
+      "detail": "Reconciled CAPEX fully itemized including BESS ($64-112M if in scope), MSHCP fee (~$0.6M), water ($0.5-2M), and network upgrades; escalation reserve raised to 10-15%; triggers recalibrated so the $24M interconnection trigger cannot exceed demonstrated +10% stress tolerance.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-contradiction-3"
+    },
+    {
+      "id": "pa-3",
+      "rank": 3,
+      "title": "Executed site control satisfying FERC Order 2023 cluster-entry requirements; parcel-level ",
+      "detail": "Executed site control satisfying FERC Order 2023 cluster-entry requirements; parcel-level Energy Resource designation confirmed under BCMC Title 11; title, ALTA survey, and legal access delivered.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-contradiction-8"
+    },
+    {
+      "id": "pa-4",
+      "rank": 4,
+      "title": "Interconnection: cluster entry confirmed with NV Energy; network-upgrade estimate within t",
+      "detail": "Interconnection: cluster entry confirmed with NV Energy; network-upgrade estimate within the recalibrated trigger; gen-tie land status verified; if a BLM crossing exists, a NEPA/ROW schedule with contingency and IBLA appeal risk assessment, or a revised COD.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-contradiction-7"
+    },
+    {
+      "id": "pa-5",
+      "rank": 5,
+      "title": "GSU transformer PO placed by ~Jan 2027 (or binding quote with delivery at least 6 months b",
+      "detail": "GSU transformer PO placed by ~Jan 2027 (or binding quote with delivery at least 6 months before COD) plus a long-lead procurement plan for all >24-month equipment.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-contradiction-2"
+    },
+    {
+      "id": "pa-6",
+      "rank": 6,
+      "title": "Tortoise protocol surveys completed in the Sep-Oct 2026 window; if missed, schedule extend",
+      "detail": "Tortoise protocol surveys completed in the Sep-Oct 2026 window; if missed, schedule extended ~6 months and economics re-run before approval.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-contradiction-5"
+    },
+    {
+      "id": "pa-7",
+      "rank": 7,
+      "title": "Bankable, independent-engineer-validated P50/P90 energy yield report consistent with regio",
+      "detail": "Bankable, independent-engineer-validated P50/P90 energy yield report consistent with regional measured data.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-8",
+      "rank": 8,
+      "title": "Executed PPA or term sheet at or above the ~$45-65/MWh blended benchmark with a creditwort",
+      "detail": "Executed PPA or term sheet at or above the ~$45-65/MWh blended benchmark with a creditworthy counterparty; BESS scope finalized and reflected consistently in CAPEX, revenue, and the DEMAND score.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-contradiction-6"
+    },
+    {
+      "id": "pa-9",
+      "rank": 9,
+      "title": "Executed temporary construction water supply contract with quantified budget (300-600 AF, ",
+      "detail": "Executed temporary construction water supply contract with quantified budget (300-600 AF, $0.5-2M).",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-10",
+      "rank": 10,
+      "title": "Full permit register with critical path, including PUCN UEPA application filed by Q1 2027,",
+      "detail": "Full permit register with critical path, including PUCN UEPA application filed by Q1 2027, MSHCP fee budgeted, and stormwater/dust permits scheduled before 2028 construction.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-contradiction-5"
+    },
+    {
+      "id": "pa-11",
+      "rank": 11,
+      "title": "Disclosed debt sizing, DSCR, and contingency; model reproducible; downside cases (no ITC, ",
+      "detail": "Disclosed debt sizing, DSCR, and contingency; model reproducible; downside cases (no ITC, +15% CAPEX, 6-month delay) still meet return hurdles.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-12",
+      "rank": 12,
+      "title": "Boulder City community engagement plan, glare/FAA 7460-1 analysis if within airport proxim",
+      "detail": "Boulder City community engagement plan, glare/FAA 7460-1 analysis if within airport proximity, and tribal consultation record delivered.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-13",
+      "rank": 13,
+      "title": "Tax credits: provide the missing ITC/PTC analysis \u2014 BOC physical-work evidence on/before J",
+      "detail": "Tax credits: provide the missing ITC/PTC analysis \u2014 BOC physical-work evidence on/before Jul 4, 2026 (no 5% safe harbor for >1.5 MW solar under OBBBA), continuity-safe-harbor plan to PIS by Dec 31, 2030, tax counsel memo, FEOC compliance, storage ITC treatment. If no BOC, confirm the ~$60M solar ITC is forfeited and re-run economics.",
+      "impact": "medium",
+      "scoreDelta": 3,
+      "evidenceLink": "ev-contradiction-1"
+    },
+    {
+      "id": "pa-14",
+      "rank": 14,
+      "title": "CAPEX: state whether the 80 MW/320 MWh BESS is inside the $202M; itemize EPC vs owner cost",
+      "detail": "CAPEX: state whether the 80 MW/320 MWh BESS is inside the $202M; itemize EPC vs owner costs including BESS ($64-112M), gen-tie, network upgrades, MSHCP fee (~$0.6M), water ($0.5-2M), escalation, contingency; reconcile $1.12/Wac to LBNL $1.43/Wac and NREL ATB $1.56/Wac benchmarks.",
+      "impact": "medium",
+      "scoreDelta": 3,
+      "evidenceLink": "ev-contradiction-0"
+    },
+    {
+      "id": "pa-15",
+      "rank": 15,
+      "title": "Financial model: disclose debt sizing, DSCR, contingency, offtake price target, stress met",
+      "detail": "Financial model: disclose debt sizing, DSCR, contingency, offtake price target, stress methodology; justify the $24M interconnection re-run trigger (11.9%) exceeding the demonstrated +10% ($20.2M) stress tolerance, and recalibrate.",
+      "impact": "medium",
+      "scoreDelta": 3,
+      "evidenceLink": "ev-contradiction-3"
+    }
+  ],
+  "projectedScoreAfterMitigation": 59.75,
+  "suggestedQuestions": [
+    {
+      "question": "What's the top item to clear next?",
+      "answer": {
+        "role": "assistant",
+        "text": "Tax-credit kill criterion: 30% solar ITC (~$60M) forfeited under OBBBA \u2014 Jul 4, 2026 BOC deadline passed, construction 2028-2029, and the finance facts contain no ITC/PTC, BOC, or continuity-safe-harbor analysis; BOC evidence must be a condition precedent (storage ITC survives)"
+      }
+    },
+    {
+      "question": "Why is the activation score 42?",
+      "answer": {
+        "role": "assistant",
+        "text": "0 critical red flags and 11 cross-document contradictions. Weakest pillars: finance 25, law 40."
+      }
+    }
+  ],
+  "chatHistory": [
+    {
+      "role": "assistant",
+      "text": "I've completed diligence on RAI Solar A \u2014 Boulder City (live run). Activation score 42/100 \u2014 decision: Hold. 0 critical flags, 11 cross-document contradictions, 24 open information requests. Ask me what to prioritize."
+    }
+  ],
+  "report": {
+    "badge": "RED FLAG REPORT",
+    "title": "RAI Solar A \u2014 Boulder City (live run) \u2014 due-diligence report",
+    "preparedBy": "Red Flag agent framework",
+    "summary": "Tax-credit kill criterion: 30% solar ITC (~$60M) forfeited under OBBBA \u2014 Jul 4, 2026 BOC deadline passed, construction 2028-2029, and the finance facts contain no ITC/PTC, BOC, or continuity-safe-harbor analysis; BOC evidence must be a condition precedent (storage ITC survives)",
+    "findings": [],
+    "recommendedActions": [
+      "Tax counsel opinion on ITC/PTC eligibility; if no qualifying BOC by Jul 4, 2026, economics re-underwritten without the ~$60M solar ITC and still meeting hurdles; storage ITC and continuity-safe-harbor plan (PIS by Dec 31, 2030) documented.",
+      "Reconciled CAPEX fully itemized including BESS ($64-112M if in scope), MSHCP fee (~$0.6M), water ($0.5-2M), and network upgrades; escalation reserve raised to 10-15%; triggers recalibrated so the $24M interconnection trigger cannot exceed demonstrated +10% stress tolerance.",
+      "Executed site control satisfying FERC Order 2023 cluster-entry requirements; parcel-level Energy Resource designation confirmed under BCMC Title 11; title, ALTA survey, and legal access delivered.",
+      "Interconnection: cluster entry confirmed with NV Energy; network-upgrade estimate within the recalibrated trigger; gen-tie land status verified; if a BLM crossing exists, a NEPA/ROW schedule with contingency and IBLA appeal risk assessment, or a revised COD.",
+      "GSU transformer PO placed by ~Jan 2027 (or binding quote with delivery at least 6 months before COD) plus a long-lead procurement plan for all >24-month equipment."
+    ],
+    "sourceBasis": "0 source documents + 0 acquired research packs"
+  },
+  "map": {
+    "parcelSize": "\u2014",
+    "toggles": [
+      {
+        "id": "zoning",
+        "label": "Zoning",
+        "on": true
+      },
+      {
+        "id": "protected-land",
+        "label": "Protected land",
+        "on": true
+      },
+      {
+        "id": "transmission",
+        "label": "Transmission",
+        "on": false
+      }
+    ],
+    "distances": [],
+    "zones": [],
+    "pin": {
+      "left": 50,
+      "top": 50,
+      "label": "Clark County, NV"
+    }
+  },
+  "teamMembers": []
+}

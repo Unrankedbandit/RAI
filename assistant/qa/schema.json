@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/roguecashew/solarhack/assistant/qa/schema.json",
+  "title": "RAI Assistant QA Pair",
+  "description": "Canonical schema for one frequently-asked-question + answer pair used to fine-tune the RAI assistant chat model and to evaluate assistant behavior. Dataset lives in rai-faq.jsonl (one object per line).",
+  "type": "object",
+  "required": ["id", "category", "type", "question", "answer", "grounding"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^faq-[0-9]{3}$",
+      "description": "Stable identifier, faq-001 .. faq-999. Never reused after deletion."
+    },
+    "category": {
+      "type": "string",
+      "enum": ["product", "project", "domain", "trust", "howto", "redirect"],
+      "description": "product = what the app is/does; project = the demo projects (Solar Alpha, Parcel A, Parcel B); domain = solar due-diligence knowledge; trust = caveats/limitations; howto = using the app; redirect = off-topic/adversarial handling."
+    },
+    "type": {
+      "type": "string",
+      "enum": ["factoid", "definition", "howto", "caveat", "comparison", "redirect"],
+      "description": "Shape of the expected answer. redirect answers must decline and steer back to diligence scope."
+    },
+    "question": {
+      "type": "string",
+      "minLength": 5,
+      "description": "Natural-language user question, written the way a real user would ask it."
+    },
+    "answer": {
+      "type": "string",
+      "minLength": 20,
+      "description": "2-4 sentence answer for a ~0.6B chat model: plain language, no markdown, no lists, numbers only when grounded. Must not contain facts absent from the grounding source."
+    },
+    "grounding": {
+      "type": "string",
+      "description": "Provenance pointer the answer may rely on, e.g. 'report:solar-alpha', 'research:solar-alpha-component-research.md', 'contract:scoring'. Answers must stay within the grounding; anything else is a hallucination failure."
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": [],
+      "description": "Free-form retrieval tags (pillar names, statutes, project ids)."
+    }
+  }
+}

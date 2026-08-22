@@ -1,0 +1,47 @@
+{
+  "project": "RAI Solar A — 180 MWac PV + 80 MW/320 MWh BESS",
+  "location": "Eldorado Valley, Boulder City, NV",
+  "readiness": 75.0,
+  "decision": "Proceed",
+  "dimensions": [
+    {"name": "Land", "rag": "amber", "score": 78, "flags": ["Parcel-level ER zoning plausible but unverified at APN level; 12.5% of city is ER — confirm against zoning map", "If city-owned: ground lease + charter compliance, not just a development agreement"]},
+    {"name": "Law", "rag": "amber", "score": 72, "flags": ["Development agreement with Boulder City required before construction authorization", "Gen-tie crossing BLM land triggers ROW grant + NEPA under the Dec 2024 Western Solar Plan ROD"]},
+    {"name": "Finance", "rag": "amber", "score": 75, "flags": ["$202M = $1.12/Wac — plausible ONLY as PV-only EPC; if storage included, ~$40-70M short", "ITC cliff: Q4 2029 COD forfeits ~$60M solar ITC unless physical-work BOC documented by Jul 4, 2026 (deadline passed)", "8% escalation reserve thin vs transformer/switchgear escalation"]},
+    {"name": "Materials", "rag": "amber", "score": 69, "flags": ["GSU/transformer lead times 2-4 yrs in 2026 market — reserve now regardless of 24-month trigger", "FEOC-compliant BESS cells required for surviving storage ITC"]},
+    {"name": "Demand", "rag": "green", "score": 81, "flags": ["No executed PPA = no firm revenue; align with NV Energy IRP solicitation calendar", "NV Energy day-ahead market entry (Apr 2026) changes merchant revenue shape"]}
+  ],
+  "red_flags": [
+    {"title": "ITC beginning-of-construction deadline (Jul 4, 2026) already passed — ~$60M at risk", "severity": "critical", "component": "financials", "evidence": "OBBBA terminates solar §48E for BOC after 7/4/2026 with PIS after 12/31/2027; Notice 2025-42 removed the 5% safe harbor for >1.5 MW solar", "benchmark": "30% ITC on ~$200M PV CAPEX", "sources": ["KPMG TNF 25243", "Baker Tilly", "Pierce Atwood"]},
+    {"title": "Interconnection study status unknown vs $24M upgrade trigger", "severity": "high", "component": "interconnection", "evidence": "No queue position, cluster phase, or network-upgrade allocation in dossier; FERC Order 2023 cluster timelines in the West running long", "benchmark": "Cluster study must complete ~mid-2027 for Q4 2029 COD", "sources": ["NV Energy OASIS (NEVP)"]},
+    {"title": "Cost scope ambiguity — $202M may exclude 80 MW/320 MWh storage", "severity": "high", "component": "financials", "evidence": "$1.12/Wac matches PV-only benchmark; realistic combined PV+BESS figure $240-280M", "benchmark": "LBNL 2023 median $1.43/Wac; 4-hr BESS $250-400/kW", "sources": ["LBNL Utility-Scale Solar 2024"]}
+  ],
+  "contradictions": [
+    {"claims": ["$202M covers EPC + owner costs (incl. optional BESS?)", "PV-only EPC at market is ~$200M; PV+80/320 BESS is $240-280M"], "sources": ["08_Site_Comparison_A", "LBNL/NREL benchmarks"], "severity": "high", "explanation": "Scope of the $202M is ambiguous; as a combined figure it is not credible"}
+  ],
+  "missing_info": [
+    "ITC/BOC documentation (Notice 2025-42-compliant physical work pre-7/4/2026 + continuity plan to PIS ≤ 12/31/2030) — GATING",
+    "Executed lease/option + title commitment; APN zoning printouts; development-agreement term sheet",
+    "Queue position, cluster study report, network-upgrade allocation, LGIA path",
+    "EPC scope split (PV vs BESS vs GSU); transformer PO/reservation status",
+    "Tortoise protocol survey results; MSHCP fee confirmation (~$0.6M at $550/ac); Class I/III cultural reports",
+    "Water supply letter (300-600 AF construction budget, $/AF, term)",
+    "Offtake strategy: NV Energy RFP calendar, 704B/data-center LOIs"
+  ],
+  "action_pack": {
+    "rfis": ["ITC/BOC evidence package", "Title + zoning APN verification", "Interconnection study + upgrade allocation", "EPC scope split + transformer reservation", "Survey reports + water supply letter", "Offtake strategy memo"],
+    "agency_actions": [
+      {"agency": "Boulder City (Planning Commission → City Council)", "action": "Initiate development agreement process", "why": "Required before construction authorization for non-city entities", "deadline": "6-18 months typical"},
+      {"agency": "NV Energy (OASIS/NEVP)", "action": "Confirm queue position + cluster study schedule", "why": "Q4 2029 COD requires study completion ~mid-2027", "deadline": "Q1 2027"},
+      {"agency": "Clark County Desert Conservation Program / USFWS", "action": "Book protocol tortoise surveys for Sep-Oct 2026 window", "why": "Miss the window and layout freeze slips ~6 months", "deadline": "Sep 2026"},
+      {"agency": "NDEP + Clark County DAQ", "action": "Construction stormwater CGP + dust-control permit path", "why": "Ministerial permits on the construction critical path", "deadline": null}
+    ],
+    "verification_requests": ["Transformer lead-time confirmation in writing (<90 days old)", "MSHCP disturbance fee quote", "City utility rate schedule for water"],
+    "conditions_precedent": ["Documented pre-7/4/2026 BOC preserving solar ITC (or re-run economics at 0% PV ITC)", "Network upgrade allocation ≤ $24M trigger or re-model", "Executed offtake or lender-accepted merchant case", "EPC scope reconciled to $240-280M if storage included"]
+  },
+  "recommended_next_action": "Produce the beginning-of-construction evidence package (gating), then initiate the Boulder City development agreement and NV Energy cluster study in parallel",
+  "acquired_data": [
+    {"component": "zoning", "data_points": ["Energy Resource zoning verified: 12.5% of city = 17,107 acres (city official site)", ">1 GW operating complex adjacent: Copper Mountain 802 MWac, Techren 300 MW, Boulder Solar 150 MW"], "sources": ["flybvu.com/1099", "BCMC Title 11"], "still_missing": ["APN-level zoning printout"]},
+    {"component": "resource", "data_points": ["Copper Mountain 4 tracker measured 32.3% CF (2019)", "GHI ~5.8-6.2 kWh/m2/day", "6.0 ac/MWac plausible"], "sources": ["EIA via Copper Mountain Facility data", "NREL NSRDB"], "still_missing": ["On-site met campaign", "PVSyst P50/P90"]},
+    {"component": "interconnection", "data_points": ["NV Energy BAA (NEVP), not CAISO", "FERC Order 2023 cluster process", "Greenlink West 525 kV energizing 2027", "Eldorado/Marketplace-Mead 500/230 kV hub adjacent"], "sources": ["NV Energy OASIS"], "still_missing": ["Queue position + study report"]}
+  ]
+}

@@ -1,0 +1,22 @@
+node_modules
+dist
+dist-ssr
+*.local
+.DS_Store
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Source diligence documents — kept out of git for now.
+# The pipeline reads these at runtime; see docs/superpowers/specs for the
+# expected filenames. Scoring tests do not need them (the workbook values are
+# transcribed into shared/src/scoring.fixture.ts).
+data/
+
+# Python virtualenv
+.venv/
+venv/
+__pycache__/
+*.pyc

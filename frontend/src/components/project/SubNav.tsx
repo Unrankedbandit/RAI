@@ -1,0 +1,43 @@
+"use client";
+
+import { clsx } from "@/lib/clsx";
+
+export type ProjectTab = "overview" | "reports" | "documents" | "map";
+
+const tabs: { id: ProjectTab; label: string }[] = [
+  { id: "overview", label: "Overview" },
+  { id: "reports", label: "Reports" },
+  { id: "documents", label: "Documents" },
+  { id: "map", label: "Map" },
+];
+
+/** Pill-group sub-nav (Overview / Reports / Documents / Map). */
+export function SubNav({
+  active,
+  onChange,
+}: {
+  active: ProjectTab;
+  onChange: (tab: ProjectTab) => void;
+}) {
+  return (
+    <div className="mb-[22px] flex w-fit gap-1 rounded-full bg-surface-2 p-1">
+      {tabs.map((tab) => {
+        const isActive = tab.id === active;
+        return (
+          <button
+            key={tab.id}
+            onClick={() => onChange(tab.id)}
+            className={clsx(
+              "whitespace-nowrap rounded-full px-4 py-2 text-[12.5px] font-medium transition-colors",
+              isActive
+                ? "bg-canvas text-ink shadow-card"
+                : "text-muted hover:text-ink",
+            )}
+          >
+            {tab.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}

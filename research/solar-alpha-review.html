@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solar Alpha — Due-Diligence Research Review</title>
+<style>
+  :root { color-scheme: light; }
+  .viz-root {
+    /* light mode (reference palette, validated) */
+    --surface-1: #fcfcfb;
+    --page: #f9f9f7;
+    --text-primary: #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted: #898781;
+    --gridline: #e1e0d9;
+    --baseline: #c3c2b7;
+    --border: rgba(11,11,11,0.10);
+    --series-1: #2a78d6;   /* blue, categorical slot 1 */
+    --series-1-mid: #6da7ec;  /* blue step 300 (range fills) */
+    --series-1-light: #b7d3f6; /* blue step 150 (tracks) */
+    --neutral-mark: #c3c2b7;  /* de-emphasis gray for context bars */
+    --good: #0ca30c;
+    --good-text: #006300;
+    --warning: #fab219;
+    --serious: #ec835a;
+    --critical: #d03b3b;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) .viz-root {
+      --surface-1: #1a1a19;
+      --page: #0d0d0d;
+      --text-primary: #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted: #898781;
+      --gridline: #2c2c2a;
+      --baseline: #383835;
+      --border: rgba(255,255,255,0.10);
+      --series-1: #3987e5;
+      --series-1-mid: #256abf;
+      --series-1-light: #184f95;
+      --neutral-mark: #52514e;
+      --good-text: #0ca30c;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] .viz-root {
+    --surface-1: #1a1a19;
+    --page: #0d0d0d;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted: #898781;
+    --gridline: #2c2c2a;
+    --baseline: #383835;
+    --border: rgba(255,255,255,0.10);
+    --series-1: #3987e5;
+    --series-1-mid: #256abf;
+    --series-1-light: #184f95;
+    --neutral-mark: #52514e;
+    --good-text: #0ca30c;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.5;
+  }
+  .viz-root { max-width: 1080px; margin: 0 auto; padding: 32px 24px 96px; }
+
+  header.top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+  h1 { font-size: 28px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .subtitle { color: var(--text-secondary); margin: 0 0 4px; }
+  .meta { color: var(--text-muted); font-size: 13px; }
+  h2 { font-size: 19px; margin: 40px 0 4px; }
+  h3 { font-size: 15px; margin: 24px 0 8px; }
+  .section-note { color: var(--text-secondary); font-size: 14px; margin: 0 0 16px; max-width: 72ch; }
+
+  .theme-toggle {
+    background: var(--surface-1); color: var(--text-secondary);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 12px; font-size: 13px; cursor: pointer; font-family: inherit;
+  }
+  .theme-toggle:hover { border-color: var(--text-muted); }
+
+  /* ---- stat tiles ---- */
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 20px 0 0; }
+  .tile {
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px;
+  }
+  .tile .label { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 4px; }
+  .tile .value { font-size: 26px; font-weight: 600; letter-spacing: -0.01em; }
+  .tile .delta { font-size: 12.5px; margin-top: 2px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
+  .tile .delta .up-bad { color: var(--critical); }
+  .tile .delta .up-good { color: var(--good-text); }
+
+  /* ---- status chips ---- */
+  .chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--border); }
+  .chip .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .chip.critical .dot { background: var(--critical); }
+  .chip.serious .dot { background: var(--serious); }
+  .chip.warning .dot { background: var(--warning); }
+  .chip.good .dot { background: var(--good); }
+  .chip.critical { color: var(--critical); }
+  .chip.serious { color: var(--serious); }
+  .chip.warning { color: var(--text-secondary); }
+  .chip.good { color: var(--good-text); }
+
+  /* ---- finding cards ---- */
+  .findings { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; margin-top: 16px; }
+  .finding {
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-left: 3px solid var(--critical); border-radius: 10px; padding: 14px 16px;
+  }
+  .finding h4 { margin: 0 0 6px; font-size: 14.5px; display: flex; align-items: center; gap: 8px; }
+  .finding p { margin: 0; font-size: 13.5px; color: var(--text-secondary); }
+  .finding p b { color: var(--text-primary); }
+
+  /* ---- cards & charts ---- */
+  .card {
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px; margin-top: 16px;
+  }
+  .card h3 { margin-top: 0; }
+  .chart-note { font-size: 12.5px; color: var(--text-muted); margin: 2px 0 12px; }
+  svg text { font-family: inherit; }
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: 12.5px; color: var(--text-secondary); margin: 10px 0 0; }
+  .legend .key { display: inline-flex; align-items: center; gap: 7px; }
+  .legend .swatch { width: 14px; height: 10px; border-radius: 2px; }
+  .legend .lineswatch { width: 16px; height: 0; border-top: 2px solid; }
+
+  /* tooltip */
+  #tooltip {
+    position: fixed; pointer-events: none; z-index: 50;
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 12px; font-size: 12.5px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12); display: none; max-width: 280px;
+  }
+  #tooltip .tt-value { font-weight: 650; }
+  #tooltip .tt-label { color: var(--text-secondary); }
+  [data-tt]:hover, [data-tt]:focus-visible { outline: none; filter: brightness(1.06); }
+  [data-tt]:focus-visible { stroke: var(--text-primary); stroke-width: 1.5; }
+
+  details.table-twin { margin-top: 12px; font-size: 13px; }
+  details.table-twin summary { cursor: pointer; color: var(--text-secondary); font-size: 12.5px; }
+  table { border-collapse: collapse; width: 100%; margin-top: 10px; font-size: 13px; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--gridline); vertical-align: top; }
+  th { color: var(--text-secondary); font-weight: 600; font-size: 12px; }
+  td.num, th.num { font-variant-numeric: tabular-nums; text-align: right; }
+
+  /* component accordion */
+  details.comp { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; margin-top: 10px; }
+  details.comp summary {
+    cursor: pointer; padding: 12px 16px; font-weight: 600; font-size: 14px;
+    display: flex; align-items: center; gap: 10px; list-style: none;
+  }
+  details.comp summary::-webkit-details-marker { display: none; }
+  details.comp summary .num { color: var(--text-muted); font-weight: 500; min-width: 22px; }
+  details.comp .body { padding: 0 16px 16px; font-size: 13.5px; color: var(--text-secondary); }
+  details.comp .body ul { margin: 8px 0; padding-left: 20px; }
+  details.comp .body li { margin-bottom: 4px; }
+  details.comp .body b { color: var(--text-primary); }
+  .checklist { list-style: none; padding: 0; margin: 8px 0 0; }
+  .checklist li { display: flex; gap: 8px; align-items: baseline; font-size: 13px; margin-bottom: 3px; }
+  .checklist li::before { content: "☐"; color: var(--text-muted); }
+
+  .verify { background: var(--surface-1); border: 1px solid var(--border); border-left: 3px solid var(--warning); border-radius: 10px; padding: 16px 20px; margin-top: 16px; }
+  .verify ol { margin: 8px 0 0; padding-left: 20px; font-size: 13.5px; color: var(--text-secondary); }
+  .verify ol li { margin-bottom: 6px; }
+  .verify b { color: var(--text-primary); }
+
+  footer { margin-top: 48px; font-size: 12.5px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+<div class="viz-root">
+
+  <header class="top">
+    <div>
+      <h1>Solar Alpha — Due-Diligence Research Review</h1>
+      <p class="subtitle">250 MW solar-plus-storage · ~1,420 ac · Solano County, CA</p>
+      <p class="meta">Compiled August 14, 2026 · 4 parallel web-research agents · Source: research/solar-alpha-component-research.md</p>
+    </div>
+    <button class="theme-toggle" id="themeToggle" type="button">Toggle dark mode</button>
+  </header>
+
+  <!-- ============ HERO TILES ============ -->
+  <div class="tiles">
+    <div class="tile">
+      <div class="label">Components assessed</div>
+      <div class="value">11</div>
+      <div class="delta">full benchmark + checklist each</div>
+    </div>
+    <div class="tile">
+      <div class="label">Critical findings</div>
+      <div class="value">5</div>
+      <div class="delta"><span class="chip critical"><span class="dot"></span>2 threshold / kill criteria</span></div>
+    </div>
+    <div class="tile">
+      <div class="label">CAPEX vs market</div>
+      <div class="value">$0.74/W</div>
+      <div class="delta">vs $1.43–1.56/Wac benchmark — <span class="up-bad">~50% below market</span></div>
+    </div>
+    <div class="tile">
+      <div class="label">ITC/PTC under OBBBA</div>
+      <div class="value">$0</div>
+      <div class="delta">unless construction began by Jul 4, 2026 — <span class="up-bad">deadline passed</span></div>
+    </div>
+    <div class="tile">
+      <div class="label">CAISO queue survival</div>
+      <div class="value">~20%</div>
+      <div class="delta">of queued projects ever reach COD</div>
+    </div>
+  </div>
+
+  <!-- ============ HEADLINE FINDINGS ============ -->
+  <h2>Headline findings</h2>
+  <p class="section-note">Two are <b>threshold criteria</b> (the project cannot proceed as described); three are material degradations. The rubric should score these as separate tiers.</p>
+  <div class="findings">
+    <div class="finding">
+      <h4><span class="chip critical"><span class="dot"></span>Threshold</span> Zoning kill switch</h4>
+      <p>Solano's 2015 Solar Ordinance (ZT 12-04) <b>prohibits commercial solar in all ag zoning districts</b>; the Aug 2025 BESS ordinance bans batteries on ag land. A local use permit is impossible. Viable path: <b>CEC AB 205 Opt-In Certification</b> (270-day state decision, preempts local zoning) — the route NextEra's Corby BESS is using in Solano now (Docket 24-OPT-05).</p>
+    </div>
+    <div class="finding">
+      <h4><span class="chip critical"><span class="dot"></span>Threshold</span> Tax credit cliff</h4>
+      <p>Under OBBBA (Jul 2025), COD July 2028 gets <b>$0 in ITC/PTC</b> unless beginning-of-construction was documented by <b>July 4, 2026 — already passed</b>. The BOC evidence package is the single biggest go/no-go item in the diligence.</p>
+    </div>
+    <div class="finding">
+      <h4><span class="chip critical"><span class="dot"></span>Critical</span> CAPEX confirmed impossible</h4>
+      <p>Real benchmarks: <b>$1.43–1.56/Wac</b> installed (LBNL / NREL). The demo's $186M / 250 MW = <b>$0.74/W, roughly half of market</b> — worse once BESS is included. The seeded red flag is validated by reality.</p>
+    </div>
+    <div class="finding">
+      <h4><span class="chip critical"><span class="dot"></span>Critical</span> Transformers worse than demo says</h4>
+      <p>Demo flags 62 weeks; the real 2025–26 norm for large power transformers/GSUs is <b>128–144 weeks (~2.5–2.8 yrs)</b>. For COD July 2028, orders had to be placed by <b>mid-2025</b>.</p>
+    </div>
+    <div class="finding">
+      <h4><span class="chip critical"><span class="dot"></span>Critical</span> Swainson's hawk is the schedule</h4>
+      <p>Solano is core breeding habitat. Surveys follow a strict seasonal protocol with a <b>blackout window Apr 21 – Jun 10</b> — miss the season, lose a year. One active nest can seasonally sterilize <b>125–500 acres</b>.</p>
+    </div>
+  </div>
+
+  <!-- ============ TIMELINE ============ -->
+  <h2>Schedule gates &amp; deadlines</h2>
+  <p class="section-note">Every dated obligation from the brief, plotted against the project's COD target. Markers left of the "today" line are gates that have already closed.</p>
+  <div class="card">
+    <svg id="timeline" viewBox="0 0 1000 230" width="100%" role="img" aria-label="Timeline of schedule gates from mid-2025 to July 2028 COD"></svg>
+    <div class="legend">
+      <span class="key"><span class="swatch" style="background:var(--critical)"></span>Passed / missed gate</span>
+      <span class="key"><span class="swatch" style="background:var(--warning)"></span>Upcoming decision</span>
+      <span class="key"><span class="swatch" style="background:var(--series-1)"></span>Project target</span>
+      <span class="key"><span class="lineswatch" style="border-color:var(--text-muted)"></span>Today (Aug 14, 2026)</span>
+    </div>
+    <details class="table-twin">
+      <summary>View as table</summary>
+      <table>
+        <thead><tr><th>Date</th><th>Gate</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Mid-2025</td><td>Transformer POs needed placing (128–144 wk lead)</td><td>✕ Missed</td></tr>
+          <tr><td>Jul 4, 2026</td><td>Beginning-of-construction deadline for ITC/PTC (OBBBA)</td><td>✕ Passed</td></tr>
+          <tr><td>Aug 14, 2026</td><td>Today; 2026 DAC designation comment period closes</td><td>—</td></tr>
+          <tr><td>Oct 13–16, 2026</td><td>Fish &amp; Game Commission: Swainson's hawk delisting + burrowing owl decision</td><td>▲ Upcoming</td></tr>
+          <tr><td>Q4 2027</td><td>Transformer delivery gate for COD Jul 2028</td><td>▲ Upcoming</td></tr>
+          <tr><td>Dec 31, 2027</td><td>Placed-in-service cliff (alternative to BOC)</td><td>▲ Upcoming</td></tr>
+          <tr><td>Jul 2028</td><td>COD target</td><td>● Target</td></tr>
+        </tbody>
+      </table>
+    </details>
+  </div>
+
+  <!-- ============ FINANCIALS ============ -->
+  <h2>Financials — claimed vs. benchmark</h2>
+  <p class="section-note">The CAPEX claim fails against both canonical benchmarks. DSCR breaches covenant in the downside case.</p>
+
+  <div class="card">
+    <h3>Installed CAPEX ($/Wac)</h3>
+    <p class="chart-note">Solar Alpha claim vs. LBNL 2023 median and NREL ATB 2023 — BESS excluded from the claim, making the true gap larger.</p>
+    <svg id="capex" viewBox="0 0 1000 190" width="100%" role="img" aria-label="Bar chart of installed CAPEX: Solar Alpha 0.74 dollars per watt versus LBNL 1.43 and NREL 1.56"></svg>
+    <div class="legend">
+      <span class="key"><span class="swatch" style="background:var(--critical)"></span>Solar Alpha claim</span>
+      <span class="key"><span class="swatch" style="background:var(--neutral-mark)"></span>Market benchmark</span>
+    </div>
+    <details class="table-twin">
+      <summary>View as table</summary>
+      <table>
+        <thead><tr><th>Source</th><th class="num">$/Wac</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td>Solar Alpha ($186M / 250 MW)</td><td class="num">0.74</td><td>~50% below market; fails absent scope exclusions</td></tr>
+          <tr><td>LBNL 2023 median</td><td class="num">1.43</td><td>benchmark</td></tr>
+          <tr><td>NREL ATB 2023</td><td class="num">1.56</td><td>benchmark</td></tr>
+        </tbody>
+      </table>
+    </details>
+  </div>
+
+  <div class="card">
+    <h3>DSCR vs. covenant</h3>
+    <p class="chart-note">Lender covenant ≥1.20x on P90. Base case clears it; the downside case breaches.</p>
+    <svg id="dscr" viewBox="0 0 1000 150" width="100%" role="img" aria-label="Meter showing DSCR base case 1.31x clearing the 1.20x covenant while the downside range 1.14 to 1.24x straddles it"></svg>
+    <div class="legend">
+      <span class="key"><span class="swatch" style="background:var(--series-1)"></span>Base case (1.31x)</span>
+      <span class="key"><span class="swatch" style="background:var(--critical)"></span>Downside range (1.14–1.24x)</span>
+      <span class="key"><span class="lineswatch" style="border-color:var(--text-muted)"></span>Covenant 1.20x P90</span>
+    </div>
+    <details class="table-twin">
+      <summary>View as table</summary>
+      <table>
+        <thead><tr><th>Case</th><th class="num">DSCR</th><th>Verdict</th></tr></thead>
+        <tbody>
+          <tr><td>Covenant (P90)</td><td class="num">≥ 1.20x</td><td>lender requirement</td></tr>
+          <tr><td>Base</td><td class="num">1.31x</td><td>clears</td></tr>
+          <tr><td>Downside</td><td class="num">1.14–1.24x</td><td>breaches at the low end</td></tr>
+        </tbody>
+      </table>
+    </details>
+  </div>
+
+  <div class="tiles">
+    <div class="tile">
+      <div class="label">Debt sizing</div>
+      <div class="value">65% LTC</div>
+      <div class="delta"><span class="chip good"><span class="dot"></span>In range</span> 60–75% norm</div>
+    </div>
+    <div class="tile">
+      <div class="label">Equity IRR (claimed)</div>
+      <div class="value">16.4%</div>
+      <div class="delta"><span class="chip serious"><span class="dot"></span>Optimistic</span> vs 8–12% contracted / 12–15% merchant</div>
+    </div>
+    <div class="tile">
+      <div class="label">CAISO solar market value</div>
+      <div class="value">$27/MWh</div>
+      <div class="delta">LBNL 2024 — lowest in the US; stress-test revenue</div>
+    </div>
+    <div class="tile">
+      <div class="label">Land lease (1,420 ac)</div>
+      <div class="value">≥$1.3M/yr</div>
+      <div class="delta">CA norm $935–1,600/ac/yr</div>
+    </div>
+  </div>
+
+  <!-- ============ SUPPLY CHAIN ============ -->
+  <h2>Supply chain — lead times (weeks)</h2>
+  <p class="section-note">Market ranges vs. the demo's transformer assumption. For COD July 2028, transformer POs had to be placed by mid-2025 — the hardest gate in the project.</p>
+  <div class="card">
+    <svg id="supply" viewBox="0 0 1000 220" width="100%" role="img" aria-label="Range chart of equipment lead times: transformers 128 to 144 weeks with the demo assumption of 62 weeks marked as a shortfall, HV switchgear 60 to 100, BESS slots 26 to 52"></svg>
+    <div class="legend">
+      <span class="key"><span class="swatch" style="background:var(--series-1-mid)"></span>Real 2026 market range</span>
+      <span class="key"><span class="swatch" style="background:var(--critical)"></span>Demo assumption (transformers: 62 wks)</span>
+    </div>
+    <details class="table-twin">
+      <summary>View as table</summary>
+      <table>
+        <thead><tr><th>Item</th><th class="num">Market range (wks)</th><th>Gate for COD Jul 2028</th></tr></thead>
+        <tbody>
+          <tr><td>Main transformers / GSUs</td><td class="num">128–144</td><td>PO by mid-2025 — ~30% national supply deficit; +60–95% price since 2019; ~$6–16M for 2 units</td></tr>
+          <tr><td>HV switchgear</td><td class="num">60–100+</td><td>order now</td></tr>
+          <tr><td>BESS integration slot</td><td class="num">26–52</td><td>FEOC-compliant cells (CATL/BYD excluded → queue congestion)</td></tr>
+          <tr><td>Demo transformer assumption</td><td class="num">62</td><td>~half the real market — seeded flag is optimistic, not just stale</td></tr>
+        </tbody>
+      </table>
+    </details>
+  </div>
+
+  <!-- ============ ECOLOGY CALENDAR ============ -->
+  <h2>Ecology — seasonal survey calendar</h2>
+  <p class="section-note">Miss a protocol window and the schedule slips a full year. Two consecutive wet seasons for CA tiger salamander is the longest-lead biology item.</p>
+  <div class="card">
+    <svg id="calendar" viewBox="0 0 1000 300" width="100%" role="img" aria-label="Calendar chart of species survey windows across the year: Swainson's hawk protocol with an April 21 to June 10 blackout, burrowing owl April 15 to July 15, tiger salamander wet season November to April, giant garter snake work window May to October, tricolored blackbird March to July"></svg>
+    <div class="legend">
+      <span class="key"><span class="swatch" style="background:var(--series-1)"></span>Survey / constraint window</span>
+      <span class="key"><span class="swatch" style="background:var(--critical)"></span>Blackout — surveys impossible</span>
+    </div>
+    <details class="table-twin">
+      <summary>View as table</summary>
+      <table>
+        <thead><tr><th>Species</th><th>Status</th><th>Window</th><th>Buffer / rule</th></tr></thead>
+        <tbody>
+          <tr><td>Swainson's hawk</td><td>State-threatened (delisting petition — FGC Oct 2026)</td><td>TAC 2000 protocol; blackout Apr 21–Jun 10</td><td>No intensive disturbance within 0.25 mi (rural 0.5 mi) Mar 1–Sep 15</td></tr>
+          <tr><td>Burrowing owl</td><td>CESA candidate since Oct 2024 — full take protection now</td><td>4 visits Apr 15–Jul 15 (≥1 after Jun 15)</td><td>200–500 m by season/disturbance</td></tr>
+          <tr><td>CA tiger salamander</td><td>Federal + state threatened</td><td>2 consecutive wet seasons (Nov–Apr)</td><td>Assume presence if pond within ~0.6 mi</td></tr>
+          <tr><td>Giant garter snake</td><td>Federal + state threatened</td><td>Work within 200 ft of aquatic habitat only May 1–Oct 1</td><td>Negative surveys not accepted — presence assumed</td></tr>
+          <tr><td>Tricolored blackbird</td><td>State-threatened</td><td>Colony surveys Mar–Jul</td><td>~300 ft around active colonies</td></tr>
+        </tbody>
+      </table>
+    </details>
+  </div>
+
+  <!-- ============ GRID & MARKET ============ -->
+  <h2>Grid, market &amp; offtake</h2>
+  <div class="tiles">
+    <div class="tile">
+      <div class="label">Standalone solar NQC</div>
+      <div class="value">~10%</div>
+      <div class="delta">of nameplate (CPUC 2026) — ineligible for the new 6 GW procurement</div>
+    </div>
+    <div class="tile">
+      <div class="label">4-hr storage NQC</div>
+      <div class="value">90–95%</div>
+      <div class="delta">solar+storage is the only viable CA configuration</div>
+    </div>
+    <div class="tile">
+      <div class="label">Solar curtailment</div>
+      <div class="value">11.5%</div>
+      <div class="delta"><span class="up-bad">▲ rising</span> of potential generation, early 2025 (3.4 TWh in 2024, +29% YoY)</div>
+    </div>
+    <div class="tile">
+      <div class="label">Battery merchant revenue</div>
+      <div class="value">$52/kW-yr</div>
+      <div class="delta"><span class="up-bad">▼ from $115</span> (2022 → 2025) — underwrite the 2025 benchmark, not 2022</div>
+    </div>
+    <div class="tile">
+      <div class="label">Hybrid PPA price (LevelTen P25)</div>
+      <div class="value">$64.49/MWh</div>
+      <div class="delta"><span class="up-good">▲ +13% YoY</span> Q1 2026 — underwriting floor ~$60–65</div>
+    </div>
+    <div class="tile">
+      <div class="label">Bankability floor</div>
+      <div class="value">≥80%</div>
+      <div class="delta">of P50 must be <b>executed</b> PPA at close — 150 MW firm vs 200 assumed fails</div>
+    </div>
+    <div class="tile">
+      <div class="label">CAISO Cluster 15</div>
+      <div class="value">145 / 541</div>
+      <div class="delta">projects advanced (68 of 347 GW) — network-upgrade cost shock is the #1 dropout driver</div>
+    </div>
+    <div class="tile">
+      <div class="label">Interconnect → COD</div>
+      <div class="value">~5 yrs</div>
+      <div class="delta">typical post-reform; transmission projects avg +6.1 yrs delay</div>
+    </div>
+  </div>
+
+  <!-- ============ 11 COMPONENTS ============ -->
+  <h2>The 11 components — benchmarks &amp; red-flag checklists</h2>
+  <p class="section-note">The rubric's knowledge base, component by component. Expand to review.</p>
+
+  <details class="comp">
+    <summary><span class="num">1</span> State law (California) <span class="chip critical" style="margin-left:auto"><span class="dot"></span>Path-defining</span></summary>
+    <div class="body">
+      <ul>
+        <li><b>CEQA:</b> a 1,420-ac farmland conversion always requires a full EIR — 12–24 mo to certify; 18–30 mo total entitlement; +1–3 yrs if litigated (~43% plaintiff win rate vs EIRs).</li>
+        <li><b>CEC Opt-In (AB 205/209):</b> eligible = solar ≥50 MW + storage ≥200 MWh; CEC decides within 270 days; certificate in lieu of all local permits. Requires certified CBA + prevailing wage + skilled-and-trained workforce.</li>
+        <li><b>Williamson Act:</b> solar is an incompatible use; cancellation at 12.5% of unrestricted FMV (25% FSZ); solar-use easement at 6.25% only for impaired farmland.</li>
+        <li><b>SB 149/1420:</b> Governor-certified projects get CEQA suits resolved in ~270 days (sunsets 2034).</li>
+      </ul>
+      <ul class="checklist">
+        <li>WA contract status on every parcel</li>
+        <li>CEQA doc assumed to be full EIR</li>
+        <li>Permitting path explicitly chosen (Opt-In vs local — local is prohibited)</li>
+        <li>Opt-In labor/CBA prerequisites certified</li>
+        <li>DAC screen re-run on CalEnviroScreen 5.0 (4.0 data is stale)</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="comp">
+    <summary><span class="num">2</span> Federal law</summary>
+    <div class="body">
+      <ul>
+        <li><b>NEPA</b> only with a federal nexus (CWA §404, federal funding/ROW). In flux: CEQ rescinded all NEPA regs (Jan 8, 2026); <i>Seven County</i> narrowed scope.</li>
+        <li><b>ESA §7:</b> formal consultation up to 135 days. Exposure: vernal pool fairy shrimp, CA tiger salamander, giant garter snake, Delta smelt.</li>
+        <li><b>MBTA:</b> strict liability, no incidental take permit — compliance = avoidance. <b>BGEPA:</b> golden eagles in the Montezuma Hills; nest searches to 1 mile.</li>
+        <li><b>WOTUS post-Sackett:</b> isolated seasonal wetlands likely non-jurisdictional federally — but CA's State Wetland Procedures backstop them via 401/WDRs.</li>
+        <li><b>IRA labor hooks:</b> prevailing wage + apprenticeship (15% ratio) multiplies credits 5×.</li>
+      </ul>
+      <ul class="checklist">
+        <li>Jurisdictional delineation (AJD) mapping federal vs state-only waters</li>
+        <li>Federal nexus identified (or ruled out)</li>
+        <li>Raptor/eagle survey coverage ≥0.5 mi / ≥1 mi, two seasons</li>
+        <li>Vernal pool branchiopod wet+dry season protocol surveys</li>
+        <li>PWA compliance plan + FEOC supply-chain attestations</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="comp">
+    <summary><span class="num">3</span> Land permitting (Solano County) <span class="chip critical" style="margin-left:auto"><span class="dot"></span>Prohibited locally</span></summary>
+    <div class="body">
+      <ul>
+        <li><b>Commercial solar prohibited in all ag districts</b> (2015 Ordinance ZT 12-04). <b>BESS: industrial/manufacturing only</b> (Ord. 2025-1864, Aug 26, 2025).</li>
+        <li>Local route = General Plan + zoning text amendment: 18–36 mo with material denial risk (ag-protectionist county; California Forever politics).</li>
+        <li><b>Opt-In route:</b> CEC 270-day clock; county-opposition risk documented (Corby docket as template).</li>
+        <li>Construction stack: grading permit (Ch. 31), fire-marshal BESS sign-off (NFPA 855 / UL 9540A), Construction General Permit (Order 2022-0057-DWQ) with SWPPP in SMARTS, CDFW §1602 LSAA for drainage ditches.</li>
+      </ul>
+      <ul class="checklist">
+        <li>Zoning district of every parcel confirmed + prohibition screen</li>
+        <li>If Opt-In: ≥50 MW PV + ≥200 MWh BESS verified, pre-filing meeting done</li>
+        <li>BESS safety stack complete</li>
+        <li>CGP/SWPPP/1602 in permit matrix</li>
+        <li>Permit sequence reconciled with environmental milestones (early grading before review = real CEQA defect)</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="comp">
+    <summary><span class="num">4</span> Land use &amp; zoning</summary>
+    <div class="body">
+      <ul>
+        <li>Exclusive Agriculture districts (A-20/40/80/160); General Plan (2008, voter-ratified Measure T) directs growth to cities.</li>
+        <li>Mitigation norms: ag conservation easements at <b>1:1</b> (up to 2:1 on prime), decommissioning bond ~100% of removal cost.</li>
+        <li><b>Travis AFB:</b> ALUC review; 2024 LUCP added Low Altitude Maneuvering Zone, glare-analysis (ForgeSolar/SGHAT), wildlife-attractant criteria for ponds; overruling ALUC takes a 2/3 vote.</li>
+        <li>Overlays: Suisun Marsh MDP, Delta Primary Zone. Land economics: leases ~$935–1,600/ac/yr; purchase $15–40k/ac.</li>
+      </ul>
+      <ul class="checklist">
+        <li>Parcel-by-parcel zoning + FMMP tally</li>
+        <li>Ag mitigation package (easement ratio, conservancy partner)</li>
+        <li>Decommissioning financial assurance</li>
+        <li>Travis AFB influence-area screen + glare study + pond review</li>
+        <li>Marsh/Delta screen</li>
+        <li>WA × zoning double-blockage cross-check</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="comp">
+    <summary><span class="num">5</span> Ecology &amp; EPA <span class="chip warning" style="margin-left:auto"><span class="dot"></span>Schedule-driving</span></summary>
+    <div class="body">
+      <p>See the seasonal calendar above. Other water items: NWP 51 for solar (≤0.5-ac loss), 401/WDR via RWQCB Region 5S, Solano Subbasin GSP (approved Jan 2024) — construction wells need GSA coordination; construction water must be a named, contracted source (the 82 vs 50 acre-ft gap is realistic — SWP allocations hit 0–5% in recent droughts). Expect a <b>5–15% developable-acreage haircut</b> from bio/water constraints (matches the 46-acre raptor-buffer conflict).</p>
+      <ul class="checklist">
+        <li>Full-season protocol surveys ≤2 yrs old</li>
+        <li>§2081 ITP need determined with CDFW</li>
+        <li>BUOW candidacy addressed</li>
+        <li>CTS 2-season program scoped or concurrence documented</li>
+        <li>GGS assume-present analysis</li>
+        <li>AJD verified + state waters mapped · CGP risk level determined</li>
+        <li>Named construction-water source</li>
+        <li>Seasonal constraint register in the integrated schedule</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="comp">
+    <summary><span class="num">6</span> Community stakeholders</summary>
+    <div class="body">
+      <ul>
+        <li><b>Politicized county:</b> Orderly Growth Initiative, California Forever controversy, actual BESS moratorium (Jan 2024) → permanent BESS ordinance (Aug 2025) after fire-safety backlash.</li>
+        <li><b>AB 52 tribal consultation</b> must conclude before EIR certification (fatal defect if not). Tribes: Yocha Dehe Wintun Nation, Kletsel Dehe, Cachil Dehe. NAHC Sacred Lands File search required.</li>
+        <li><b>CBA anchors:</b> Darden (1,150 MW) = $2M; Jacumba (~90 MW) = $4M. Screen: $0.5–5M one-time; <b>&lt;$1,000/MW is below-market</b>. A CBA is mandatory for the CEC Opt-In path.</li>
+        <li>Property values (LBNL 2023): −2.3% within 0.25 mi, none beyond 1 mi.</li>
+        <li><b>EJ:</b> CalEnviroScreen 5.0 final Jul 1, 2026 — screens run on 4.0 are a defect.</li>
+      </ul>
+      <ul class="checklist">
+        <li>AB 52 notice/consultation timeline</li>
+        <li>CBA ≥ regional benchmarks with community-defined allocation</li>
+        <li>Truck-routing protocol agreed before hearings (fallback-route conflict = classic appeal trigger)</li>
+        <li>Drainage acknowledgments from adjacent ag operators</li>
+        <li>Opposition map (Farm Bureau, Solano Land Trust, Vaca-Dixon BESS opponents)</li>
+        <li>CES 5.0 EJ screen · local-hire/PLA commitment</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="comp">
+    <summary><span class="num">7</span> Financials <span class="chip critical" style="margin-left:auto"><span class="dot"></span>2 fails</span></summary>
+    <div class="body">
+      <p>Full verdict table in the charts above: CAPEX 🔴 ~50% below market · DSCR 🔴 downside breach · debt 🟢 in range · IRR 🟠 optimistic · ITC/PTC 🔴 $0 unless BOC documented.</p>
+      <ul class="checklist">
+        <li>CAPEX within ±15% of benchmark band; basis (Wac/Wdc/ILR) declared; BESS + interconnection explicitly in/out</li>
+        <li>BOC-by-7/4/2026 evidence package (physical work or cost ledger + continuity)</li>
+        <li>FEOC/MACR attestations · domestic content ≥55% BOM for +10 pts</li>
+        <li>Contingency ≥5% of EPC</li>
+        <li>DSCR on corrected inputs ≥1.20x P90</li>
+        <li>PPA-vs-debt tenor match · tax-credit monetization haircut priced</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="comp">
+    <summary><span class="num">8</span> Interconnection (CAISO)</summary>
+    <div class="body">
+      <ul>
+        <li>Queue &gt;500 GW / ~1,000 projects; <b>only ~20% ever reach COD</b>; typical IR→COD ~5 yrs.</li>
+        <li>Reformed process (FERC Oct 2024): zonal approach, intake capped at 150% of available capacity per zone; scored intake (Commercial Interest 30% / Viability 35% / System Need 35%).</li>
+        <li><b>Deliverability:</b> FCDS = can sell Resource Adequacy; Energy-Only = materially lower revenue. TPD priority: executed PPA first.</li>
+        <li>Material modifications that blow up a queue position: POI change, MW upsize, fuel-type change, storage additions.</li>
+        <li><b>Network upgrade cost shock is the #1 dropout driver</b> (~30% post-screen attrition); CAISO transmission projects average +6.1 yrs delay.</li>
+      </ul>
+      <ul class="checklist">
+        <li>Queue position + cluster phase verified in CAISO public queue</li>
+        <li>Deliverable vs Merchant zone for the POI</li>
+        <li>Phase II study complete with upgrade cost + 30–50% contingency</li>
+        <li>FCDS confirmed in writing · IFS postings current</li>
+        <li>Material-modification audit</li>
+        <li>Site control incl. gen-tie corridor (Parcel 14 sits on the collector route)</li>
+        <li>No COD claim &lt;24 months without executed studies</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="comp">
+    <summary><span class="num">9</span> Grid integration</summary>
+    <div class="body">
+      <ul>
+        <li>Solar is now California's #1 electricity source (2025); duck curve = 10–17 GW evening ramp.</li>
+        <li>Standalone solar NQC ≈10% and ineligible for the new 6 GW CPUC procurement; 4-hr storage ≈90–95% NQC.</li>
+        <li>Curtailment: 3.4 TWh in 2024 (+29% YoY, 93% solar); negative midday prices routine.</li>
+        <li>Battery gross revenue fell $115 → $52/kW-yr (2022→2025). Slice-of-Day RA framework effective 2025.</li>
+      </ul>
+      <ul class="checklist">
+        <li>Storage pairing ≥4 hr · FCDS for RA revenue</li>
+        <li>Curtailment assumption ≥10–13% with nodal (not flat) capture rates</li>
+        <li>Merchant assumptions ≤$52/kW-yr battery benchmark</li>
+        <li>POI-level constraint check · grid-charging treatment in RA counting</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="comp">
+    <summary><span class="num">10</span> Buyers &amp; demand <span class="chip serious" style="margin-left:auto"><span class="dot"></span>Bankability gap</span></summary>
+    <div class="body">
+      <ul>
+        <li>Buyers: PG&E (12.7 GW data-center pipeline — volatile), <b>MCE is the CCA serving Solano</b>, neighboring CCAs, Direct Access ESPs, corporate buyers.</li>
+        <li>CPUC IRP (Feb 2026): 6,000 MW NQC new procurement (2 GW each by 2030/31/32); 750 MW must be ≥8-hr storage.</li>
+        <li>PPA prices: Q3 2025 $59.77 → Q1 2026 <b>$64.49/MWh (+13% YoY)</b>.</li>
+        <li>Bankability: ≥80% of P50 executed at close; executed ≠ LOI; single counterparty &gt;50% flagged; CCA offtake → check credit support.</li>
+      </ul>
+      <ul class="checklist">
+        <li>Executed PPA MW vs LOI/term-sheet MW (150 firm vs 200 assumed = exactly this)</li>
+        <li>≥80% contracted at close · tenor ≥ debt + 2-yr tail</li>
+        <li>RA/NQC sold at current ELCC derates with FCDS to deliver it</li>
+        <li>Counterparty credit/concentration · PPA ≥ $60–65/MWh current index</li>
+        <li>Financing-close vs offtake-execution sequence (Oct close vs Nov contract = classic CP failure)</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="comp">
+    <summary><span class="num">11</span> Resource availability &amp; supply chain <span class="chip critical" style="margin-left:auto"><span class="dot"></span>Hardest gate</span></summary>
+    <div class="body">
+      <ul>
+        <li><b>Resource (Global Solar Atlas @ Rio Vista/Delta Solano):</b> GHI 5.32 kWh/m²/day; PVOUT 1,807 kWh/kWp; single-axis-tracking AC capacity factor <b>~27–31%</b>. &gt;32% claim = red flag.</li>
+        <li><b>Acreage:</b> 1,420 ac / 250 MW = 5.7 ac/MW — dense but plausible (6–9 empirical); verify usable acreage after buffers.</li>
+        <li>Physical risks: Delta flood/levee (elev ~10 m), Carquinez-gap wind (tracker stow), expansive soils, wildfire-smoke soiling (−10–30% in bad years).</li>
+        <li>P90/P50 ≈ 0.90–0.94; P90 CFADS must cover ≥1.20x DSCR.</li>
+      </ul>
+      <ul class="checklist">
+        <li>Transformer PO executed with ≤Q4 2027 delivery; lead-time confirmation in writing &lt;90 days old</li>
+        <li>Module MSA with FEOC/MACR + UFLPA traceability + tariff reopener</li>
+        <li>DC BOM ≥55% with supplier certs · BESS slot + compliant cells</li>
+        <li>P90 yield report on ≥20-yr satellite data + on-site met · CF claim in 27–31% band</li>
+        <li>Flood/wind/geotech memos · ≥6 months float between major-equipment delivery and COD</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- ============ VERIFY LIST ============ -->
+  <h2>Verify before demo</h2>
+  <div class="verify">
+    <b>Five fast-moving items — one teammate, 30 minutes, before the event.</b>
+    <ol>
+      <li><b>Solano County Code Ch. 28 land-use tables</b> — pull directly (research agents were bot-blocked); confirm no post-Aug-2025 amendment changed the ag-district solar prohibition. <b>This gates the #1 headline finding.</b></li>
+      <li><b>IRS Notice 2026-15</b> (MACR/FEOC mechanics) — read the notice text, not summaries.</li>
+      <li><b>CAISO GIDAP IFS posting schedule</b> — one panel quote was internally inconsistent.</li>
+      <li><b>Swainson's hawk delisting petition</b> — CDFW evaluation lands at the Oct 13–16, 2026 Fish &amp; Game Commission meeting; burrowing owl final listing decision also pending.</li>
+      <li><b>AD/CVD finals:</b> India (Jul 13, 2026), Laos (Sep 9, 2026), ITC injury vote (Oct 19, 2026).</li>
+    </ol>
+  </div>
+
+  <footer>
+    Benchmarks: LBNL, NREL ATB, Wood Mackenzie, BNEF, LevelTen, Global Solar Atlas, CPUC, CAISO — as compiled in research/solar-alpha-component-research.md, Aug 14, 2026. Status colors are paired with icons + labels; every chart has a table twin.
+  </footer>
+</div>
+
+<div id="tooltip" role="status"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- theme toggle ---------- */
+  var root = document.documentElement;
+  var saved = null;
+  try { saved = localStorage.getItem("sa-theme"); } catch (e) {}
+  var hash = (location.hash || "").replace("#", "");
+  if (hash === "light" || hash === "dark") saved = hash; // #light / #dark override
+  if (saved) root.setAttribute("data-theme", saved);
+  document.getElementById("themeToggle").addEventListener("click", function () {
+    var dark = root.getAttribute("data-theme") === "dark" ||
+      (!root.getAttribute("data-theme") && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    var next = dark ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("sa-theme", next); } catch (e) {}
+  });
+
+  /* ---------- CSS var reader (theme-aware) ---------- */
+  var vizRoot = document.querySelector(".viz-root");
+  function css(name) {
+    return getComputedStyle(vizRoot).getPropertyValue(name).trim();
+  }
+
+  /* ---------- tooltip (textContent only — labels are untrusted data) ---------- */
+  var tt = document.getElementById("tooltip");
+  function bindTips(scope) {
+    scope.querySelectorAll("[data-tt]").forEach(function (el) {
+      function show(evt) {
+        tt.textContent = "";
+        var v = document.createElement("div"); v.className = "tt-value";
+        v.textContent = el.getAttribute("data-tt-value");
+        var l = document.createElement("div"); l.className = "tt-label";
+        l.textContent = el.getAttribute("data-tt-label");
+        tt.appendChild(v); tt.appendChild(l);
+        tt.style.display = "block";
+        move(evt);
+      }
+      function move(evt) {
+        var x = (evt.clientX || 0) + 14, y = (evt.clientY || 0) + 14;
+        var r = tt.getBoundingClientRect();
+        if (x + r.width > window.innerWidth - 8) x = (evt.clientX || 0) - r.width - 14;
+        if (y + r.height > window.innerHeight - 8) y = (evt.clientY || 0) - r.height - 14;
+        tt.style.left = x + "px"; tt.style.top = y + "px";
+      }
+      function hide() { tt.style.display = "none"; }
+      el.addEventListener("pointermove", function (e) { show(e); move(e); });
+      el.addEventListener("pointerleave", hide);
+      el.addEventListener("focus", function () {
+        var r = el.getBoundingClientRect();
+        show({ clientX: r.left + r.width / 2, clientY: r.top });
+      });
+      el.addEventListener("blur", hide);
+      el.setAttribute("tabindex", "0");
+    });
+  }
+
+  /* ---------- svg helpers ---------- */
+  var NS = "http://www.w3.org/2000/svg";
+  function el(tag, attrs, parent) {
+    var n = document.createElementNS(NS, tag);
+    for (var k in attrs) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+  function txt(parent, x, y, str, attrs) {
+    var t = el("text", Object.assign({ x: x, y: y }, attrs || {}), parent);
+    t.textContent = str;
+    return t;
+  }
+
+  function render() {
+    var ink = css("--text-primary"), ink2 = css("--text-secondary"), muted = css("--text-muted");
+    var grid = css("--gridline"), base = css("--baseline");
+    var blue = css("--series-1"), blueMid = css("--series-1-mid"), blueLight = css("--series-1-light");
+    var gray = css("--neutral-mark"), crit = css("--critical"), warn = css("--warning");
+
+    /* ============ TIMELINE ============ */
+    (function () {
+      var svg = document.getElementById("timeline"); svg.textContent = "";
+      var X0 = 60, X1 = 940, AXY = 118, MONTHS = 40; // May 2025 → Sep 2028
+      function mx(months) { return X0 + (months / MONTHS) * (X1 - X0); }
+
+      // year gridlines + labels
+      [["Jan 2026", 8], ["Jan 2027", 20], ["Jan 2028", 32]].forEach(function (g) {
+        el("line", { x1: mx(g[1]), y1: 34, x2: mx(g[1]), y2: AXY + 34, stroke: grid, "stroke-width": 1 }, svg);
+        txt(svg, mx(g[1]), AXY + 50, g[0], { "text-anchor": "middle", "font-size": 11, fill: muted });
+      });
+      el("line", { x1: X0, y1: AXY, x2: X1, y2: AXY, stroke: base, "stroke-width": 1 }, svg);
+
+      var events = [
+        { m: 1.5,  color: crit, r: 6, above: true,  name: "Transformer PO deadline", sub: "mid-2025 — missed", tv: "128–144 wk lead means POs were due by mid-2025", tl: "Main transformers / GSUs" },
+        { m: 14.1, color: crit, r: 6, above: false, name: "BOC deadline — ITC/PTC", sub: "Jul 4, 2026 — passed", tv: "OBBBA: no beginning-of-construction by Jul 4, 2026 → $0 ITC/PTC at COD 2028", tl: "Tax credit cliff" },
+        { m: 17.5, color: warn, r: 6, above: true,  name: "FGC hawk delisting vote", sub: "Oct 13–16, 2026", tv: "Fish & Game Commission: Swainson's hawk delisting + burrowing owl decision", tl: "Regulatory decision" },
+        { m: 30.5, color: warn, r: 6, above: false, name: "Transformer delivery gate", sub: "≤ Q4 2027", tv: "Latest transformer delivery compatible with COD Jul 2028", tl: "Supply chain gate" },
+        { m: 32,   color: warn, r: 6, above: true,  name: "Placed-in-service cliff", sub: "Dec 31, 2027", tv: "Alternative to BOC: place in service by Dec 31, 2027 (storage exempt)", tl: "Tax credit cliff (alt)" },
+        { m: 38,   color: blue, r: 7, above: false, name: "COD target", sub: "Jul 2028", tv: "Solar Alpha commercial operation date", tl: "Project target" }
+      ];
+      events.forEach(function (e) {
+        var x = mx(e.m), ly = e.above ? AXY - 46 : AXY + 66, cy = e.above ? AXY - 22 : AXY + 22;
+        el("line", { x1: x, y1: AXY, x2: x, y2: cy, stroke: base, "stroke-width": 1 }, svg);
+        var c = el("circle", {
+          cx: x, cy: cy, r: e.r, fill: e.color,
+          stroke: css("--surface-1"), "stroke-width": 2,
+          "data-tt": "", "data-tt-value": e.name, "data-tt-label": e.tl
+        }, svg);
+        txt(svg, x, ly, e.name, { "text-anchor": "middle", "font-size": 12, "font-weight": 600, fill: ink });
+        txt(svg, x, ly + 14, e.sub, { "text-anchor": "middle", "font-size": 11, fill: ink2 });
+      });
+
+      // today line
+      var tx = mx(15.4);
+      el("line", { x1: tx, y1: 26, x2: tx, y2: AXY + 34, stroke: muted, "stroke-width": 1 }, svg);
+      txt(svg, tx, 18, "Today · Aug 14, 2026", { "text-anchor": "middle", "font-size": 11, "font-weight": 600, fill: muted });
+    })();
+
+    /* ============ CAPEX BARS (emphasis: claim vs benchmarks) ============ */
+    (function () {
+      var svg = document.getElementById("capex"); svg.textContent = "";
+      var X0 = 210, X1 = 880, MAX = 1.75, rows = [
+        { name: "Solar Alpha claim", v: 0.74, color: crit, note: "~50% below market", tv: "$0.74/Wac", tl: "Solar Alpha: $186M / 250 MW — BESS excluded" },
+        { name: "LBNL 2023 median", v: 1.43, color: gray, note: "benchmark", tv: "$1.43/Wac", tl: "LBNL 2023 median installed price" },
+        { name: "NREL ATB 2023", v: 1.56, color: gray, note: "benchmark", tv: "$1.56/Wac", tl: "NREL ATB 2023 benchmark" }
+      ];
+      function bx(v) { return X0 + (v / MAX) * (X1 - X0); }
+      [0, 0.5, 1.0, 1.5].forEach(function (t) {
+        el("line", { x1: bx(t), y1: 14, x2: bx(t), y2: 150, stroke: grid, "stroke-width": 1 }, svg);
+        txt(svg, bx(t), 166, "$" + t.toFixed(2), { "text-anchor": "middle", "font-size": 11, fill: muted });
+      });
+      el("line", { x1: X0, y1: 14, x2: X0, y2: 150, stroke: base, "stroke-width": 1 }, svg);
+      rows.forEach(function (r, i) {
+        var y = 26 + i * 44, w = bx(r.v) - X0;
+        el("rect", {
+          x: X0, y: y, width: w, height: 22, rx: 4, fill: r.color,
+          "data-tt": "", "data-tt-value": r.tv, "data-tt-label": r.tl
+        }, svg);
+        txt(svg, X0 - 10, y + 15, r.name, { "text-anchor": "end", "font-size": 12.5, fill: ink });
+        txt(svg, X0 + w + 8, y + 15, "$" + r.v.toFixed(2) + "/W", { "font-size": 12.5, "font-weight": 600, fill: ink });
+        txt(svg, X0 + w + 92, y + 15, r.note, { "font-size": 11.5, fill: ink2 });
+      });
+    })();
+
+    /* ============ DSCR METER ============ */
+    (function () {
+      var svg = document.getElementById("dscr"); svg.textContent = "";
+      var X0 = 90, X1 = 940, MIN = 1.0, MAX = 1.5, MY = 66;
+      function dx(v) { return X0 + ((v - MIN) / (MAX - MIN)) * (X1 - X0); }
+      [1.0, 1.1, 1.2, 1.3, 1.4, 1.5].forEach(function (t) {
+        el("line", { x1: dx(t), y1: 34, x2: dx(t), y2: 108, stroke: grid, "stroke-width": 1 }, svg);
+        txt(svg, dx(t), 126, t.toFixed(1) + "x", { "text-anchor": "middle", "font-size": 11, fill: muted });
+      });
+      // track: same-ramp lighter step
+      el("rect", { x: X0, y: MY - 8, width: X1 - X0, height: 16, rx: 8, fill: blueLight }, svg);
+      // downside range band
+      el("rect", {
+        x: dx(1.14), y: MY - 11, width: dx(1.24) - dx(1.14), height: 22, rx: 4, fill: crit,
+        "data-tt": "", "data-tt-value": "Downside 1.14–1.24x", "data-tt-label": "Breaches the 1.20x covenant at the low end"
+      }, svg);
+      // covenant line
+      el("line", { x1: dx(1.2), y1: 30, x2: dx(1.2), y2: 106, stroke: muted, "stroke-width": 2 }, svg);
+      txt(svg, dx(1.2), 22, "Covenant 1.20x P90", { "text-anchor": "middle", "font-size": 11.5, "font-weight": 600, fill: ink2 });
+      // base case marker
+      el("circle", {
+        cx: dx(1.31), cy: MY, r: 7, fill: blue, stroke: css("--surface-1"), "stroke-width": 2,
+        "data-tt": "", "data-tt-value": "Base case 1.31x", "data-tt-label": "Clears the covenant"
+      }, svg);
+      txt(svg, dx(1.31), MY - 18, "Base 1.31x", { "text-anchor": "middle", "font-size": 11.5, "font-weight": 600, fill: ink });
+      txt(svg, dx(1.19), MY + 34, "Downside 1.14–1.24x", { "text-anchor": "middle", "font-size": 11.5, fill: ink2 });
+    })();
+
+    /* ============ SUPPLY CHAIN RANGES ============ */
+    (function () {
+      var svg = document.getElementById("supply"); svg.textContent = "";
+      var X0 = 210, X1 = 940, MAX = 160;
+      function sx(w) { return X0 + (w / MAX) * (X1 - X0); }
+      [0, 40, 80, 120, 160].forEach(function (t) {
+        el("line", { x1: sx(t), y1: 14, x2: sx(t), y2: 176, stroke: grid, "stroke-width": 1 }, svg);
+        txt(svg, sx(t), 194, t + " wks", { "text-anchor": "middle", "font-size": 11, fill: muted });
+      });
+      el("line", { x1: X0, y1: 14, x2: X0, y2: 176, stroke: base, "stroke-width": 1 }, svg);
+      var rows = [
+        { name: "Main transformers", lo: 128, hi: 144, tv: "128–144 weeks (~2.5–2.8 yrs)", tl: "Wood Mac 2025 — ~30% national supply deficit", marker: { at: 62, tv: "Demo assumption: 62 weeks", tl: "Roughly half the real market — the seeded flag is optimistic" } },
+        { name: "HV switchgear", lo: 60, hi: 100, tv: "60–100+ weeks", tl: "Order now for COD Jul 2028" },
+        { name: "BESS integration slot", lo: 26, hi: 52, tv: "26–52 weeks", tl: "FEOC-compliant cells (CATL/BYD excluded → congestion)" }
+      ];
+      rows.forEach(function (r, i) {
+        var y = 32 + i * 52;
+        el("rect", {
+          x: sx(r.lo), y: y, width: sx(r.hi) - sx(r.lo), height: 20, rx: 4, fill: blueMid,
+          "data-tt": "", "data-tt-value": r.tv, "data-tt-label": r.tl
+        }, svg);
+        txt(svg, X0 - 10, y + 14, r.name, { "text-anchor": "end", "font-size": 12.5, fill: ink });
+        txt(svg, sx(r.hi) + 8, y + 14, r.lo + "–" + r.hi, { "font-size": 12, "font-weight": 600, fill: ink });
+        if (r.marker) {
+          var mxp = sx(r.marker.at);
+          el("line", { x1: mxp, y1: y - 6, x2: mxp, y2: y + 26, stroke: crit, "stroke-width": 2 }, svg);
+          var d = el("circle", {
+            cx: mxp, cy: y + 10, r: 6, fill: crit, stroke: css("--surface-1"), "stroke-width": 2,
+            "data-tt": "", "data-tt-value": r.marker.tv, "data-tt-label": r.marker.tl
+          }, svg);
+          txt(svg, mxp, y - 12, "demo: 62", { "text-anchor": "middle", "font-size": 11, "font-weight": 600, fill: ink });
+        }
+      });
+    })();
+
+    /* ============ ECOLOGY CALENDAR ============ */
+    (function () {
+      var svg = document.getElementById("calendar"); svg.textContent = "";
+      var X0 = 190, X1 = 950, months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      function mx(m) { return X0 + (m / 12) * (X1 - X0); } // m in [0,12]
+      months.forEach(function (m, i) {
+        el("line", { x1: mx(i), y1: 26, x2: mx(i), y2: 262, stroke: grid, "stroke-width": 1 }, svg);
+        txt(svg, mx(i + 0.5), 20, m, { "text-anchor": "middle", "font-size": 11, fill: muted });
+      });
+      el("line", { x1: mx(12), y1: 26, x2: mx(12), y2: 262, stroke: grid, "stroke-width": 1 }, svg);
+      el("line", { x1: X0, y1: 26, x2: X0, y2: 262, stroke: base, "stroke-width": 1 }, svg);
+
+      // rows: [label, [{lo,hi,color,tv,tl}]]
+      var rows = [
+        { name: "Swainson's hawk", bars: [
+          { lo: 1.5, hi: 7.2, color: blue, tv: "Protocol survey season (TAC 2000)", tl: "Periods II/III/V · 0.5-mi radius · miss it, lose a year" },
+          { lo: 3.7, hi: 5.35, color: crit, tv: "Blackout Apr 21 – Jun 10", tl: "Surveys impossible inside the blackout window" }
+        ]},
+        { name: "Burrowing owl", bars: [
+          { lo: 3.5, hi: 7.5, color: blue, tv: "4 breeding visits Apr 15 – Jul 15", tl: "≥1 visit after Jun 15 · CESA candidate — full take protection now" }
+        ]},
+        { name: "CA tiger salamander", bars: [
+          { lo: 0, hi: 4, color: blue, tv: "Wet season 1 of 2 (Nov–Apr)", tl: "Requires 2 consecutive wet seasons — longest-lead bio item" },
+          { lo: 11, hi: 12, color: blue, tv: "Wet season continues (Nov–Dec)", tl: "Requires 2 consecutive wet seasons — longest-lead bio item" }
+        ]},
+        { name: "Giant garter snake", bars: [
+          { lo: 5, hi: 10, color: blue, tv: "Work window May 1 – Oct 1", tl: "Only within 200 ft of aquatic habitat · presence assumed (no negative surveys)" }
+        ]},
+        { name: "Tricolored blackbird", bars: [
+          { lo: 3, hi: 7, color: blue, tv: "Colony surveys Mar – Jul", tl: "~300 ft buffers around active colonies" }
+        ]}
+      ];
+      rows.forEach(function (r, i) {
+        var y = 42 + i * 44;
+        txt(svg, X0 - 10, y + 14, r.name, { "text-anchor": "end", "font-size": 12.5, fill: ink });
+        r.bars.forEach(function (b) {
+          el("rect", {
+            x: mx(b.lo), y: y, width: Math.max(mx(b.hi) - mx(b.lo), 4), height: 20, rx: 4, fill: b.color,
+            "data-tt": "", "data-tt-value": b.tv, "data-tt-label": b.tl
+          }, svg);
+        });
+      });
+      // blackout annotation sits in the row gap, directly under the red bar
+      txt(svg, mx(4.5), 76, "blackout", { "text-anchor": "middle", "font-size": 10.5, "font-weight": 600, fill: ink2 });
+    })();
+  }
+
+  render();
+  bindTips(document);
+  // re-render charts on theme switch so svg fills track the theme
+  document.getElementById("themeToggle").addEventListener("click", function () {
+    requestAnimationFrame(function () { render(); bindTips(document); });
+  });
+})();
+</script>
+</body>
+</html>

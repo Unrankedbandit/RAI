@@ -1,0 +1,966 @@
+{
+  "project": {
+    "id": "solar-alpha",
+    "name": "Solar Alpha \u2014 250 MW solar + storage",
+    "location": "Solano County, California",
+    "capacityMW": 250,
+    "latitude": 38.31,
+    "longitude": -121.94,
+    "activationScore": 26.0,
+    "band": "risk",
+    "scoreReason": "Resolve the zoning pathway via CEC AB 205 Opt-In and reconcile CAPEX/offtake to executed evidence before financing close \u2014 the model currently assumes a site and revenue base the documents don't support",
+    "status": "at-risk",
+    "pillars": [
+      {
+        "name": "Land",
+        "score": 38.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "6 flags open",
+        "subAgents": [
+          "extractor:land-docs",
+          "scout:zoning",
+          "researcher:land_use"
+        ],
+        "factors": [
+          {
+            "id": "land-flag-0",
+            "name": "Parcel 14 option unsigned \u2014 18 acres on the collector-line/substation route shown as contr",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Parcel 14 option unsigned \u2014 18 acres on the collector-line/substation route shown as controlled",
+            "sources": []
+          },
+          {
+            "id": "land-flag-1",
+            "name": "Heavy-haul easement is 'non-exclusive agricultural access' \u2014 may not permit oversize const",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Heavy-haul easement is 'non-exclusive agricultural access' \u2014 may not permit oversize construction traffic",
+            "sources": []
+          },
+          {
+            "id": "land-flag-2",
+            "name": "12% of site (~170 acres) mapped flood-prone; fallback truck route conflicts with documente",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "12% of site (~170 acres) mapped flood-prone; fallback truck route conflicts with documented community request",
+            "sources": []
+          },
+          {
+            "id": "ev-land-0",
+            "name": "Parcel 14 option unsigned on interconnection route",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "18 acres near the preferred substation route shown as project-controlled in the development schedule, but the title summary lists the option agreement as unsigned",
+            "sources": [
+              "01_Land_and_Site_Due_Diligence.pdf"
+            ],
+            "evidenceId": "ev-land-0"
+          },
+          {
+            "id": "ev-land-1",
+            "name": "Commercial solar prohibited in all Solano agricultural zoning districts",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "2015 Solar Ordinance (ZT 12-04) prohibits commercial solar in all ag districts; 2025 BESS ordinance (2025-1864) prohibits batteries on ag land \u2014 local use permit unavailable; CEC AB 205 Opt-In (270-day decision, preempts local zoning) is the viable path",
+            "sources": [
+              "research/solar-alpha-component-research.md"
+            ],
+            "evidenceId": "ev-land-1"
+          },
+          {
+            "id": "ev-land-2",
+            "name": "Heavy-haul easement language insufficient",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Secondary route crosses 30-ft private easement labeled 'non-exclusive agricultural access'; alternate routing adds 6.8 miles per delivery",
+            "sources": [
+              "01_Land_and_Site_Due_Diligence.pdf"
+            ],
+            "evidenceId": "ev-land-2"
+          }
+        ]
+      },
+      {
+        "name": "Law",
+        "score": 18.7,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "4 flags open",
+        "subAgents": [
+          "researcher:state_law",
+          "researcher:federal_law",
+          "researcher:ecology_epa"
+        ],
+        "factors": [
+          {
+            "id": "law-flag-0",
+            "name": "Grading NTP Oct 14, 2026 precedes environmental review completion Dec 8, 2026 by ~7.9 week",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Grading NTP Oct 14, 2026 precedes environmental review completion Dec 8, 2026 by ~7.9 weeks",
+            "sources": []
+          },
+          {
+            "id": "law-flag-1",
+            "name": "Protected raptor consultation open \u2014 46 acres of panels inside seasonal buffer",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Protected raptor consultation open \u2014 46 acres of panels inside seasonal buffer",
+            "sources": []
+          },
+          {
+            "id": "law-flag-2",
+            "name": "Construction water: 82 acre-feet required, only 50 indicated by district",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Construction water: 82 acre-feet required, only 50 indicated by district",
+            "sources": []
+          },
+          {
+            "id": "ev-law-3",
+            "name": "Early grading precedes environmental review milestone",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Schedule starts physical work Oct 14, 2026 \u2014 roughly 8 weeks before environmental review/raptor consultation completes Dec 2026",
+            "sources": [
+              "03_Legal_Regulatory_and_Permitting_Memo.pdf"
+            ],
+            "evidenceId": "ev-law-3"
+          }
+        ]
+      },
+      {
+        "name": "Finance",
+        "score": 18.7,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "6 flags open",
+        "subAgents": [
+          "researcher:financials",
+          "cross-examiner"
+        ],
+        "factors": [
+          {
+            "id": "finance-flag-0",
+            "name": "Model carries stale $186.0M CAPEX; materials reconciliation indicates $199-211M",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Model carries stale $186.0M CAPEX; materials reconciliation indicates $199-211M",
+            "sources": []
+          },
+          {
+            "id": "finance-flag-1",
+            "name": "Minimum DSCR breaches 1.25x covenant in 3 of 5 updated scenarios (low 1.14x)",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Minimum DSCR breaches 1.25x covenant in 3 of 5 updated scenarios (low 1.14x)",
+            "sources": []
+          },
+          {
+            "id": "finance-flag-2",
+            "name": "Financing close Oct 2026 precedes Utility A final contract Nov 2026",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Financing close Oct 2026 precedes Utility A final contract Nov 2026",
+            "sources": []
+          },
+          {
+            "id": "ev-finance-4",
+            "name": "Stale $186M CAPEX vs $199-211M reconciliation",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Finance model uses $186.0M CAPEX while updated materials packages are +$12.7M, implying $199-211M total",
+            "sources": [
+              "07_Financial_Feasibility_and_Sensitivity_Memo.pdf",
+              "06_Materials_Supply_Chain_and_Price_Index.pdf"
+            ],
+            "evidenceId": "ev-finance-4"
+          },
+          {
+            "id": "ev-finance-5",
+            "name": "DSCR covenant breach in updated scenarios",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Minimum DSCR falls to 1.24x (updated materials), 1.23x (demand corrected), 1.14x (combined downside) against a 1.25x covenant",
+            "sources": [
+              "07_Financial_Feasibility_and_Sensitivity_Memo.pdf"
+            ],
+            "evidenceId": "ev-finance-5"
+          },
+          {
+            "id": "ev-finance-6",
+            "name": "ITC/PTC phase-out: COD Jul 2028 requires documented BOC by Jul 4, 2026",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "OBBBA terminates solar \u00a748E/\u00a745Y for projects not beginning construction by Jul 4, 2026 and placed in service after Dec 31, 2027; deadline has passed",
+            "sources": [
+              "research/solar-alpha-component-research.md"
+            ],
+            "evidenceId": "ev-finance-6"
+          }
+        ]
+      },
+      {
+        "name": "Materials",
+        "score": 24.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "5 flags open",
+        "subAgents": [
+          "researcher:supply_chain"
+        ],
+        "factors": [
+          {
+            "id": "materials-flag-0",
+            "name": "Transformer lead time 62 weeks vs 38-week schedule allowance \u2014 24-week gap",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Transformer lead time 62 weeks vs 38-week schedule allowance \u2014 24-week gap",
+            "sources": []
+          },
+          {
+            "id": "materials-flag-1",
+            "name": "Only one technically qualified transformer supplier; no validated alternate",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Only one technically qualified transformer supplier; no validated alternate",
+            "sources": []
+          },
+          {
+            "id": "materials-flag-2",
+            "name": "Transformer index +28%, copper +22% since Q1 quotes \u2014 cost plan stale",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Transformer index +28%, copper +22% since Q1 quotes \u2014 cost plan stale",
+            "sources": []
+          },
+          {
+            "id": "ev-materials-7",
+            "name": "Transformer lead time exceeds schedule by 24 weeks",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Supplier indication 62 weeks vs 38-week allowance for two main power transformers; real 2026 market norm is 128-144 weeks for large power transformers",
+            "sources": [
+              "06_Materials_Supply_Chain_and_Price_Index.pdf"
+            ],
+            "evidenceId": "ev-materials-7"
+          },
+          {
+            "id": "ev-materials-8",
+            "name": "Single qualified transformer supplier",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No validated alternate for the critical-path transformer package",
+            "sources": [
+              "06_Materials_Supply_Chain_and_Price_Index.pdf"
+            ],
+            "evidenceId": "ev-materials-8"
+          }
+        ]
+      },
+      {
+        "name": "Demand",
+        "score": 34.7,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "5 flags open",
+        "subAgents": [
+          "researcher:demand",
+          "researcher:interconnection"
+        ],
+        "factors": [
+          {
+            "id": "demand-flag-0",
+            "name": "Firm contracted demand only 150 MW vs 200 MW assumed in model (50 MW is non-binding LOI)",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Firm contracted demand only 150 MW vs 200 MW assumed in model (50 MW is non-binding LOI)",
+            "sources": []
+          },
+          {
+            "id": "demand-flag-1",
+            "name": "Utility A represents 60% of plant capacity \u2014 single-counterparty concentration",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Utility A represents 60% of plant capacity \u2014 single-counterparty concentration",
+            "sources": []
+          },
+          {
+            "id": "demand-flag-2",
+            "name": "20% merchant exposure at base, 40% if LOI excluded",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "20% merchant exposure at base, 40% if LOI excluded",
+            "sources": []
+          },
+          {
+            "id": "ev-demand-9",
+            "name": "Firm contracted demand only 150 MW vs 200 MW modeled",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Utility A executed term sheet covers 150 MW; Data Center Consortium 50 MW is a non-binding LOI",
+            "sources": [
+              "02_Financial_and_Investment_Sensitivity_Model.xlsx",
+              "03_Materials_and_Demand_Index_Tracker.xlsx"
+            ],
+            "evidenceId": "ev-demand-9"
+          },
+          {
+            "id": "ev-demand-10",
+            "name": "Customer concentration \u2014 Utility A at 60% of capacity",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Single counterparty would take 150 MW = 60% of plant capacity",
+            "sources": [
+              "03_Materials_and_Demand_Index_Tracker.xlsx"
+            ],
+            "evidenceId": "ev-demand-10"
+          }
+        ]
+      }
+    ]
+  },
+  "eyebrow": "Solar \u00b7 250 MW \u00b7 Solano County, California",
+  "runSummary": "7 documents analyzed \u00b7 6 open items",
+  "scoreBandLabel": "Risk \u00b7 26/100",
+  "scoreNote": "Resolve the zoning pathway via CEC AB 205 Opt-In and reconcile CAPEX/offtake to executed evidence before financing close \u2014 the model currently assumes a site and revenue base the documents don't support",
+  "evidence": {
+    "ev-land-0": {
+      "id": "ev-land-0",
+      "factorName": "Parcel 14 option unsigned on interconnection route",
+      "kind": "single",
+      "summary": "18 acres near the preferred substation route shown as project-controlled in the development schedule, but the title summary lists the option agreement as unsigned",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "01_Land_and_Site_Due_Diligence.pdf",
+          "location": "land",
+          "highlight": "18 acres near the preferred substation route shown as project-controlled in the development schedule, but the title summary lists the option agreement as unsigned",
+          "extractedLabel": "land",
+          "extractedValue": "Full site control assumed by Sep 2026"
+        }
+      ]
+    },
+    "ev-land-1": {
+      "id": "ev-land-1",
+      "factorName": "Commercial solar prohibited in all Solano agricultural zoning districts",
+      "kind": "single",
+      "summary": "2015 Solar Ordinance (ZT 12-04) prohibits commercial solar in all ag districts; 2025 BESS ordinance (2025-1864) prohibits batteries on ag land \u2014 local use permit unavailable; CEC AB 205 Opt-In (270-day decision, preempts local zoning) is the viable path",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "research/solar-alpha-component-research.md",
+          "location": "zoning",
+          "highlight": "2015 Solar Ordinance (ZT 12-04) prohibits commercial solar in all ag districts; 2025 BESS ordinance (2025-1864) prohibits batteries on ag land \u2014 local use permit unavailable; CEC AB 205 Opt-In (270-day decision, preempts local zoning) is the viable path",
+          "extractedLabel": "zoning",
+          "extractedValue": "Kill criterion \u2014 threshold, not schedule risk"
+        }
+      ]
+    },
+    "ev-land-2": {
+      "id": "ev-land-2",
+      "factorName": "Heavy-haul easement language insufficient",
+      "kind": "single",
+      "summary": "Secondary route crosses 30-ft private easement labeled 'non-exclusive agricultural access'; alternate routing adds 6.8 miles per delivery",
+      "confidence": "Medium confidence",
+      "sources": [
+        {
+          "title": "01_Land_and_Site_Due_Diligence.pdf",
+          "location": "land",
+          "highlight": "Secondary route crosses 30-ft private easement labeled 'non-exclusive agricultural access'; alternate routing adds 6.8 miles per delivery",
+          "extractedLabel": "land",
+          "extractedValue": ""
+        }
+      ]
+    },
+    "ev-law-3": {
+      "id": "ev-law-3",
+      "factorName": "Early grading precedes environmental review milestone",
+      "kind": "single",
+      "summary": "Schedule starts physical work Oct 14, 2026 \u2014 roughly 8 weeks before environmental review/raptor consultation completes Dec 2026",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "03_Legal_Regulatory_and_Permitting_Memo.pdf",
+          "location": "law",
+          "highlight": "Schedule starts physical work Oct 14, 2026 \u2014 roughly 8 weeks before environmental review/raptor consultation completes Dec 2026",
+          "extractedLabel": "law",
+          "extractedValue": "CEQA: construction before review completion is a fatal sequencing defect"
+        }
+      ]
+    },
+    "ev-finance-4": {
+      "id": "ev-finance-4",
+      "factorName": "Stale $186M CAPEX vs $199-211M reconciliation",
+      "kind": "single",
+      "summary": "Finance model uses $186.0M CAPEX while updated materials packages are +$12.7M, implying $199-211M total",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "07_Financial_Feasibility_and_Sensitivity_Memo.pdf",
+          "location": "financials",
+          "highlight": "Finance model uses $186.0M CAPEX while updated materials packages are +$12.7M, implying $199-211M total",
+          "extractedLabel": "financials",
+          "extractedValue": "LBNL/NREL: $1.43-1.56/Wac installed; $186M/250 MW = $0.74/W"
+        },
+        {
+          "title": "06_Materials_Supply_Chain_and_Price_Index.pdf",
+          "location": "financials",
+          "highlight": "Finance model uses $186.0M CAPEX while updated materials packages are +$12.7M, implying $199-211M total",
+          "extractedLabel": "financials",
+          "extractedValue": "LBNL/NREL: $1.43-1.56/Wac installed; $186M/250 MW = $0.74/W"
+        }
+      ]
+    },
+    "ev-finance-5": {
+      "id": "ev-finance-5",
+      "factorName": "DSCR covenant breach in updated scenarios",
+      "kind": "single",
+      "summary": "Minimum DSCR falls to 1.24x (updated materials), 1.23x (demand corrected), 1.14x (combined downside) against a 1.25x covenant",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "07_Financial_Feasibility_and_Sensitivity_Memo.pdf",
+          "location": "financials",
+          "highlight": "Minimum DSCR falls to 1.24x (updated materials), 1.23x (demand corrected), 1.14x (combined downside) against a 1.25x covenant",
+          "extractedLabel": "financials",
+          "extractedValue": "Lender norm: >=1.20x P90 / ~1.30x P50"
+        }
+      ]
+    },
+    "ev-finance-6": {
+      "id": "ev-finance-6",
+      "factorName": "ITC/PTC phase-out: COD Jul 2028 requires documented BOC by Jul 4, 2026",
+      "kind": "single",
+      "summary": "OBBBA terminates solar \u00a748E/\u00a745Y for projects not beginning construction by Jul 4, 2026 and placed in service after Dec 31, 2027; deadline has passed",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "research/solar-alpha-component-research.md",
+          "location": "financials",
+          "highlight": "OBBBA terminates solar \u00a748E/\u00a745Y for projects not beginning construction by Jul 4, 2026 and placed in service after Dec 31, 2027; deadline has passed",
+          "extractedLabel": "financials",
+          "extractedValue": "~30% of PV CAPEX at stake"
+        }
+      ]
+    },
+    "ev-materials-7": {
+      "id": "ev-materials-7",
+      "factorName": "Transformer lead time exceeds schedule by 24 weeks",
+      "kind": "single",
+      "summary": "Supplier indication 62 weeks vs 38-week allowance for two main power transformers; real 2026 market norm is 128-144 weeks for large power transformers",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "06_Materials_Supply_Chain_and_Price_Index.pdf",
+          "location": "materials",
+          "highlight": "Supplier indication 62 weeks vs 38-week allowance for two main power transformers; real 2026 market norm is 128-144 weeks for large power transformers",
+          "extractedLabel": "materials",
+          "extractedValue": "Wood Mackenzie 2025: GSU ~144 weeks, LPT ~128 weeks"
+        }
+      ]
+    },
+    "ev-materials-8": {
+      "id": "ev-materials-8",
+      "factorName": "Single qualified transformer supplier",
+      "kind": "single",
+      "summary": "No validated alternate for the critical-path transformer package",
+      "confidence": "Medium confidence",
+      "sources": [
+        {
+          "title": "06_Materials_Supply_Chain_and_Price_Index.pdf",
+          "location": "materials",
+          "highlight": "No validated alternate for the critical-path transformer package",
+          "extractedLabel": "materials",
+          "extractedValue": ""
+        }
+      ]
+    },
+    "ev-demand-9": {
+      "id": "ev-demand-9",
+      "factorName": "Firm contracted demand only 150 MW vs 200 MW modeled",
+      "kind": "single",
+      "summary": "Utility A executed term sheet covers 150 MW; Data Center Consortium 50 MW is a non-binding LOI",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "02_Financial_and_Investment_Sensitivity_Model.xlsx",
+          "location": "demand",
+          "highlight": "Utility A executed term sheet covers 150 MW; Data Center Consortium 50 MW is a non-binding LOI",
+          "extractedLabel": "demand",
+          "extractedValue": "Lender norm: >=80% of P50 contracted at financial close"
+        },
+        {
+          "title": "03_Materials_and_Demand_Index_Tracker.xlsx",
+          "location": "demand",
+          "highlight": "Utility A executed term sheet covers 150 MW; Data Center Consortium 50 MW is a non-binding LOI",
+          "extractedLabel": "demand",
+          "extractedValue": "Lender norm: >=80% of P50 contracted at financial close"
+        }
+      ]
+    },
+    "ev-demand-10": {
+      "id": "ev-demand-10",
+      "factorName": "Customer concentration \u2014 Utility A at 60% of capacity",
+      "kind": "single",
+      "summary": "Single counterparty would take 150 MW = 60% of plant capacity",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "03_Materials_and_Demand_Index_Tracker.xlsx",
+          "location": "demand",
+          "highlight": "Single counterparty would take 150 MW = 60% of plant capacity",
+          "extractedLabel": "demand",
+          "extractedValue": "Concentration norm: flag single offtaker >50% of revenue"
+        }
+      ]
+    },
+    "ev-contradiction-0": {
+      "id": "ev-contradiction-0",
+      "factorName": "Contradiction: Model CAPEX is stale against the materials reconciliation \u2014 ",
+      "kind": "contradiction",
+      "summary": "Model CAPEX is stale against the materials reconciliation \u2014 enough to breach the DSCR covenant",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "07_Financial_Feasibility_and_Sensitivity_Memo.pdf",
+          "location": "cross-document check",
+          "highlight": "Total CAPEX $186.0M carried in base case",
+          "extractedLabel": "claim",
+          "extractedValue": "Total CAPEX $186.0M carried in base case"
+        },
+        {
+          "title": "06_Materials_Supply_Chain_and_Price_Index.pdf",
+          "location": "cross-document check",
+          "highlight": "Sampled packages +$12.7M; updated total could approach $199-211M",
+          "extractedLabel": "claim",
+          "extractedValue": "Sampled packages +$12.7M; updated total could approach $199-211M"
+        }
+      ],
+      "comparison": {
+        "dimension": "Model CAPEX is stale against the materials reconciliation \u2014 ",
+        "rows": [
+          {
+            "label": "07_Financial_Feasibility_and_Sensitivity_Memo.pdf",
+            "a": "Total CAPEX $186.0M carried in base case",
+            "b": ""
+          },
+          {
+            "label": "06_Materials_Supply_Chain_and_Price_Index.pdf",
+            "a": "Sampled packages +$12.7M; updated total could approach $199-211M",
+            "b": ""
+          },
+          {
+            "label": "Conflict",
+            "a": "",
+            "b": "contradictory"
+          }
+        ]
+      }
+    },
+    "ev-contradiction-1": {
+      "id": "ev-contradiction-1",
+      "factorName": "Contradiction: Revenue base overstated by 25%; only executed contracts are ",
+      "kind": "contradiction",
+      "summary": "Revenue base overstated by 25%; only executed contracts are bankable",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "02_Financial_and_Investment_Sensitivity_Model.xlsx",
+          "location": "cross-document check",
+          "highlight": "Firm contracted capacity assumed 200 MW",
+          "extractedLabel": "claim",
+          "extractedValue": "Firm contracted capacity assumed 200 MW"
+        },
+        {
+          "title": "03_Materials_and_Demand_Index_Tracker.xlsx",
+          "location": "cross-document check",
+          "highlight": "Utility A term sheet 150 MW executed; 50 MW consortium LOI is non-binding",
+          "extractedLabel": "claim",
+          "extractedValue": "Utility A term sheet 150 MW executed; 50 MW consortium LOI is non-binding"
+        }
+      ],
+      "comparison": {
+        "dimension": "Revenue base overstated by 25%; only executed contracts are ",
+        "rows": [
+          {
+            "label": "02_Financial_and_Investment_Sensitivity_Model.xlsx",
+            "a": "Firm contracted capacity assumed 200 MW",
+            "b": ""
+          },
+          {
+            "label": "03_Materials_and_Demand_Index_Tracker.xlsx",
+            "a": "Utility A term sheet 150 MW executed; 50 MW consortium LOI is non-binding",
+            "b": ""
+          },
+          {
+            "label": "Conflict",
+            "a": "",
+            "b": "contradictory"
+          }
+        ]
+      }
+    },
+    "ev-contradiction-2": {
+      "id": "ev-contradiction-2",
+      "factorName": "Contradiction: Construction begins ~7.9 weeks before the environmental mile",
+      "kind": "contradiction",
+      "summary": "Construction begins ~7.9 weeks before the environmental milestone it legally depends on",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "03_Legal_Regulatory_and_Permitting_Memo.pdf",
+          "location": "cross-document check",
+          "highlight": "Grading NTP Oct 14, 2026",
+          "extractedLabel": "claim",
+          "extractedValue": "Grading NTP Oct 14, 2026"
+        },
+        {
+          "title": "02_Environmental_Water_and_Biodiversity_Assessment.pdf",
+          "location": "cross-document check",
+          "highlight": "Environmental review/raptor consultation completes Dec 8, 2026",
+          "extractedLabel": "claim",
+          "extractedValue": "Environmental review/raptor consultation completes Dec 8, 2026"
+        }
+      ],
+      "comparison": {
+        "dimension": "Construction begins ~7.9 weeks before the environmental mile",
+        "rows": [
+          {
+            "label": "03_Legal_Regulatory_and_Permitting_Memo.pdf",
+            "a": "Grading NTP Oct 14, 2026",
+            "b": ""
+          },
+          {
+            "label": "02_Environmental_Water_and_Biodiversity_Assessment.pdf",
+            "a": "Environmental review/raptor consultation completes Dec 8, 2026",
+            "b": ""
+          },
+          {
+            "label": "Conflict",
+            "a": "",
+            "b": "contradictory"
+          }
+        ]
+      }
+    },
+    "ev-contradiction-3": {
+      "id": "ev-contradiction-3",
+      "factorName": "Contradiction: 32 acre-feet uncontracted; dust control cannot proceed at 61",
+      "kind": "contradiction",
+      "summary": "32 acre-feet uncontracted; dust control cannot proceed at 61% coverage",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "02_Environmental_Water_and_Biodiversity_Assessment.pdf",
+          "location": "cross-document check",
+          "highlight": "Construction water demand 82 acre-feet",
+          "extractedLabel": "claim",
+          "extractedValue": "Construction water demand 82 acre-feet"
+        },
+        {
+          "title": "03_Legal_Regulatory_and_Permitting_Memo.pdf",
+          "location": "cross-document check",
+          "highlight": "District letter indicates willingness to discuss up to 50 acre-feet",
+          "extractedLabel": "claim",
+          "extractedValue": "District letter indicates willingness to discuss up to 50 acre-feet"
+        }
+      ],
+      "comparison": {
+        "dimension": "32 acre-feet uncontracted; dust control cannot proceed at 61",
+        "rows": [
+          {
+            "label": "02_Environmental_Water_and_Biodiversity_Assessment.pdf",
+            "a": "Construction water demand 82 acre-feet",
+            "b": ""
+          },
+          {
+            "label": "03_Legal_Regulatory_and_Permitting_Memo.pdf",
+            "a": "District letter indicates willingness to discuss up to 50 acre-feet",
+            "b": ""
+          },
+          {
+            "label": "Conflict",
+            "a": "",
+            "b": "contradictory"
+          }
+        ]
+      }
+    }
+  },
+  "timeline": [
+    {
+      "id": "tl-0",
+      "label": "California Energy Commission \u2014 Evaluate AB 205 Opt-In Certification (270-day sta",
+      "date": "2026-10-01",
+      "kind": "milestone",
+      "band": "risk",
+      "position": 0.0
+    },
+    {
+      "id": "tl-1",
+      "label": "Solano County Water Agency / district \u2014 Contract remaining 32 acre-feet construc",
+      "date": "2026-11-01",
+      "kind": "milestone",
+      "band": "risk",
+      "position": 2.0
+    },
+    {
+      "id": "tl-2",
+      "label": "CDFW \u2014 Complete raptor consultation and re-layout sensitivity analysis",
+      "date": "2026-12-01",
+      "kind": "milestone",
+      "band": "risk",
+      "position": 3.9
+    },
+    {
+      "id": "tl-3",
+      "label": "ITC deadline",
+      "date": "2030-12-31",
+      "kind": "deadline",
+      "band": "risk",
+      "position": 100.0
+    }
+  ],
+  "documents": [
+    {
+      "id": "doc-01",
+      "title": "01_Land_and_Site_Due_Diligence.pdf",
+      "kind": "Land report",
+      "pages": 0,
+      "uploadedAt": "2026-08-14",
+      "pillars": [
+        "Land"
+      ]
+    },
+    {
+      "id": "doc-02",
+      "title": "03_Legal_Regulatory_and_Permitting_Memo.pdf",
+      "kind": "Legal memo",
+      "pages": 0,
+      "uploadedAt": "2026-08-14",
+      "pillars": [
+        "Law"
+      ]
+    },
+    {
+      "id": "doc-03",
+      "title": "07_Financial_Feasibility_and_Sensitivity_Memo.pdf",
+      "kind": "Financial memo",
+      "pages": 0,
+      "uploadedAt": "2026-08-14",
+      "pillars": [
+        "Finance"
+      ]
+    },
+    {
+      "id": "doc-04",
+      "title": "06_Materials_Supply_Chain_and_Price_Index.pdf",
+      "kind": "Materials & price index",
+      "pages": 0,
+      "uploadedAt": "2026-08-14",
+      "pillars": [
+        "Materials",
+        "Demand"
+      ]
+    },
+    {
+      "id": "doc-05",
+      "title": "02_Financial_and_Investment_Sensitivity_Model.xlsx",
+      "kind": "Financial memo",
+      "pages": 0,
+      "uploadedAt": "2026-08-14",
+      "pillars": [
+        "Finance"
+      ]
+    },
+    {
+      "id": "doc-06",
+      "title": "03_Materials_and_Demand_Index_Tracker.xlsx",
+      "kind": "Materials & price index",
+      "pages": 0,
+      "uploadedAt": "2026-08-14",
+      "pillars": [
+        "Materials",
+        "Demand"
+      ]
+    },
+    {
+      "id": "doc-07",
+      "title": "02_Environmental_Water_and_Biodiversity_Assessment.pdf",
+      "kind": "Environmental assessment",
+      "pages": 0,
+      "uploadedAt": "2026-08-14",
+      "pillars": [
+        "Land",
+        "Law"
+      ]
+    }
+  ],
+  "priorityActions": [
+    {
+      "id": "pa-1",
+      "rank": 1,
+      "title": "Resolve Parcel 14 site control or redesign collector alignment",
+      "detail": "Resolve Parcel 14 site control or redesign collector alignment",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-2",
+      "rank": 2,
+      "title": "Reconcile CAPEX to $199-211M and re-run covenant headroom",
+      "detail": "Reconcile CAPEX to $199-211M and re-run covenant headroom",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-finance-4"
+    },
+    {
+      "id": "pa-3",
+      "rank": 3,
+      "title": "Resequence early grading after environmental review or carve out lawful early works",
+      "detail": "Resequence early grading after environmental review or carve out lawful early works",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-law-3"
+    },
+    {
+      "id": "pa-4",
+      "rank": 4,
+      "title": "Confirm CEC Opt-In pathway given county zoning prohibition",
+      "detail": "Confirm CEC Opt-In pathway given county zoning prohibition",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-5",
+      "rank": 5,
+      "title": "Use 150 MW firm case until additional offtake is executed",
+      "detail": "Use 150 MW firm case until additional offtake is executed",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-6",
+      "rank": 6,
+      "title": "Place transformer order and qualify a second supplier",
+      "detail": "Place transformer order and qualify a second supplier",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-7",
+      "rank": 7,
+      "title": "Executed Parcel 14 option agreement or alternate alignment",
+      "detail": "Executed Parcel 14 option agreement or alternate alignment",
+      "impact": "medium",
+      "scoreDelta": 3,
+      "evidenceLink": "ev-land-0"
+    },
+    {
+      "id": "pa-8",
+      "rank": 8,
+      "title": "ITC/BOC documentation",
+      "detail": "ITC/BOC documentation",
+      "impact": "medium",
+      "scoreDelta": 3
+    },
+    {
+      "id": "pa-9",
+      "rank": 9,
+      "title": "Updated EPC quotes reflecting current indices",
+      "detail": "Updated EPC quotes reflecting current indices",
+      "impact": "medium",
+      "scoreDelta": 3
+    }
+  ],
+  "projectedScoreAfterMitigation": 54.0,
+  "suggestedQuestions": [
+    {
+      "question": "What's the top item to clear next?",
+      "answer": {
+        "role": "assistant",
+        "text": "Resolve the zoning pathway via CEC AB 205 Opt-In and reconcile CAPEX/offtake to executed evidence before financing close \u2014 the model currently assumes a site and revenue base the documents don't support"
+      }
+    },
+    {
+      "question": "Why is the activation score 26?",
+      "answer": {
+        "role": "assistant",
+        "text": "8 critical red flags and 4 cross-document contradictions. Weakest pillars: Law 19, Finance 19."
+      }
+    }
+  ],
+  "chatHistory": [
+    {
+      "role": "assistant",
+      "text": "I've completed diligence on Solar Alpha \u2014 250 MW solar + storage. Activation score 26/100 \u2014 decision: Hold. 8 critical flags, 4 cross-document contradictions, 6 open information requests. Ask me what to prioritize."
+    }
+  ],
+  "report": {
+    "badge": "RED FLAG REPORT",
+    "title": "Solar Alpha \u2014 250 MW solar + storage \u2014 due-diligence report",
+    "preparedBy": "Red Flag agent framework",
+    "summary": "Resolve the zoning pathway via CEC AB 205 Opt-In and reconcile CAPEX/offtake to executed evidence before financing close \u2014 the model currently assumes a site and revenue base the documents don't support",
+    "findings": [
+      {
+        "title": "Parcel 14 option unsigned on interconnection route",
+        "text": "18 acres near the preferred substation route shown as project-controlled in the development schedule, but the title summary lists the option agreement as unsigned"
+      },
+      {
+        "title": "Early grading precedes environmental review milestone",
+        "text": "Schedule starts physical work Oct 14, 2026 \u2014 roughly 8 weeks before environmental review/raptor consultation completes Dec 2026"
+      },
+      {
+        "title": "Stale $186M CAPEX vs $199-211M reconciliation",
+        "text": "Finance model uses $186.0M CAPEX while updated materials packages are +$12.7M, implying $199-211M total"
+      },
+      {
+        "title": "DSCR covenant breach in updated scenarios",
+        "text": "Minimum DSCR falls to 1.24x (updated materials), 1.23x (demand corrected), 1.14x (combined downside) against a 1.25x covenant"
+      },
+      {
+        "title": "Transformer lead time exceeds schedule by 24 weeks",
+        "text": "Supplier indication 62 weeks vs 38-week allowance for two main power transformers; real 2026 market norm is 128-144 weeks for large power transformers"
+      }
+    ],
+    "recommendedActions": [
+      "Resolve Parcel 14 site control or redesign collector alignment",
+      "Reconcile CAPEX to $199-211M and re-run covenant headroom",
+      "Resequence early grading after environmental review or carve out lawful early works",
+      "Confirm CEC Opt-In pathway given county zoning prohibition",
+      "Use 150 MW firm case until additional offtake is executed"
+    ],
+    "sourceBasis": "7 source documents + 3 acquired research packs"
+  },
+  "map": {
+    "parcelSize": "\u2014",
+    "toggles": [
+      {
+        "id": "zoning",
+        "label": "Zoning",
+        "on": true
+      },
+      {
+        "id": "protected-land",
+        "label": "Protected land",
+        "on": true
+      },
+      {
+        "id": "transmission",
+        "label": "Transmission",
+        "on": false
+      }
+    ],
+    "distances": [],
+    "zones": [],
+    "pin": {
+      "left": 50,
+      "top": 50,
+      "label": "Solano County, California"
+    }
+  },
+  "teamMembers": []
+}

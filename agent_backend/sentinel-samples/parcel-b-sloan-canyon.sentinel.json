@@ -1,0 +1,495 @@
+{
+  "project": {
+    "id": "parcel-b",
+    "name": "RAI Solar B \u2014 'Eldorado East Expansion' 180 MWac",
+    "location": "Sloan Canyon NCA, Clark County, NV",
+    "capacityMW": 180,
+    "latitude": 35.9167,
+    "longitude": -115.126,
+    "activationScore": 38.0,
+    "band": "risk",
+    "scoreReason": "Stop discretionary spend, preserve transferable studies, and re-site the footprint to Eldorado Valley private/city lands or Dry Lake SEZ \u2014 land designation is a gating criterion that no PPA price, irradiance, or schedule can cure",
+    "status": "at-risk",
+    "pillars": [
+      {
+        "name": "Land",
+        "score": 12.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "3 flags open",
+        "subAgents": [
+          "extractor:land-docs",
+          "scout:zoning",
+          "researcher:land_use"
+        ],
+        "factors": [
+          {
+            "id": "land-flag-0",
+            "name": "Footprint inside Sloan Canyon National Conservation Area \u2014 protected land; re-site require",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Footprint inside Sloan Canyon National Conservation Area \u2014 protected land; re-site required",
+            "sources": []
+          },
+          {
+            "id": "land-flag-1",
+            "name": "NCA EXPANDED 48,438 \u2192 57,728 acres by PL 119-91 (May 19, 2026) \u2014 footprint may be deeper i",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "NCA EXPANDED 48,438 \u2192 57,728 acres by PL 119-91 (May 19, 2026) \u2014 footprint may be deeper inside post-expansion",
+            "sources": []
+          },
+          {
+            "id": "ev-land-0",
+            "name": "Statutory bar: NCA uses must further conservation purposes (16 U.S.C. \u00a7460qqq-3(c))",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Sloan Canyon NCA Act, PL 107-282 (2002); 300+ petroglyph panels, NRHP-listed site",
+            "sources": [
+              "uscode.house.gov \u00a7460qqq"
+            ],
+            "evidenceId": "ev-land-0"
+          }
+        ]
+      },
+      {
+        "name": "Law",
+        "score": 8.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "5 flags open",
+        "subAgents": [
+          "researcher:state_law",
+          "researcher:federal_law",
+          "researcher:ecology_epa"
+        ],
+        "factors": [
+          {
+            "id": "law-flag-0",
+            "name": "16 U.S.C. \u00a7460qqq-3(c): only uses furthering NCA purposes allowed \u2014 industrial solar fails",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "16 U.S.C. \u00a7460qqq-3(c): only uses furthering NCA purposes allowed \u2014 industrial solar fails",
+            "sources": []
+          },
+          {
+            "id": "law-flag-1",
+            "name": "Statutory withdrawal from public-land entry (\u00a7460qqq-3(e)); 2024 Western Solar Plan catego",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Statutory withdrawal from public-land entry (\u00a7460qqq-3(e)); 2024 Western Solar Plan categorically excludes NCAs; variance category ELIMINATED",
+            "sources": []
+          },
+          {
+            "id": "law-flag-2",
+            "name": "North McCullough Wilderness (14,790 ac, inside NCA): absolute Wilderness Act bar",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "North McCullough Wilderness (14,790 ac, inside NCA): absolute Wilderness Act bar",
+            "sources": []
+          },
+          {
+            "id": "ev-law-1",
+            "name": "2024 Western Solar Plan ROD excludes NCAs; variance lands eliminated",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "89 FR 105623 (Dec 27, 2024); ~131M acres excluded; ROD amended the Sloan Canyon NCA RMP itself",
+            "sources": [
+              "federalregister.gov 2024-30953"
+            ],
+            "evidenceId": "ev-law-1"
+          },
+          {
+            "id": "ev-law-2",
+            "name": "PL 119-91 (May 19, 2026) expanded the NCA +19.2% \u2014 conflict deepened",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Sloan Canyon Conservation and Lateral Pipeline Act (H.R. 972, Titus); 48,438 \u2192 57,728 acres; only development authorized is a water pipeline ROW",
+            "sources": [
+              "govinfo.gov",
+              "govtrack.us H.R. 972"
+            ],
+            "evidenceId": "ev-law-2"
+          }
+        ]
+      },
+      {
+        "name": "Finance",
+        "score": 22.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "3 flags open",
+        "subAgents": [
+          "researcher:financials",
+          "cross-examiner"
+        ],
+        "factors": [
+          {
+            "id": "finance-flag-0",
+            "name": "$4.8M pre-NTP development spend becomes stranded \u2014 stop discretionary spend now",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "$4.8M pre-NTP development spend becomes stranded \u2014 stop discretionary spend now",
+            "sources": []
+          },
+          {
+            "id": "finance-flag-1",
+            "name": "Workbook still carries Q4 2029 COD copied from Parcel A \u2014 assumes a developable site that ",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Workbook still carries Q4 2029 COD copied from Parcel A \u2014 assumes a developable site that does not exist",
+            "sources": []
+          },
+          {
+            "id": "ev-finance-3",
+            "name": "$4.8M avoidable spend if land status discovered late",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Land option $0.45M + interconnection $1.35M + studies $1.10M + labor $0.90M + commercial $1.00M",
+            "sources": [
+              "09_Site_Comparison_B"
+            ],
+            "evidenceId": "ev-finance-3"
+          }
+        ]
+      },
+      {
+        "name": "Materials",
+        "score": 82.0,
+        "band": "strong",
+        "unlocked": true,
+        "statusText": "Unlocked",
+        "subAgents": [
+          "researcher:supply_chain"
+        ],
+        "factors": [
+          {
+            "id": "materials-flag-0",
+            "name": "Equipment availability not the binding constraint; irrelevant if site cannot proceed",
+            "band": "strong",
+            "statusLabel": "Cleared",
+            "evidence": "Equipment availability not the binding constraint; irrelevant if site cannot proceed",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Demand",
+        "score": 80.0,
+        "band": "strong",
+        "unlocked": true,
+        "statusText": "Unlocked",
+        "subAgents": [
+          "researcher:demand",
+          "researcher:interconnection"
+        ],
+        "factors": [
+          {
+            "id": "demand-flag-0",
+            "name": "Strong regional market cannot cure a fatal land-use constraint",
+            "band": "strong",
+            "statusLabel": "Cleared",
+            "evidence": "Strong regional market cannot cure a fatal land-use constraint",
+            "sources": []
+          }
+        ]
+      }
+    ]
+  },
+  "eyebrow": "Solar \u00b7 180 MW \u00b7 Sloan Canyon NCA, Clark County, NV",
+  "runSummary": "0 documents analyzed \u00b7 3 open items",
+  "scoreBandLabel": "Risk \u00b7 38/100",
+  "scoreNote": "Stop discretionary spend, preserve transferable studies, and re-site the footprint to Eldorado Valley private/city lands or Dry Lake SEZ \u2014 land designation is a gating criterion that no PPA price, irradiance, or schedule can cure",
+  "evidence": {
+    "ev-land-0": {
+      "id": "ev-land-0",
+      "factorName": "Statutory bar: NCA uses must further conservation purposes (16 U.S.C. \u00a7460qqq-3(c))",
+      "kind": "single",
+      "summary": "Sloan Canyon NCA Act, PL 107-282 (2002); 300+ petroglyph panels, NRHP-listed site",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "uscode.house.gov \u00a7460qqq",
+          "location": "zoning",
+          "highlight": "Sloan Canyon NCA Act, PL 107-282 (2002); 300+ petroglyph panels, NRHP-listed site",
+          "extractedLabel": "zoning",
+          "extractedValue": "Gating criterion \u2014 applied before economics"
+        }
+      ]
+    },
+    "ev-law-1": {
+      "id": "ev-law-1",
+      "factorName": "2024 Western Solar Plan ROD excludes NCAs; variance lands eliminated",
+      "kind": "single",
+      "summary": "89 FR 105623 (Dec 27, 2024); ~131M acres excluded; ROD amended the Sloan Canyon NCA RMP itself",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "federalregister.gov 2024-30953",
+          "location": "federal_law",
+          "highlight": "89 FR 105623 (Dec 27, 2024); ~131M acres excluded; ROD amended the Sloan Canyon NCA RMP itself",
+          "extractedLabel": "federal_law",
+          "extractedValue": "FLPMA \u00a7202 plan-conformance \u2014 application rejected at screening"
+        }
+      ]
+    },
+    "ev-law-2": {
+      "id": "ev-law-2",
+      "factorName": "PL 119-91 (May 19, 2026) expanded the NCA +19.2% \u2014 conflict deepened",
+      "kind": "single",
+      "summary": "Sloan Canyon Conservation and Lateral Pipeline Act (H.R. 972, Titus); 48,438 \u2192 57,728 acres; only development authorized is a water pipeline ROW",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "govinfo.gov",
+          "location": "federal_law",
+          "highlight": "Sloan Canyon Conservation and Lateral Pipeline Act (H.R. 972, Titus); 48,438 \u2192 57,728 acres; only development authorized is a water pipeline ROW",
+          "extractedLabel": "federal_law",
+          "extractedValue": "GovInfo PLAW-119publ91 \u2014 fact-checked REAL"
+        },
+        {
+          "title": "govtrack.us H.R. 972",
+          "location": "federal_law",
+          "highlight": "Sloan Canyon Conservation and Lateral Pipeline Act (H.R. 972, Titus); 48,438 \u2192 57,728 acres; only development authorized is a water pipeline ROW",
+          "extractedLabel": "federal_law",
+          "extractedValue": "GovInfo PLAW-119publ91 \u2014 fact-checked REAL"
+        }
+      ]
+    },
+    "ev-finance-3": {
+      "id": "ev-finance-3",
+      "factorName": "$4.8M avoidable spend if land status discovered late",
+      "kind": "single",
+      "summary": "Land option $0.45M + interconnection $1.35M + studies $1.10M + labor $0.90M + commercial $1.00M",
+      "confidence": "Medium confidence",
+      "sources": [
+        {
+          "title": "09_Site_Comparison_B",
+          "location": "financials",
+          "highlight": "Land option $0.45M + interconnection $1.35M + studies $1.10M + labor $0.90M + commercial $1.00M",
+          "extractedLabel": "financials",
+          "extractedValue": ""
+        }
+      ]
+    },
+    "ev-contradiction-0": {
+      "id": "ev-contradiction-0",
+      "factorName": "Contradiction: Proximity to operating solar is not evidence of buildability",
+      "kind": "contradiction",
+      "summary": "Proximity to operating solar is not evidence of buildability across a land-management boundary",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "developer map",
+          "location": "cross-document check",
+          "highlight": "Developer site-control map labels tract 'Eldorado East Expansion' assuming solar allowed",
+          "extractedLabel": "claim",
+          "extractedValue": "Developer site-control map labels tract 'Eldorado East Expansion' assuming solar allowed"
+        },
+        {
+          "title": "16 U.S.C. \u00a7460qqq-2(b) as amended by PL 119-91",
+          "location": "cross-document check",
+          "highlight": "Geospatial/legal cross-check: footprint inside Sloan Canyon NCA boundary",
+          "extractedLabel": "claim",
+          "extractedValue": "Geospatial/legal cross-check: footprint inside Sloan Canyon NCA boundary"
+        }
+      ],
+      "comparison": {
+        "dimension": "Proximity to operating solar is not evidence of buildability",
+        "rows": [
+          {
+            "label": "developer map",
+            "a": "Developer site-control map labels tract 'Eldorado East Expansion' assuming solar allowed",
+            "b": ""
+          },
+          {
+            "label": "16 U.S.C. \u00a7460qqq-2(b) as amended by PL 119-91",
+            "a": "Geospatial/legal cross-check: footprint inside Sloan Canyon NCA boundary",
+            "b": ""
+          },
+          {
+            "label": "Conflict",
+            "a": "",
+            "b": "contradictory"
+          }
+        ]
+      }
+    },
+    "ev-contradiction-1": {
+      "id": "ev-contradiction-1",
+      "factorName": "Contradiction: Model assumes a developable site; schedule and spend should ",
+      "kind": "contradiction",
+      "summary": "Model assumes a developable site; schedule and spend should be frozen pending re-site",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "financial workbook (copied from Parcel A)",
+          "location": "cross-document check",
+          "highlight": "Financial model carries Q4 2029 COD + $4.8M spend",
+          "extractedLabel": "claim",
+          "extractedValue": "Financial model carries Q4 2029 COD + $4.8M spend"
+        },
+        {
+          "title": "NCA statute + 2024 ROD",
+          "location": "cross-document check",
+          "highlight": "Land evidence: no lawful development path exists on this site",
+          "extractedLabel": "claim",
+          "extractedValue": "Land evidence: no lawful development path exists on this site"
+        }
+      ],
+      "comparison": {
+        "dimension": "Model assumes a developable site; schedule and spend should ",
+        "rows": [
+          {
+            "label": "financial workbook (copied from Parcel A)",
+            "a": "Financial model carries Q4 2029 COD + $4.8M spend",
+            "b": ""
+          },
+          {
+            "label": "NCA statute + 2024 ROD",
+            "a": "Land evidence: no lawful development path exists on this site",
+            "b": ""
+          },
+          {
+            "label": "Conflict",
+            "a": "",
+            "b": "contradictory"
+          }
+        ]
+      }
+    }
+  },
+  "timeline": [
+    {
+      "id": "tl-0",
+      "label": "BLM Las Vegas Field Office / Boulder City \u2014 Scope re-site options: Eldorado Vall",
+      "date": "2026-10-01",
+      "kind": "milestone",
+      "band": "risk",
+      "position": 0.0
+    },
+    {
+      "id": "tl-1",
+      "label": "ITC deadline",
+      "date": "2030-12-31",
+      "kind": "deadline",
+      "band": "risk",
+      "position": 100.0
+    }
+  ],
+  "documents": [],
+  "priorityActions": [
+    {
+      "id": "pa-1",
+      "rank": 1,
+      "title": "Stop all discretionary spend immediately",
+      "detail": "Stop all discretionary spend immediately",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-2",
+      "rank": 2,
+      "title": "Re-site decision before any further interconnection/permitting expenditure",
+      "detail": "Re-site decision before any further interconnection/permitting expenditure",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-3",
+      "rank": 3,
+      "title": "Full study inventory with transferability assessment",
+      "detail": "Full study inventory with transferability assessment",
+      "impact": "medium",
+      "scoreDelta": 3
+    },
+    {
+      "id": "pa-4",
+      "rank": 4,
+      "title": "Interconnection deposit terms (refundable? transferable to Dry Lake POI?)",
+      "detail": "Interconnection deposit terms (refundable? transferable to Dry Lake POI?)",
+      "impact": "medium",
+      "scoreDelta": 3
+    }
+  ],
+  "projectedScoreAfterMitigation": 66.0,
+  "suggestedQuestions": [
+    {
+      "question": "What's the top item to clear next?",
+      "answer": {
+        "role": "assistant",
+        "text": "Stop discretionary spend, preserve transferable studies, and re-site the footprint to Eldorado Valley private/city lands or Dry Lake SEZ \u2014 land designation is a gating criterion that no PPA price, irradiance, or schedule can cure"
+      }
+    },
+    {
+      "question": "Why is the activation score 38?",
+      "answer": {
+        "role": "assistant",
+        "text": "2 critical red flags and 2 cross-document contradictions. Weakest pillars: Law 8, Land 12."
+      }
+    }
+  ],
+  "chatHistory": [
+    {
+      "role": "assistant",
+      "text": "I've completed diligence on RAI Solar B \u2014 'Eldorado East Expansion' 180 MWac. Activation score 38/100 \u2014 decision: Hold. 2 critical flags, 2 cross-document contradictions, 3 open information requests. Ask me what to prioritize."
+    }
+  ],
+  "report": {
+    "badge": "RED FLAG REPORT",
+    "title": "RAI Solar B \u2014 'Eldorado East Expansion' 180 MWac \u2014 due-diligence report",
+    "preparedBy": "Red Flag agent framework",
+    "summary": "Stop discretionary spend, preserve transferable studies, and re-site the footprint to Eldorado Valley private/city lands or Dry Lake SEZ \u2014 land designation is a gating criterion that no PPA price, irradiance, or schedule can cure",
+    "findings": [
+      {
+        "title": "Statutory bar: NCA uses must further conservation purposes (16 U.S.C. \u00a7460qqq-3(c))",
+        "text": "Sloan Canyon NCA Act, PL 107-282 (2002); 300+ petroglyph panels, NRHP-listed site"
+      },
+      {
+        "title": "2024 Western Solar Plan ROD excludes NCAs; variance lands eliminated",
+        "text": "89 FR 105623 (Dec 27, 2024); ~131M acres excluded; ROD amended the Sloan Canyon NCA RMP itself"
+      },
+      {
+        "title": "PL 119-91 (May 19, 2026) expanded the NCA +19.2% \u2014 conflict deepened",
+        "text": "Sloan Canyon Conservation and Lateral Pipeline Act (H.R. 972, Titus); 48,438 \u2192 57,728 acres; only development authorized is a water pipeline ROW"
+      },
+      {
+        "title": "$4.8M avoidable spend if land status discovered late",
+        "text": "Land option $0.45M + interconnection $1.35M + studies $1.10M + labor $0.90M + commercial $1.00M"
+      }
+    ],
+    "recommendedActions": [
+      "Stop all discretionary spend immediately",
+      "Re-site decision before any further interconnection/permitting expenditure"
+    ],
+    "sourceBasis": "0 source documents + 2 acquired research packs"
+  },
+  "map": {
+    "parcelSize": "\u2014",
+    "toggles": [
+      {
+        "id": "zoning",
+        "label": "Zoning",
+        "on": true
+      },
+      {
+        "id": "protected-land",
+        "label": "Protected land",
+        "on": true
+      },
+      {
+        "id": "transmission",
+        "label": "Transmission",
+        "on": false
+      }
+    ],
+    "distances": [],
+    "zones": [],
+    "pin": {
+      "left": 50,
+      "top": 50,
+      "label": "Sloan Canyon NCA, Clark County, NV"
+    }
+  },
+  "teamMembers": []
+}
