@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { ScanProgress } from "@/components/scanning/ScanProgress";
 import { ReasoningTrail } from "@/components/scanning/ReasoningTrail";
 import { SubAgentTrail } from "@/components/scanning/SubAgentTrail";
+import { GapReviewCard } from "@/components/scanning/GapReviewCard";
 import { useScanStream } from "@/lib/scan/useScanStream";
 import { createMockScanSource, type MockScenario } from "@/lib/scan/mockScanSource";
 import { createSseScanSource } from "@/lib/scan/sseScanSource";
@@ -17,7 +18,9 @@ import type { ScanSource } from "@/lib/scan/scanEvents";
 const STREAM_URL = process.env.NEXT_PUBLIC_SCAN_STREAM_URL;
 
 function parseScenario(value: string | null): MockScenario {
-  return value === "error" || value === "slow" ? value : "default";
+  return value === "error" || value === "slow" || value === "gate"
+    ? value
+    : "default";
 }
 
 /**
@@ -202,6 +205,17 @@ function ScanningView() {
 
         {indeterminate && (
           <p className="mt-2 text-xs text-muted">Still working…</p>
+        )}
+
+        {state.gate && (
+          <div className="mt-5">
+            <GapReviewCard
+              jobId={jobId}
+              gaps={state.gate.gaps}
+              timeoutS={state.gate.timeoutS}
+              resolved={state.gate.resolved}
+            />
+          </div>
         )}
 
         <div className="mt-5">

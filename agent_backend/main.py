@@ -17,6 +17,7 @@ from pydantic import BaseModel
 
 from .agents.base import Agent
 from .agents.roles import ANALYST, ROLE_TOOLS
+from .gate import GapGate
 from .obs import Trace
 from .pipeline import run_pipeline
 from .port_client import PortReporter, port as _port
@@ -35,6 +36,10 @@ STORE = Path(__file__).resolve().parent / "reports"
 STORE.mkdir(exist_ok=True)
 JOB_QUEUES: dict[str, asyncio.Queue] = {}
 JOB_TRACES: dict[str, Trace] = {}
+# Per-job gap-review gate handles (GAP_REVIEW=1). Registered at analyze time,
+# popped when the job ends; gate.awaiting marks a run actually parked at the
+# gap-review pause point — the resume endpoint's 200/409 contract keys off it.
+JOB_GATES: dict[str, GapGate] = {}
 # Finished chat answers, keyed by the ask's own job id. In memory because an
 # answer is only meaningful while the asking tab is open.
 ANSWERS: dict[str, ChatAnswer] = {}
@@ -48,6 +53,10 @@ class AnalyzeRequest(BaseModel):
 
 class AskRequest(BaseModel):
     question: str
+
+
+class ResumeRequest(BaseModel):
+    approved: list[str] = []  # gap ids ("gap-1", ...) the human approved
 
 
 ALLOWED_UPLOAD = re.compile(r"\.(pdf|xlsx|csv|docx|txt)$", re.IGNORECASE)
@@ -108,12 +117,19 @@ async def analyze(req: AnalyzeRequest):
         queue.put_nowait(f"__ERROR__ {_msg}")
         return {"jobId": job_id}
 
+    # Gap-review gate handle for this job. Registered even when GAP_REVIEW is
+    # off (the pipeline simply never parks on it) so the resume endpoint can
+    # answer 409 instead of 404 for a live, non-awaiting job.
+    gate = GapGate()
+    JOB_GATES[job_id] = gate
+
     async def work():
         def status(msg: str):
             queue.put_nowait(msg)
         try:
             report = await run_pipeline(
                 req.name, req.location, req.docs, on_status=status, trace=trace,
+                gap_gate=gate,
             )
             path = STORE / f"{job_id}.json"
             path.write_text(report.model_dump_json(indent=2), encoding="utf-8")
@@ -136,6 +152,11 @@ async def analyze(req: AnalyzeRequest):
             reporter.failed(type(e).__name__, str(e))
             trace.print_summary()
             queue.put_nowait(f"__ERROR__ {type(e).__name__}: {e}")
+        finally:
+            # Job over — the gate handle is dead weight. If the run somehow
+            # ended while parked, release any future resume call as a 409.
+            gate.awaiting = False
+            JOB_GATES.pop(job_id, None)
 
     asyncio.create_task(work())
     return {"jobId": job_id}
@@ -205,6 +226,21 @@ async def stream(job_id: str):
             if msg.startswith("__DONE__") or msg.startswith("__ERROR__"):
                 break
     return StreamingResponse(events(), media_type="text/event-stream")
+
+
+@app.post("/api/jobs/{job_id}/resume")
+async def resume(job_id: str, req: ResumeRequest):
+    """Human decision at the gap-review gate (GAP_REVIEW=1): the approved gap
+    ids the data scouts should chase. 200 while the job is parked at the gate,
+    409 when the job exists but isn't awaiting gap review, 404 for unknown
+    jobs. The pipeline emits `gate.resolved` itself when it wakes."""
+    gate = JOB_GATES.get(job_id)
+    if gate is None or not gate.awaiting:
+        if job_id not in JOB_TRACES:
+            raise HTTPException(status_code=404, detail=f"unknown job {job_id}")
+        raise HTTPException(status_code=409, detail=f"job {job_id} is not awaiting gap review")
+    gate.resolve(req.approved)
+    return {"ok": True, "mode": "approved"}
 
 
 @app.get("/api/reports/{job_id}")

@@ -84,6 +84,26 @@ export function createLiveScanSource(
         return;
       }
 
+      if (event.kind === "gate_review") {
+        // Mid-run human-approval gate — pass through untouched; the card in
+        // the scan view renders it and POSTs the human's selection back.
+        onEvent({
+          type: "gate_gap_review",
+          gaps: event.gaps,
+          timeoutS: event.timeoutS,
+        });
+        return;
+      }
+
+      if (event.kind === "gate_resolved") {
+        onEvent({
+          type: "gate_resolved",
+          mode: event.mode,
+          approved: event.approved,
+        });
+        return;
+      }
+
       if (event.kind === "error") {
         // A bare "stream closed" is a dropped connection — the hook treats that
         // as a timeout, never silent success. A real __ERROR__ is a failure.

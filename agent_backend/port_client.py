@@ -155,6 +155,9 @@ _AGENT_RUN_BP = "factory_agent_run"
 _FINDING_BP = "factory_finding"
 
 _STATUS_AWAITING = "AWAITING_REVIEW"
+# Mid-run gap-review gate (GAP_REVIEW=1): parked waiting on a human's gap
+# approval — distinct from the terminal AWAITING_REVIEW report sign-off.
+_STATUS_AWAITING_GAP_REVIEW = "AWAITING_GAP_REVIEW"
 
 
 class PortReporter:
@@ -232,6 +235,19 @@ class PortReporter:
                         _RUN_BP, self.job_id,
                         properties={"stage": stage, "status": "RUNNING"},
                     )
+            elif kind == "gate.gap_review":
+                # Pipeline parked at the human gap-review gate (mid-run).
+                self.client.upsert_entity(
+                    _RUN_BP, self.job_id,
+                    properties={"status": _STATUS_AWAITING_GAP_REVIEW},
+                )
+            elif kind == "gate.resolved":
+                # Human approved (or the timeout fired) — the run is moving
+                # again; the next phase event will also refresh the stage.
+                self.client.upsert_entity(
+                    _RUN_BP, self.job_id,
+                    properties={"status": "RUNNING"},
+                )
             elif kind == "tool.done" and ev.get("agent"):
                 agent = ev["agent"]
                 self._tool_calls[agent] = self._tool_calls.get(agent, 0) + 1

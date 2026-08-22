@@ -10,6 +10,7 @@ const dotColor: Record<TrailKind, string> = {
   flag: "var(--color-risk)",
   score: "var(--color-faint)",
   subagent: "var(--color-faint)",
+  gate: "var(--color-brand)",
 };
 
 /** Prefix shown before the text for certain kinds. */
@@ -18,6 +19,7 @@ const kindLabel: Record<TrailKind, string | null> = {
   flag: "Flag",
   score: null,
   subagent: null,
+  gate: "Review",
 };
 
 type ReasoningTrailProps = {

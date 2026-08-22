@@ -114,8 +114,95 @@ export async function isBackendUp(): Promise<boolean> {
 
 export type JobStatus =
   | { kind: "status"; message: string }
+  | { kind: "gate_review"; gaps: GateGap[]; timeoutS: number }
+  | { kind: "gate_resolved"; mode: "approved" | "timeout"; approved: string[] }
   | { kind: "done" }
   | { kind: "error"; message: string };
+
+/** One gap surfaced for human review at the mid-run gate (gate.gap_review). */
+export interface GateGap {
+  id: string;
+  title: string;
+  detail?: string;
+  severity?: string;
+}
+
+/** Trace-event frames arrive wrapped: {"event": {kind, msg, level, ts, data?}}. */
+type TraceFrame = {
+  event?: {
+    kind?: string;
+    data?: {
+      gaps?: unknown;
+      timeoutS?: unknown;
+      mode?: unknown;
+      approved?: unknown;
+    };
+  };
+};
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((v) => typeof v === "string");
+}
+
+function toGateGap(value: unknown): GateGap | null {
+  if (typeof value !== "object" || value === null) return null;
+  const gap = value as Record<string, unknown>;
+  if (typeof gap.id !== "string" || typeof gap.title !== "string") return null;
+  return {
+    id: gap.id,
+    title: gap.title,
+    detail: typeof gap.detail === "string" ? gap.detail : undefined,
+    severity: typeof gap.severity === "string" ? gap.severity : undefined,
+  };
+}
+
+/**
+ * Translate a gate trace event into a JobStatus, or return null when the frame
+ * isn't a gate event the UI knows how to handle.
+ */
+function parseGateFrame(frame: TraceFrame): JobStatus | null {
+  const { kind, data } = frame.event ?? {};
+  if (kind === "gate.gap_review") {
+    const gaps = Array.isArray(data?.gaps)
+      ? data.gaps.map(toGateGap).filter((g): g is GateGap => g !== null)
+      : [];
+    const timeoutS =
+      typeof data?.timeoutS === "number" && data.timeoutS > 0
+        ? data.timeoutS
+        : 0;
+    return { kind: "gate_review", gaps, timeoutS };
+  }
+  if (kind === "gate.resolved") {
+    const mode = data?.mode === "timeout" ? "timeout" : "approved";
+    const approved = isStringArray(data?.approved) ? data.approved : [];
+    return { kind: "gate_resolved", mode, approved };
+  }
+  return null;
+}
+
+/**
+ * Answers the mid-run gap-review gate: POSTs the subset of gap ids the swarm
+ * should chase ([] = chase none). Throws AgentApiError with status 409 when
+ * the job is no longer awaiting review (already resolved).
+ */
+export async function resumeJob(jobId: string, approved: string[]): Promise<void> {
+  let response: Response;
+  try {
+    response = await fetch(`${AGENT_API}/api/jobs/${jobId}/resume`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ approved }),
+    });
+  } catch {
+    throw new AgentApiError(`agent backend unreachable at ${AGENT_API}`, undefined);
+  }
+  if (!response.ok) {
+    throw new AgentApiError(
+      `POST /api/jobs/${jobId}/resume failed: ${response.status}`,
+      response.status,
+    );
+  }
+}
 
 /**
  * Subscribes to the agent's status narration.
@@ -138,12 +225,22 @@ export function streamJob(
   const close = () => source.close();
 
   source.onmessage = (message) => {
-    let status: string;
+    let frame: { status?: string } & TraceFrame;
     try {
-      status = (JSON.parse(message.data) as { status: string }).status;
+      frame = JSON.parse(message.data) as { status?: string } & TraceFrame;
     } catch {
       return; // A frame we cannot parse is dropped, never fatal.
     }
+
+    // Trace-event frames ({"event": {kind, ...}}) — currently only the
+    // mid-run review gate; unknown kinds are dropped like any other frame.
+    const gate = parseGateFrame(frame);
+    if (gate) {
+      onEvent(gate);
+      return;
+    }
+
+    const status = frame.status;
     if (typeof status !== "string") return; // Well-formed frame, wrong shape.
 
     if (status.startsWith("__DONE__")) {

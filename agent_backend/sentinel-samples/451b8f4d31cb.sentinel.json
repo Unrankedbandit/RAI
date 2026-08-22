@@ -1,0 +1,777 @@
+{
+  "project": {
+    "id": "451b8f4d31cb",
+    "name": "E2E",
+    "location": "Clark County, NV",
+    "capacityMW": 0,
+    "latitude": 0,
+    "longitude": 0,
+    "activationScore": 25.25,
+    "band": "risk",
+    "scoreReason": "CRITICAL data-integrity failure: entire dossier missing \u2014 sole assigned document 'e2e-upload-probe.pdf' does not exist; zero extractable facts across all 11 components; project is unscreened and must be re-uploaded before any merits scoring",
+    "status": "at-risk",
+    "pillars": [
+      {
+        "name": "Land",
+        "score": 30.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "6 flags open",
+        "subAgents": [
+          "extractor:land-docs",
+          "scout:zoning",
+          "researcher:land_use"
+        ],
+        "factors": [
+          {
+            "id": "land-flag-0",
+            "name": "Parcel jurisdiction UNKNOWN (Boulder City vs unincorporated Clark County vs BLM) \u2014 gates z",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Parcel jurisdiction UNKNOWN (Boulder City vs unincorporated Clark County vs BLM) \u2014 gates zoning path, permitting authority, and NEPA/FLPMA exposure",
+            "sources": []
+          },
+          {
+            "id": "land-flag-1",
+            "name": "No site control, title, or lease documentation \u2014 site control also gates FERC Order 2023 c",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No site control, title, or lease documentation \u2014 site control also gates FERC Order 2023 cluster entry",
+            "sources": []
+          },
+          {
+            "id": "land-flag-2",
+            "name": "Desert tortoise protocol surveys and Clark County MSHCP coverage undocumented; Sep-Oct sur",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Desert tortoise protocol surveys and Clark County MSHCP coverage undocumented; Sep-Oct survey window, miss = +6 months",
+            "sources": []
+          },
+          {
+            "id": "land-flag-3",
+            "name": "Only mitigant: 6.0 ac/MW within 5-10 ac/MW norm and established Eldorado Valley energy lan",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Only mitigant: 6.0 ac/MW within 5-10 ac/MW norm and established Eldorado Valley energy land-use pattern",
+            "sources": []
+          },
+          {
+            "id": "ev-land-0",
+            "name": "Entire dossier missing \u2014 zero extractable facts across all 11 components",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "pdf_extract returned No such file or directory for e2e-upload-probe.pdf and case/underscore variants; sandbox filesystem search unavailable (DAYTONA_API_KEY not set). No quantified or date-bound claim exists for any component, so no benchmark test can be run on the merits. Every component verdict is UNVERIFIABLE. Threshold data-integrity failure: re-upload the dossier or treat the project as unscreened.",
+            "sources": [
+              "kb_lookup",
+              "project extraction gap report"
+            ],
+            "evidenceId": "ev-land-0"
+          },
+          {
+            "id": "ev-land-1",
+            "name": "Land status and zoning jurisdiction unknown \u2014 BLM vs private vs Boulder City ER",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "The 1,080-ac parcel's land status is undocumented. BLM surface or gen-tie crossing means 2024 Western Solar Plan conformance + FLPMA ROW + NEPA (Townsite Solar 2 precedent ~2-3 yrs, under IBLA appeal) plus elevated DOI review. Boulder City means the receptive Energy Resource zoning path (BCMC Title 11; 17,107 ac ER-zoned; city solar-lease program confirmed live). Unincorporated Clark County means a county SUP path. Timelines and denial risk differ materially; none can be confirmed.",
+            "sources": [
+              "kb_lookup",
+              "https://flybvu.com/1099",
+              "https://www.blm.gov/programs/energy-and-minerals/renewable-energy/solar-energy"
+            ],
+            "evidenceId": "ev-land-1"
+          },
+          {
+            "id": "ev-land-2",
+            "name": "Long-lead equipment procurement status unknown \u2014 transformers are the schedule gate",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "No equipment procurement, module supply agreement, or BESS integrator slot is documented. Market: GSU transformers 128-144 wks lead with prices +60-95% since 2019; HV switchgear 60-100+ wks; BESS slots 26-52 wks with FEOC-compliant cells (CATL/BYD excluded); Section 232 steel/copper tariffs at 50%; module MSAs need UFLPA traceability and tariff reopener clauses. Any COD claim without transformer POs already placed is not credible.",
+            "sources": [
+              "kb_lookup"
+            ],
+            "evidenceId": "ev-land-2"
+          },
+          {
+            "id": "ev-land-3",
+            "name": "Construction water, stormwater, and dust permits unaddressed",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "No water budget or permit stack is documented. Clark County norms: construction dust control ~300-600 AF over ~2 yrs ($0.5-2M, trucked/hydrant sourcing), NDEP stormwater CGP for >=1 ac disturbance, Clark County DAQ dust rules Sections 90-94. Lake Mead record-low optics (Aug 2026) add reputational sensitivity to water sourcing though physical supply risk is low.",
+            "sources": [
+              "kb_lookup"
+            ],
+            "evidenceId": "ev-land-3"
+          },
+          {
+            "id": "ev-land-4",
+            "name": "Community and tribal engagement plan absent amid politicized land-use climate",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "No CBA, tribal consultation, or community plan is documented. The site is in Southern Paiute territory (Moapa, Las Vegas Paiute, Fort Mojave, Chemehuevi, CRIT) requiring consultation. Boulder City is structurally pro-solar (leases ~35% of city revenue, ~$17.2M/yr) but the July 2026 TS2 data-center fight politicized Eldorado-area land use; the project must be distanced from data-center narratives. CBA screening range $0.5-5M; <$1,000/MW is below-market.",
+            "sources": [
+              "kb_lookup"
+            ],
+            "evidenceId": "ev-land-4"
+          }
+        ]
+      },
+      {
+        "name": "Law",
+        "score": 25.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "5 flags open",
+        "subAgents": [
+          "researcher:state_law",
+          "researcher:federal_law",
+          "researcher:ecology_epa"
+        ],
+        "factors": [
+          {
+            "id": "law-flag-0",
+            "name": "Zero facts extracted for state_law, federal_law, permitting, zoning, ecology_epa, communit",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Zero facts extracted for state_law, federal_law, permitting, zoning, ecology_epa, community \u2014 all unverifiable",
+            "sources": []
+          },
+          {
+            "id": "law-flag-1",
+            "name": "Zoning status unconfirmed; no prohibition established but nothing verified (kill-criterion",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Zoning status unconfirmed; no prohibition established but nothing verified (kill-criterion cannot be cleared)",
+            "sources": []
+          },
+          {
+            "id": "law-flag-2",
+            "name": "UEPA/PUCN siting-certificate applicability for 180 MW unresolved \u2014 RFI required",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "UEPA/PUCN siting-certificate applicability for 180 MW unresolved \u2014 RFI required",
+            "sources": []
+          },
+          {
+            "id": "law-flag-3",
+            "name": "BLM 2024 Western Solar Plan ROD + EO 14315/SO 3438 elevated DOI review may apply if any BL",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "BLM 2024 Western Solar Plan ROD + EO 14315/SO 3438 elevated DOI review may apply if any BLM surface or gen-tie crossing \u2014 unknown",
+            "sources": []
+          },
+          {
+            "id": "ev-law-5",
+            "name": "Desert tortoise protocol surveys and MSHCP coverage undocumented",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Clark County is Mojave desert tortoise (federally threatened) habitat. On non-federal land the Clark County MSHCP Section 10 permit applies (~$550/ac, ~$0.6M on 1,080 ac) and 100%-coverage protocol surveys gate layout freeze; the survey window is Sep-Oct and missing it costs +6 months. Any BLM nexus triggers ESA Section 7 plus elevated DOI review under EO 14315 / SO 3438 (confirmed live on BLM.gov). No biological survey, take coverage, or fee line item appears in the dossier.",
+            "sources": [
+              "kb_lookup",
+              "https://www.blm.gov/programs/energy-and-minerals/renewable-energy/solar-energy"
+            ],
+            "evidenceId": "ev-law-5"
+          }
+        ]
+      },
+      {
+        "name": "Finance",
+        "score": 15.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "4 flags open",
+        "subAgents": [
+          "researcher:financials",
+          "cross-examiner"
+        ],
+        "factors": [
+          {
+            "id": "finance-flag-0",
+            "name": "KILL-CRITERION UNRESOLVED: ITC beginning-of-construction by Jul 4, 2026 (no 5% safe harbor",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "KILL-CRITERION UNRESOLVED: ITC beginning-of-construction by Jul 4, 2026 (no 5% safe harbor) or PIS by Dec 31, 2027 undocumented \u2014 ~30% of economics (~$60M on comparable 180 MW-class project) at stake; eligibility cannot be confirmed",
+            "sources": []
+          },
+          {
+            "id": "finance-flag-1",
+            "name": "No CAPEX, no PPA, no DSCR, no tax-credit assumption \u2014 bankability tests (>=80% P50 contrac",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No CAPEX, no PPA, no DSCR, no tax-credit assumption \u2014 bankability tests (>=80% P50 contracted, DSCR >=1.20x P90) untestable",
+            "sources": []
+          },
+          {
+            "id": "finance-flag-2",
+            "name": "No escalation reserve or tariff/FEOC cost treatment documented",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No escalation reserve or tariff/FEOC cost treatment documented",
+            "sources": []
+          },
+          {
+            "id": "ev-finance-6",
+            "name": "ITC beginning-of-construction cliff unverifiable \u2014 ~30% of project economics at stake",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Under OBBBA (July 2025) and IRS Notice 2025-42, solar >1.5 MW must document physical-work BOC by Jul 4, 2026 (no 5% safe harbor) or be placed in service by Dec 31, 2027, else ITC/PTC = $0. The dossier has no COD, no BOC evidence, and no tax-credit assumption, so the largest go/no-go financial variable is undocumented. Storage ITC under Section 48E survives regardless.",
+            "sources": [
+              "kb_lookup"
+            ],
+            "evidenceId": "ev-finance-6"
+          }
+        ]
+      },
+      {
+        "name": "Materials",
+        "score": 30.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "3 flags open",
+        "subAgents": [
+          "researcher:supply_chain"
+        ],
+        "factors": [
+          {
+            "id": "materials-flag-0",
+            "name": "No equipment, procurement, or lead-time data extracted",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No equipment, procurement, or lead-time data extracted",
+            "sources": []
+          },
+          {
+            "id": "materials-flag-1",
+            "name": "Exposure untested against GSU transformer 128-144 wk lead times (+60-95% price since 2019)",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Exposure untested against GSU transformer 128-144 wk lead times (+60-95% price since 2019), HV switchgear 60-100+ wks, BESS slots 26-52 wks with FEOC-compliant cells",
+            "sources": []
+          },
+          {
+            "id": "materials-flag-2",
+            "name": "Section 232 steel/copper tariffs (50%) and 10-15% prudent escalation reserve unaddressed",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Section 232 steel/copper tariffs (50%) and 10-15% prudent escalation reserve unaddressed",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Demand",
+        "score": 30.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "4 flags open",
+        "subAgents": [
+          "researcher:demand",
+          "researcher:interconnection"
+        ],
+        "factors": [
+          {
+            "id": "demand-flag-0",
+            "name": "No executed PPA or contracted MW \u2014 0% of P50 contracted vs >=80% bankability threshold",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No executed PPA or contracted MW \u2014 0% of P50 contracted vs >=80% bankability threshold",
+            "sources": []
+          },
+          {
+            "id": "demand-flag-1",
+            "name": "Offtake route unidentified (NV Energy IRP solicitation, NRS 704B exit, or data-center bila",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Offtake route unidentified (NV Energy IRP solicitation, NRS 704B exit, or data-center bilateral); no CCAs exist in Nevada",
+            "sources": []
+          },
+          {
+            "id": "demand-flag-2",
+            "name": "Market context favorable (RPS 50% by 2030, PUCN 1,019 MW solar + 590 MW storage procuremen",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Market context favorable (RPS 50% by 2030, PUCN 1,019 MW solar + 590 MW storage procurement, data-center load) but nothing project-specific",
+            "sources": []
+          },
+          {
+            "id": "ev-demand-7",
+            "name": "Interconnection position unknown in NV Energy BAA cluster process",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No queue position, cluster phase, POI, or network-upgrade cost estimate exists. The project sits in NV Energy BAA (NEVP OASIS) under FERC Order 2023 cluster rules where site control gates entry. Base rates: ~20% of queued projects reach COD, IR-to-COD ~5 yrs, network-upgrade cost shock drives ~30% post-screen attrition. Any POI relying on planned transmission (e.g., Greenlink West 525 kV, energizing 2027) carries multi-year delay distribution.",
+            "sources": [
+              "kb_lookup"
+            ],
+            "evidenceId": "ev-demand-7"
+          },
+          {
+            "id": "ev-demand-8",
+            "name": "Storage configuration unspecified \u2014 4-hr BESS is effectively mandatory in NV",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "Technology is solar+storage but no storage MW/MWh, duration, or POI limit appears in the facts. NV procurement norms (Gemini 690 MW + 1,400 MWh at $38.44/MWh; PUCN Oct 2024 approval of 1,019 MW solar + 590 MW storage) make 4-hr storage the economic floor for summer evening peak; a token BESS fails market and offtake tests. The KB's analogous 180 MWac parcel carried 80 MW/320 MWh.",
+            "sources": [
+              "kb_lookup"
+            ],
+            "evidenceId": "ev-demand-8"
+          },
+          {
+            "id": "ev-demand-9",
+            "name": "No offtake, revenue, or CAPEX documentation against NV benchmarks",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "No PPA, LOI, or revenue model exists. Nevada has no CCAs; realistic offtake is NV Energy IRP solicitations, NRS 704B exits (MGM, Switch precedents), or data-center bilaterals. Benchmarks: NV solar+storage blended PPA ~$45-65/MWh rising ~9%/yr; >=80% of P50 contracted at close; CAPEX $1.43-1.56/Wac PV plus $200-350/kWh BESS (~$240-280M combined). None testable without the financial section.",
+            "sources": [
+              "kb_lookup"
+            ],
+            "evidenceId": "ev-demand-9"
+          }
+        ]
+      }
+    ]
+  },
+  "eyebrow": "Solar \u00b7 0 MW \u00b7 Clark County, NV",
+  "runSummary": "0 documents analyzed \u00b7 17 open items",
+  "scoreBandLabel": "Risk \u00b7 25/100",
+  "scoreNote": "CRITICAL data-integrity failure: entire dossier missing \u2014 sole assigned document 'e2e-upload-probe.pdf' does not exist; zero extractable facts across all 11 components; project is unscreened and must be re-uploaded before any merits scoring",
+  "evidence": {
+    "ev-land-0": {
+      "id": "ev-land-0",
+      "factorName": "Entire dossier missing \u2014 zero extractable facts across all 11 components",
+      "kind": "single",
+      "summary": "pdf_extract returned No such file or directory for e2e-upload-probe.pdf and case/underscore variants; sandbox filesystem search unavailable (DAYTONA_API_KEY not set). No quantified or date-bound claim exists for any component, so no benchmark test can be run on the merits. Every component verdict is UNVERIFIABLE. Threshold data-integrity failure: re-upload the dossier or treat the project as unscreened.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup",
+          "location": "all_components",
+          "highlight": "pdf_extract returned No such file or directory for e2e-upload-probe.pdf and case/underscore variants; sandbox filesystem search unavailable (DAYTONA_API_KEY not set). No quantified or date-bound claim exists for any component, so no benchmark test can be run on the merits. Every component verdict is UNVERIFIABLE. Threshold data-integrity failure: re-upload the dossier or treat the project as unscreened.",
+          "extractedLabel": "all_components",
+          "extractedValue": "Diligence precondition: extracted facts required for all 11 assigned components before benchmark scoring"
+        },
+        {
+          "title": "project extraction gap report",
+          "location": "all_components",
+          "highlight": "pdf_extract returned No such file or directory for e2e-upload-probe.pdf and case/underscore variants; sandbox filesystem search unavailable (DAYTONA_API_KEY not set). No quantified or date-bound claim exists for any component, so no benchmark test can be run on the merits. Every component verdict is UNVERIFIABLE. Threshold data-integrity failure: re-upload the dossier or treat the project as unscreened.",
+          "extractedLabel": "all_components",
+          "extractedValue": "Diligence precondition: extracted facts required for all 11 assigned components before benchmark scoring"
+        }
+      ]
+    },
+    "ev-land-1": {
+      "id": "ev-land-1",
+      "factorName": "Land status and zoning jurisdiction unknown \u2014 BLM vs private vs Boulder City ER",
+      "kind": "single",
+      "summary": "The 1,080-ac parcel's land status is undocumented. BLM surface or gen-tie crossing means 2024 Western Solar Plan conformance + FLPMA ROW + NEPA (Townsite Solar 2 precedent ~2-3 yrs, under IBLA appeal) plus elevated DOI review. Boulder City means the receptive Energy Resource zoning path (BCMC Title 11; 17,107 ac ER-zoned; city solar-lease program confirmed live). Unincorporated Clark County means a county SUP path. Timelines and denial risk differ materially; none can be confirmed.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup",
+          "location": "zoning",
+          "highlight": "The 1,080-ac parcel's land status is undocumented. BLM surface or gen-tie crossing means 2024 Western Solar Plan conformance + FLPMA ROW + NEPA (Townsite Solar 2 precedent ~2-3 yrs, under IBLA appeal) plus elevated DOI review. Boulder City means the receptive Energy Resource zoning path (BCMC Title 11; 17,107 ac ER-zoned; city solar-lease program confirmed live). Unincorporated Clark County means a county SUP path. Timelines and denial risk differ materially; none can be confirmed.",
+          "extractedLabel": "zoning",
+          "extractedValue": "BLM NEPA ~2-3 yrs local precedent; Boulder City ER zoning verified; jurisdiction determination is a threshold diligence item"
+        },
+        {
+          "title": "https://flybvu.com/1099",
+          "location": "zoning",
+          "highlight": "The 1,080-ac parcel's land status is undocumented. BLM surface or gen-tie crossing means 2024 Western Solar Plan conformance + FLPMA ROW + NEPA (Townsite Solar 2 precedent ~2-3 yrs, under IBLA appeal) plus elevated DOI review. Boulder City means the receptive Energy Resource zoning path (BCMC Title 11; 17,107 ac ER-zoned; city solar-lease program confirmed live). Unincorporated Clark County means a county SUP path. Timelines and denial risk differ materially; none can be confirmed.",
+          "extractedLabel": "zoning",
+          "extractedValue": "BLM NEPA ~2-3 yrs local precedent; Boulder City ER zoning verified; jurisdiction determination is a threshold diligence item"
+        },
+        {
+          "title": "https://www.blm.gov/programs/energy-and-minerals/renewable-energy/solar-energy",
+          "location": "zoning",
+          "highlight": "The 1,080-ac parcel's land status is undocumented. BLM surface or gen-tie crossing means 2024 Western Solar Plan conformance + FLPMA ROW + NEPA (Townsite Solar 2 precedent ~2-3 yrs, under IBLA appeal) plus elevated DOI review. Boulder City means the receptive Energy Resource zoning path (BCMC Title 11; 17,107 ac ER-zoned; city solar-lease program confirmed live). Unincorporated Clark County means a county SUP path. Timelines and denial risk differ materially; none can be confirmed.",
+          "extractedLabel": "zoning",
+          "extractedValue": "BLM NEPA ~2-3 yrs local precedent; Boulder City ER zoning verified; jurisdiction determination is a threshold diligence item"
+        }
+      ]
+    },
+    "ev-land-2": {
+      "id": "ev-land-2",
+      "factorName": "Long-lead equipment procurement status unknown \u2014 transformers are the schedule gate",
+      "kind": "single",
+      "summary": "No equipment procurement, module supply agreement, or BESS integrator slot is documented. Market: GSU transformers 128-144 wks lead with prices +60-95% since 2019; HV switchgear 60-100+ wks; BESS slots 26-52 wks with FEOC-compliant cells (CATL/BYD excluded); Section 232 steel/copper tariffs at 50%; module MSAs need UFLPA traceability and tariff reopener clauses. Any COD claim without transformer POs already placed is not credible.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup",
+          "location": "resource_supply_chain",
+          "highlight": "No equipment procurement, module supply agreement, or BESS integrator slot is documented. Market: GSU transformers 128-144 wks lead with prices +60-95% since 2019; HV switchgear 60-100+ wks; BESS slots 26-52 wks with FEOC-compliant cells (CATL/BYD excluded); Section 232 steel/copper tariffs at 50%; module MSAs need UFLPA traceability and tariff reopener clauses. Any COD claim without transformer POs already placed is not credible.",
+          "extractedLabel": "resource_supply_chain",
+          "extractedValue": "GSU lead 128-144 wks; switchgear 60-100+ wks; BESS slot 26-52 wks; >=6 months float between major-equipment delivery and COD"
+        }
+      ]
+    },
+    "ev-land-3": {
+      "id": "ev-land-3",
+      "factorName": "Construction water, stormwater, and dust permits unaddressed",
+      "kind": "single",
+      "summary": "No water budget or permit stack is documented. Clark County norms: construction dust control ~300-600 AF over ~2 yrs ($0.5-2M, trucked/hydrant sourcing), NDEP stormwater CGP for >=1 ac disturbance, Clark County DAQ dust rules Sections 90-94. Lake Mead record-low optics (Aug 2026) add reputational sensitivity to water sourcing though physical supply risk is low.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup",
+          "location": "permitting",
+          "highlight": "No water budget or permit stack is documented. Clark County norms: construction dust control ~300-600 AF over ~2 yrs ($0.5-2M, trucked/hydrant sourcing), NDEP stormwater CGP for >=1 ac disturbance, Clark County DAQ dust rules Sections 90-94. Lake Mead record-low optics (Aug 2026) add reputational sensitivity to water sourcing though physical supply risk is low.",
+          "extractedLabel": "permitting",
+          "extractedValue": "300-600 AF construction water; NDEP CGP; Clark County DAQ Sections 90-94"
+        }
+      ]
+    },
+    "ev-land-4": {
+      "id": "ev-land-4",
+      "factorName": "Community and tribal engagement plan absent amid politicized land-use climate",
+      "kind": "single",
+      "summary": "No CBA, tribal consultation, or community plan is documented. The site is in Southern Paiute territory (Moapa, Las Vegas Paiute, Fort Mojave, Chemehuevi, CRIT) requiring consultation. Boulder City is structurally pro-solar (leases ~35% of city revenue, ~$17.2M/yr) but the July 2026 TS2 data-center fight politicized Eldorado-area land use; the project must be distanced from data-center narratives. CBA screening range $0.5-5M; <$1,000/MW is below-market.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup",
+          "location": "community",
+          "highlight": "No CBA, tribal consultation, or community plan is documented. The site is in Southern Paiute territory (Moapa, Las Vegas Paiute, Fort Mojave, Chemehuevi, CRIT) requiring consultation. Boulder City is structurally pro-solar (leases ~35% of city revenue, ~$17.2M/yr) but the July 2026 TS2 data-center fight politicized Eldorado-area land use; the project must be distanced from data-center narratives. CBA screening range $0.5-5M; <$1,000/MW is below-market.",
+          "extractedLabel": "community",
+          "extractedValue": "CBA $0.5-5M one-time; tribal consultation before entitlement milestones"
+        }
+      ]
+    },
+    "ev-law-5": {
+      "id": "ev-law-5",
+      "factorName": "Desert tortoise protocol surveys and MSHCP coverage undocumented",
+      "kind": "single",
+      "summary": "Clark County is Mojave desert tortoise (federally threatened) habitat. On non-federal land the Clark County MSHCP Section 10 permit applies (~$550/ac, ~$0.6M on 1,080 ac) and 100%-coverage protocol surveys gate layout freeze; the survey window is Sep-Oct and missing it costs +6 months. Any BLM nexus triggers ESA Section 7 plus elevated DOI review under EO 14315 / SO 3438 (confirmed live on BLM.gov). No biological survey, take coverage, or fee line item appears in the dossier.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup",
+          "location": "ecology_epa",
+          "highlight": "Clark County is Mojave desert tortoise (federally threatened) habitat. On non-federal land the Clark County MSHCP Section 10 permit applies (~$550/ac, ~$0.6M on 1,080 ac) and 100%-coverage protocol surveys gate layout freeze; the survey window is Sep-Oct and missing it costs +6 months. Any BLM nexus triggers ESA Section 7 plus elevated DOI review under EO 14315 / SO 3438 (confirmed live on BLM.gov). No biological survey, take coverage, or fee line item appears in the dossier.",
+          "extractedLabel": "ecology_epa",
+          "extractedValue": "100%-coverage protocol surveys before layout freeze; Sep-Oct window; ~$550/ac MSHCP fee; Section 7 if federal nexus"
+        },
+        {
+          "title": "https://www.blm.gov/programs/energy-and-minerals/renewable-energy/solar-energy",
+          "location": "ecology_epa",
+          "highlight": "Clark County is Mojave desert tortoise (federally threatened) habitat. On non-federal land the Clark County MSHCP Section 10 permit applies (~$550/ac, ~$0.6M on 1,080 ac) and 100%-coverage protocol surveys gate layout freeze; the survey window is Sep-Oct and missing it costs +6 months. Any BLM nexus triggers ESA Section 7 plus elevated DOI review under EO 14315 / SO 3438 (confirmed live on BLM.gov). No biological survey, take coverage, or fee line item appears in the dossier.",
+          "extractedLabel": "ecology_epa",
+          "extractedValue": "100%-coverage protocol surveys before layout freeze; Sep-Oct window; ~$550/ac MSHCP fee; Section 7 if federal nexus"
+        }
+      ]
+    },
+    "ev-finance-6": {
+      "id": "ev-finance-6",
+      "factorName": "ITC beginning-of-construction cliff unverifiable \u2014 ~30% of project economics at stake",
+      "kind": "single",
+      "summary": "Under OBBBA (July 2025) and IRS Notice 2025-42, solar >1.5 MW must document physical-work BOC by Jul 4, 2026 (no 5% safe harbor) or be placed in service by Dec 31, 2027, else ITC/PTC = $0. The dossier has no COD, no BOC evidence, and no tax-credit assumption, so the largest go/no-go financial variable is undocumented. Storage ITC under Section 48E survives regardless.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup",
+          "location": "financials",
+          "highlight": "Under OBBBA (July 2025) and IRS Notice 2025-42, solar >1.5 MW must document physical-work BOC by Jul 4, 2026 (no 5% safe harbor) or be placed in service by Dec 31, 2027, else ITC/PTC = $0. The dossier has no COD, no BOC evidence, and no tax-credit assumption, so the largest go/no-go financial variable is undocumented. Storage ITC under Section 48E survives regardless.",
+          "extractedLabel": "financials",
+          "extractedValue": "BOC by Jul 4, 2026 or PIS by Dec 31, 2027; KB values the credit at ~$60M on a comparable 180 MW-class project"
+        }
+      ]
+    },
+    "ev-demand-7": {
+      "id": "ev-demand-7",
+      "factorName": "Interconnection position unknown in NV Energy BAA cluster process",
+      "kind": "single",
+      "summary": "No queue position, cluster phase, POI, or network-upgrade cost estimate exists. The project sits in NV Energy BAA (NEVP OASIS) under FERC Order 2023 cluster rules where site control gates entry. Base rates: ~20% of queued projects reach COD, IR-to-COD ~5 yrs, network-upgrade cost shock drives ~30% post-screen attrition. Any POI relying on planned transmission (e.g., Greenlink West 525 kV, energizing 2027) carries multi-year delay distribution.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup",
+          "location": "interconnection",
+          "highlight": "No queue position, cluster phase, POI, or network-upgrade cost estimate exists. The project sits in NV Energy BAA (NEVP OASIS) under FERC Order 2023 cluster rules where site control gates entry. Base rates: ~20% of queued projects reach COD, IR-to-COD ~5 yrs, network-upgrade cost shock drives ~30% post-screen attrition. Any POI relying on planned transmission (e.g., Greenlink West 525 kV, energizing 2027) carries multi-year delay distribution.",
+          "extractedLabel": "interconnection",
+          "extractedValue": "~20% queue completion; ~5-yr IR-to-COD; executed cluster study with upgrade costs + 30-50% contingency required before COD claims are credible"
+        }
+      ]
+    },
+    "ev-demand-8": {
+      "id": "ev-demand-8",
+      "factorName": "Storage configuration unspecified \u2014 4-hr BESS is effectively mandatory in NV",
+      "kind": "single",
+      "summary": "Technology is solar+storage but no storage MW/MWh, duration, or POI limit appears in the facts. NV procurement norms (Gemini 690 MW + 1,400 MWh at $38.44/MWh; PUCN Oct 2024 approval of 1,019 MW solar + 590 MW storage) make 4-hr storage the economic floor for summer evening peak; a token BESS fails market and offtake tests. The KB's analogous 180 MWac parcel carried 80 MW/320 MWh.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup",
+          "location": "grid_integration",
+          "highlight": "Technology is solar+storage but no storage MW/MWh, duration, or POI limit appears in the facts. NV procurement norms (Gemini 690 MW + 1,400 MWh at $38.44/MWh; PUCN Oct 2024 approval of 1,019 MW solar + 590 MW storage) make 4-hr storage the economic floor for summer evening peak; a token BESS fails market and offtake tests. The KB's analogous 180 MWac parcel carried 80 MW/320 MWh.",
+          "extractedLabel": "grid_integration",
+          "extractedValue": "4-hr BESS procurement norm; hybrid configuration required for credible NV offtake"
+        }
+      ]
+    },
+    "ev-demand-9": {
+      "id": "ev-demand-9",
+      "factorName": "No offtake, revenue, or CAPEX documentation against NV benchmarks",
+      "kind": "single",
+      "summary": "No PPA, LOI, or revenue model exists. Nevada has no CCAs; realistic offtake is NV Energy IRP solicitations, NRS 704B exits (MGM, Switch precedents), or data-center bilaterals. Benchmarks: NV solar+storage blended PPA ~$45-65/MWh rising ~9%/yr; >=80% of P50 contracted at close; CAPEX $1.43-1.56/Wac PV plus $200-350/kWh BESS (~$240-280M combined). None testable without the financial section.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup",
+          "location": "demand",
+          "highlight": "No PPA, LOI, or revenue model exists. Nevada has no CCAs; realistic offtake is NV Energy IRP solicitations, NRS 704B exits (MGM, Switch precedents), or data-center bilaterals. Benchmarks: NV solar+storage blended PPA ~$45-65/MWh rising ~9%/yr; >=80% of P50 contracted at close; CAPEX $1.43-1.56/Wac PV plus $200-350/kWh BESS (~$240-280M combined). None testable without the financial section.",
+          "extractedLabel": "demand",
+          "extractedValue": ">=80% P50 contracted; $45-65/MWh blended NV PPA; $1.43-1.56/Wac + $200-350/kWh BESS"
+        }
+      ]
+    }
+  },
+  "timeline": [
+    {
+      "id": "tl-0",
+      "label": "Clark County Department of Environment and Sustainability (MSHCP program) \u2014 Conf",
+      "date": "2025-10-01",
+      "kind": "milestone",
+      "band": "risk",
+      "position": 0.0
+    },
+    {
+      "id": "tl-1",
+      "label": "ITC deadline",
+      "date": "2030-12-31",
+      "kind": "deadline",
+      "band": "risk",
+      "position": 100.0
+    }
+  ],
+  "documents": [],
+  "priorityActions": [
+    {
+      "id": "pa-1",
+      "rank": 1,
+      "title": "DATA ROOM CURE: Complete data room re-uploaded and re-screened; all 11 components (state_l",
+      "detail": "DATA ROOM CURE: Complete data room re-uploaded and re-screened; all 11 components (state_law, federal_law, permitting, zoning, ecology_epa, community, financials, interconnection, grid_integration, demand, resource_supply_chain) must have extractable, quantified facts; readiness score re-run before any further IC consideration.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-land-4"
+    },
+    {
+      "id": "pa-2",
+      "rank": 2,
+      "title": "SITE CONTROL: Executed lease/option/purchase agreements covering the full 1,080 acres with",
+      "detail": "SITE CONTROL: Executed lease/option/purchase agreements covering the full 1,080 acres with term >= PPA tenor plus decommissioning, and a title commitment with no fatal exceptions.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-land-1"
+    },
+    {
+      "id": "pa-3",
+      "rank": 3,
+      "title": "JURISDICTION MEMO: Written determination of parcel jurisdiction (Boulder City vs unincorpo",
+      "detail": "JURISDICTION MEMO: Written determination of parcel jurisdiction (Boulder City vs unincorporated Clark County vs BLM) with the resulting permitting and zoning path confirmed as obtainable; SUP or equivalent entitlement secured or confirmed on a schedule consistent with the ITC deadlines.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-land-1"
+    },
+    {
+      "id": "pa-4",
+      "rank": 4,
+      "title": "ITC ELIGIBILITY (KILL CRITERION): Documented beginning-of-construction plan meeting IRS No",
+      "detail": "ITC ELIGIBILITY (KILL CRITERION): Documented beginning-of-construction plan meeting IRS Notice 2025-42 with supporting tax counsel opinion \u2014 5% safe harbor or physical work test satisfied by Jul 4, 2026, or a credible placed-in-service path by Dec 31, 2027 \u2014 plus documented FEOC material assistance compliance. No IC approval without this.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-finance-6"
+    },
+    {
+      "id": "pa-5",
+      "rank": 5,
+      "title": "INTERCONNECTION: Executed interconnection request in the NV Energy (NEVP) cluster with Pha",
+      "detail": "INTERCONNECTION: Executed interconnection request in the NV Energy (NEVP) cluster with Phase 1 (and Phase 2 if available) study results showing network-upgrade costs within a budgeted cap; any exceedance requires explicit IC waiver.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-demand-7"
+    },
+    {
+      "id": "pa-6",
+      "rank": 6,
+      "title": "OFFTAKE: Executed PPA(s) covering >= 80% of P50 energy with a creditworthy counterparty an",
+      "detail": "OFFTAKE: Executed PPA(s) covering >= 80% of P50 energy with a creditworthy counterparty and tenor >= 15 years, or an approved merchant/hedge plan for the uncontracted portion.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-land-1"
+    },
+    {
+      "id": "pa-7",
+      "rank": 7,
+      "title": "FINANCIAL BANKABILITY: CAPEX model including a 10-15% escalation reserve and explicit tari",
+      "detail": "FINANCIAL BANKABILITY: CAPEX model including a 10-15% escalation reserve and explicit tariff/FEOC cost treatment; DSCR >= 1.20x at P90; sources and uses fully closed.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-demand-9"
+    },
+    {
+      "id": "pa-8",
+      "rank": 8,
+      "title": "ENVIRONMENTAL CLEARANCE: Desert tortoise protocol surveys completed within a valid Sep-Oct",
+      "detail": "ENVIRONMENTAL CLEARANCE: Desert tortoise protocol surveys completed within a valid Sep-Oct window with MSHCP incidental-take coverage confirmed by Clark County DES; no ESA jeopardy finding; jurisdictional waters and cultural resources clearances obtained.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-law-5"
+    },
+    {
+      "id": "pa-9",
+      "rank": 9,
+      "title": "UEPA CERTIFICATE: PUCN siting certificate issued (if applicable under NRS 704.820-704.900)",
+      "detail": "UEPA CERTIFICATE: PUCN siting certificate issued (if applicable under NRS 704.820-704.900) prior to construction NTP.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-10",
+      "rank": 10,
+      "title": "BESS FIRE SAFETY: NFPA 855 compliance plan accepted by Clark County Fire, supported by UL ",
+      "detail": "BESS FIRE SAFETY: NFPA 855 compliance plan accepted by Clark County Fire, supported by UL 9540A test data and an approved emergency response plan.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-land-1"
+    },
+    {
+      "id": "pa-11",
+      "rank": 11,
+      "title": "EQUIPMENT SECURITY: GSU transformer and BESS production slots secured under binding agreem",
+      "detail": "EQUIPMENT SECURITY: GSU transformer and BESS production slots secured under binding agreements with delivery dates aligned to COD and liquidated damages for delay; lead times verified against the 128-144 week (GSU) and 26-52 week (BESS) benchmarks.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-land-2"
+    },
+    {
+      "id": "pa-12",
+      "rank": 12,
+      "title": "EPC AND INSURANCE: Fixed-price, date-certain EPC contract with payment/performance bonding",
+      "detail": "EPC AND INSURANCE: Fixed-price, date-certain EPC contract with payment/performance bonding; construction and operational insurance bound, including BESS thermal runaway coverage.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-land-0"
+    },
+    {
+      "id": "pa-13",
+      "rank": 13,
+      "title": "COMMUNITY/TRIBAL: Tribal consultation complete and no unresolved organized opposition that",
+      "detail": "COMMUNITY/TRIBAL: Tribal consultation complete and no unresolved organized opposition that would threaten permit timelines.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-land-4"
+    },
+    {
+      "id": "pa-14",
+      "rank": 14,
+      "title": "DATA ROOM INTEGRITY: Re-upload the complete diligence data room. The sole assigned file 'e",
+      "detail": "DATA ROOM INTEGRITY: Re-upload the complete diligence data room. The sole assigned file 'e2e-upload-probe.pdf' does not exist in the project docs directory; zero facts are extractable across all 11 components. Provide a full document index with the re-upload.",
+      "impact": "medium",
+      "scoreDelta": 3,
+      "evidenceLink": "ev-land-0"
+    },
+    {
+      "id": "pa-15",
+      "rank": 15,
+      "title": "SITE CONTROL: Executed lease, option, or purchase agreements for all parcels comprising th",
+      "detail": "SITE CONTROL: Executed lease, option, or purchase agreements for all parcels comprising the 1,080 acres, with APNs, term (>= PPA tenor plus decommissioning), extension rights, and a current preliminary title report / title commitment.",
+      "impact": "medium",
+      "scoreDelta": 3,
+      "evidenceLink": "ev-land-1"
+    },
+    {
+      "id": "pa-16",
+      "rank": 16,
+      "title": "JURISDICTION: Written determination of parcel jurisdiction for the site and gen-tie corrid",
+      "detail": "JURISDICTION: Written determination of parcel jurisdiction for the site and gen-tie corridor \u2014 Boulder City limits vs unincorporated Clark County vs BLM-managed surface \u2014 with Clark County Assessor parcel map. This gates the zoning path, permitting authority, and NEPA/FLPMA exposure.",
+      "impact": "medium",
+      "scoreDelta": 3,
+      "evidenceLink": "ev-land-1"
+    }
+  ],
+  "projectedScoreAfterMitigation": 53.25,
+  "suggestedQuestions": [
+    {
+      "question": "What's the top item to clear next?",
+      "answer": {
+        "role": "assistant",
+        "text": "CRITICAL data-integrity failure: entire dossier missing \u2014 sole assigned document 'e2e-upload-probe.pdf' does not exist; zero extractable facts across all 11 components; project is unscreened and must be re-uploaded before any merits scoring"
+      }
+    },
+    {
+      "question": "Why is the activation score 25?",
+      "answer": {
+        "role": "assistant",
+        "text": "1 critical red flags and 0 cross-document contradictions. Weakest pillars: finance 15, law 25."
+      }
+    }
+  ],
+  "chatHistory": [
+    {
+      "role": "assistant",
+      "text": "I've completed diligence on E2E. Activation score 25/100 \u2014 decision: Hold. 1 critical flags, 0 cross-document contradictions, 17 open information requests. Ask me what to prioritize."
+    }
+  ],
+  "report": {
+    "badge": "RED FLAG REPORT",
+    "title": "E2E \u2014 due-diligence report",
+    "preparedBy": "Red Flag agent framework",
+    "summary": "CRITICAL data-integrity failure: entire dossier missing \u2014 sole assigned document 'e2e-upload-probe.pdf' does not exist; zero extractable facts across all 11 components; project is unscreened and must be re-uploaded before any merits scoring",
+    "findings": [
+      {
+        "title": "Entire dossier missing \u2014 zero extractable facts across all 11 components",
+        "text": "pdf_extract returned No such file or directory for e2e-upload-probe.pdf and case/underscore variants; sandbox filesystem search unavailable (DAYTONA_API_KEY not set). No quantified or date-bound claim exists for any component, so no benchmark test can be run on the merits. Every component verdict is UNVERIFIABLE. Threshold data-integrity failure: re-upload the dossier or treat the project as unscreened."
+      },
+      {
+        "title": "ITC beginning-of-construction cliff unverifiable \u2014 ~30% of project economics at stake",
+        "text": "Under OBBBA (July 2025) and IRS Notice 2025-42, solar >1.5 MW must document physical-work BOC by Jul 4, 2026 (no 5% safe harbor) or be placed in service by Dec 31, 2027, else ITC/PTC = $0. The dossier has no COD, no BOC evidence, and no tax-credit assumption, so the largest go/no-go financial variable is undocumented. Storage ITC under Section 48E survives regardless."
+      },
+      {
+        "title": "Interconnection position unknown in NV Energy BAA cluster process",
+        "text": "No queue position, cluster phase, POI, or network-upgrade cost estimate exists. The project sits in NV Energy BAA (NEVP OASIS) under FERC Order 2023 cluster rules where site control gates entry. Base rates: ~20% of queued projects reach COD, IR-to-COD ~5 yrs, network-upgrade cost shock drives ~30% post-screen attrition. Any POI relying on planned transmission (e.g., Greenlink West 525 kV, energizing 2027) carries multi-year delay distribution."
+      },
+      {
+        "title": "Desert tortoise protocol surveys and MSHCP coverage undocumented",
+        "text": "Clark County is Mojave desert tortoise (federally threatened) habitat. On non-federal land the Clark County MSHCP Section 10 permit applies (~$550/ac, ~$0.6M on 1,080 ac) and 100%-coverage protocol surveys gate layout freeze; the survey window is Sep-Oct and missing it costs +6 months. Any BLM nexus triggers ESA Section 7 plus elevated DOI review under EO 14315 / SO 3438 (confirmed live on BLM.gov). No biological survey, take coverage, or fee line item appears in the dossier."
+      },
+      {
+        "title": "Land status and zoning jurisdiction unknown \u2014 BLM vs private vs Boulder City ER",
+        "text": "The 1,080-ac parcel's land status is undocumented. BLM surface or gen-tie crossing means 2024 Western Solar Plan conformance + FLPMA ROW + NEPA (Townsite Solar 2 precedent ~2-3 yrs, under IBLA appeal) plus elevated DOI review. Boulder City means the receptive Energy Resource zoning path (BCMC Title 11; 17,107 ac ER-zoned; city solar-lease program confirmed live). Unincorporated Clark County means a county SUP path. Timelines and denial risk differ materially; none can be confirmed."
+      }
+    ],
+    "recommendedActions": [
+      "DATA ROOM CURE: Complete data room re-uploaded and re-screened; all 11 components (state_law, federal_law, permitting, zoning, ecology_epa, community, financials, interconnection, grid_integration, demand, resource_supply_chain) must have extractable, quantified facts; readiness score re-run before any further IC consideration.",
+      "SITE CONTROL: Executed lease/option/purchase agreements covering the full 1,080 acres with term >= PPA tenor plus decommissioning, and a title commitment with no fatal exceptions.",
+      "JURISDICTION MEMO: Written determination of parcel jurisdiction (Boulder City vs unincorporated Clark County vs BLM) with the resulting permitting and zoning path confirmed as obtainable; SUP or equivalent entitlement secured or confirmed on a schedule consistent with the ITC deadlines.",
+      "ITC ELIGIBILITY (KILL CRITERION): Documented beginning-of-construction plan meeting IRS Notice 2025-42 with supporting tax counsel opinion \u2014 5% safe harbor or physical work test satisfied by Jul 4, 2026, or a credible placed-in-service path by Dec 31, 2027 \u2014 plus documented FEOC material assistance compliance. No IC approval without this.",
+      "INTERCONNECTION: Executed interconnection request in the NV Energy (NEVP) cluster with Phase 1 (and Phase 2 if available) study results showing network-upgrade costs within a budgeted cap; any exceedance requires explicit IC waiver."
+    ],
+    "sourceBasis": "0 source documents + 0 acquired research packs"
+  },
+  "map": {
+    "parcelSize": "\u2014",
+    "toggles": [
+      {
+        "id": "zoning",
+        "label": "Zoning",
+        "on": true
+      },
+      {
+        "id": "protected-land",
+        "label": "Protected land",
+        "on": true
+      },
+      {
+        "id": "transmission",
+        "label": "Transmission",
+        "on": false
+      }
+    ],
+    "distances": [],
+    "zones": [],
+    "pin": {
+      "left": 50,
+      "top": 50,
+      "label": "Clark County, NV"
+    }
+  },
+  "teamMembers": []
+}

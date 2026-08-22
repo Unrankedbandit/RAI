@@ -5,9 +5,22 @@
 // events fill in small increments *within* the current pillar's share but can
 // never reach the next milestone — five honest jumps, no fabricated smooth 0–100.
 
-import { PILLAR_COUNT, type ScanEvent } from "./scanEvents";
+import { PILLAR_COUNT, type GapItem, type ScanEvent } from "./scanEvents";
 
-export type TrailKind = "read" | "flag" | "score" | "subagent";
+export type TrailKind = "read" | "flag" | "score" | "subagent" | "gate";
+
+/** How the review gate closed — human selection or server-side timeout. */
+export type GateResolution = {
+  mode: "approved" | "timeout";
+  approved: string[];
+};
+
+/** State of the mid-run gap-review gate, when the pipeline raises one. */
+export type GapGateState = {
+  gaps: GapItem[];
+  timeoutS: number;
+  resolved: GateResolution | null;
+};
 
 export type TrailLine = {
   id: number;
@@ -32,6 +45,8 @@ export type ScanData = {
   sinceMilestone: number;
   result: ScanResult | null;
   error: string | null;
+  /** Gap-review gate while open, and after resolution. Null = gate disabled. */
+  gate: GapGateState | null;
   /** Total events folded so far (0 = nothing has arrived yet). */
   eventCount: number;
 };
@@ -46,6 +61,7 @@ export const initialScanData: ScanData = {
   sinceMilestone: 0,
   result: null,
   error: null,
+  gate: null,
   eventCount: 0,
 };
 
@@ -125,6 +141,40 @@ export function reduceScan(state: ScanData, event: ScanEvent): ScanData {
       return {
         ...next,
         percent: Math.max(state.percent, Math.min(96, event.percent)),
+      };
+    }
+    case "gate_gap_review": {
+      // The pipeline is paused awaiting a human decision; the bar must not
+      // advance while the gate is open.
+      return {
+        ...next,
+        gate: { gaps: event.gaps, timeoutS: event.timeoutS, resolved: null },
+        trail: [
+          ...state.trail,
+          line(
+            `Review gate: ${event.gaps.length} gap${event.gaps.length === 1 ? "" : "s"} need a decision`,
+            "gate",
+          ),
+        ],
+      };
+    }
+    case "gate_resolved": {
+      const resolved: GateResolution = {
+        mode: event.mode,
+        approved: event.approved,
+      };
+      const gate: GapGateState = state.gate
+        ? { ...state.gate, resolved }
+        : { gaps: [], timeoutS: 0, resolved };
+      const total = state.gate?.gaps.length ?? event.approved.length;
+      const text =
+        event.mode === "timeout"
+          ? "Gap review timed out — chasing all gaps"
+          : `Gap review approved — chasing ${event.approved.length} of ${total}`;
+      return {
+        ...next,
+        gate,
+        trail: [...state.trail, line(text, "gate")],
       };
     }
     case "complete": {

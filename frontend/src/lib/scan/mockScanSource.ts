@@ -6,7 +6,7 @@
 
 import type { ScanEvent, ScanSource } from "./scanEvents";
 
-export type MockScenario = "default" | "slow" | "error";
+export type MockScenario = "default" | "slow" | "error" | "gate";
 
 type Step = { delay: number; event: ScanEvent };
 
@@ -51,8 +51,51 @@ export function createMockScanSource(
     // error: cut off partway with an error event.
     // slow: emit a few events then go silent (never complete) so the
     //       indeterminate pulse and, eventually, the timeout state trigger.
+    // gate: pause after Law with a gap-review gate; with no backend to answer
+    //       the resume POST, the gate resolves on its timeout and the run
+    //       continues — exercising the countdown and the auto-resolve path.
     let steps: Step[];
-    if (scenario === "error") {
+    if (scenario === "gate") {
+      steps = [
+        ...RUN.slice(0, 9),
+        {
+          delay: 1200,
+          event: {
+            type: "gate_gap_review",
+            timeoutS: 20,
+            gaps: [
+              {
+                id: "gap-1",
+                title: "Grid-interconnection study missing",
+                detail:
+                  "The feasibility study cites queue position 180 MW but no study report is in the document set.",
+                severity: "high",
+              },
+              {
+                id: "gap-2",
+                title: "CAPEX basis unverified",
+                detail:
+                  "Vendor proposal totals $51.2M against a $42.0M model assumption; no quote breakdown provided.",
+                severity: "medium",
+              },
+              {
+                id: "gap-3",
+                title: "Environmental permit timeline",
+                detail: "No agency correspondence confirming the permit date.",
+                severity: "low",
+              },
+            ],
+          },
+        },
+        // The mock has no human endpoint — the gate falls through to its
+        // server-side timeout, exactly like an unattended live run.
+        {
+          delay: 20000,
+          event: { type: "gate_resolved", mode: "timeout", approved: [] },
+        },
+        ...RUN.slice(9),
+      ];
+    } else if (scenario === "error") {
       steps = [
         ...RUN.slice(0, 8),
         {
