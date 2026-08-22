@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useProject } from "./ProjectContext";
+import { ReviewBar } from "./ReviewBar";
 import { bandColorVar } from "@/lib/band";
 
 /**
@@ -20,7 +21,13 @@ export function ReportsTab() {
     "rounded-full border border-hairline bg-canvas px-[15px] py-2 text-sm font-medium text-muted cursor-pointer";
 
   return (
-    <div className="max-w-[820px] rounded-[11px] border border-hairline bg-canvas p-[26px_28px] shadow-card">
+    <div className="max-w-[820px]">
+      {/* Human review gate — sits directly above the findings the reviewer
+          is approving/rejecting. Renders nothing when the review endpoint
+          doesn't track this report (e.g. mock mode). */}
+      <ReviewBar />
+
+      <div className="rounded-[11px] border border-hairline bg-canvas p-[26px_28px] shadow-card">
       {/* Report header */}
       <div className="mb-[18px] flex items-start justify-between border-b border-hairline pb-[18px]">
         <div>
@@ -161,6 +168,7 @@ export function ReportsTab() {
       <div>
         <div className="mb-[10px] text-[12.5px] font-semibold text-faint">Source basis</div>
         <div className="text-[12.5px] leading-[1.65] text-faint">{report.sourceBasis}</div>
+      </div>
       </div>
     </div>
   );

@@ -70,7 +70,10 @@ control-plane view, not the payload firehose.
       "errorClass": { "type": "string", "title": "Error Class" },
       "errorMessage": { "type": "string", "title": "Error" },
       "startedAt": { "type": "string", "format": "date-time", "title": "Started" },
-      "finishedAt": { "type": "string", "format": "date-time", "title": "Finished" }
+      "finishedAt": { "type": "string", "format": "date-time", "title": "Finished" },
+      "reviewedBy": { "type": "string", "title": "Reviewed By" },
+      "reviewedAt": { "type": "string", "format": "date-time", "title": "Reviewed At" },
+      "reviewRationale": { "type": "string", "title": "Review Rationale" }
     },
     "required": []
   },
@@ -178,6 +181,20 @@ not `APPROVED`. To approve, a reviewer:
 3. Edits the entity and sets `status` to `APPROVED` or `REJECTED`
    (Builder → Catalog → entity → Edit), optionally recording rationale in the
    entity's comment/activity feed.
+
+**In-app review (primary flow).** The decision happens where the reviewer
+already is — inside the RAI app, next to the gaps and red flags. The report
+view calls `POST /api/reports/{jobId}/review` with
+`{"decision": "APPROVED"|"REJECTED", "reviewer": ..., "rationale": ...}`; the
+backend persists a sidecar (`reports/{jobId}.review.json`, since the Report
+schema is parity-locked with the frontend) and merge-upserts the
+`factory_run` entity with `status`, `reviewedBy`, `reviewedAt`, and
+`reviewRationale` — so Port remains the system of record and the review-queue
+dashboard drains itself as decisions come in. `GET /api/reports/{jobId}/review`
+returns the current state (`AWAITING_REVIEW` when undecided); a decided report
+rejects further POSTs with `409` unless the caller explicitly passes
+`"override": true`. The Port write-back is fire-and-forget: Port being down
+never fails the in-app decision, and the sidecar is the local source of truth.
 
 Outbound webhooks back into RAI are deliberately out of scope — Port is the
 system of record for the decision, and the entity's audit trail is the proof.
