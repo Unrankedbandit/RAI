@@ -1,24 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { Card } from "@/components/ui/Card";
 import { clsx } from "@/lib/clsx";
 import type { FindingActivity } from "@/lib/types";
 
 /**
- * Activity audit trail — collapsed by default, sits directly under the
- * field grid. "RAI" actors render bold in jetbrains; timestamps align right.
+ * Activity audit trail — a disclosure row inside the unified detail
+ * surface (no card chrome of its own; the chevron row IS the section
+ * header). Collapsed by default; expanded events are hairline-separated
+ * rows. "RAI" actors render semibold mono; timestamps align right.
  */
 export function ActivityAccordion({ activity }: { activity: FindingActivity[] }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <Card padded={false}>
+    <div>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full items-center justify-between px-5 py-4 text-left"
+        className="flex w-full items-center justify-between px-6 py-4 text-left"
       >
         <span className="text-sm font-semibold text-ink">
           Activity — {activity.length} {activity.length === 1 ? "event" : "events"}
@@ -41,16 +42,16 @@ export function ActivityAccordion({ activity }: { activity: FindingActivity[] })
       </button>
 
       {open && (
-        <div className="border-t border-hairline px-5 py-3">
+        <div className="divide-y divide-hairline border-t border-hairline">
           {activity.map((event, i) => (
             <div
               key={i}
-              className="flex items-baseline gap-3 py-2 text-left"
+              className="flex items-baseline gap-3 px-6 py-2.5 text-left"
             >
               <span
                 className={clsx(
-                  "w-9 flex-none font-jetbrains text-[12.5px] text-ink",
-                  event.actor === "RAI" && "font-bold",
+                  "mono w-9 flex-none text-[12.5px] text-ink",
+                  event.actor === "RAI" && "font-semibold",
                 )}
               >
                 {event.actor}
@@ -65,6 +66,6 @@ export function ActivityAccordion({ activity }: { activity: FindingActivity[] })
           ))}
         </div>
       )}
-    </Card>
+    </div>
   );
 }

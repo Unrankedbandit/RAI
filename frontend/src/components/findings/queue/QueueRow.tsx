@@ -27,12 +27,21 @@ export function QueueRow({ finding, selected, onSelect }: QueueRowProps) {
       <span className="w-[68px] shrink-0 font-jetbrains text-[12.5px] text-faint">
         {finding.id}
       </span>
-      <StatusLozenge status={finding.status} />
+      <StatusLozenge
+        status={finding.status}
+        className="w-[86px] justify-center"
+      />
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-medium text-ink">
+        <span
+          className="block truncate text-sm font-medium text-ink"
+          title={finding.title}
+        >
           {finding.title}
         </span>
-        <span className="mt-[2px] block truncate text-[12.5px] text-faint">
+        <span
+          className="mt-[2px] block truncate text-[12.5px] text-faint"
+          title={finding.resolutionSummary}
+        >
           {finding.resolutionSummary}
         </span>
       </span>

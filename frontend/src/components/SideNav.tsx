@@ -29,6 +29,13 @@ const links = [
     ),
   },
   {
+    href: "/parcels",
+    label: "Parcels",
+    icon: (
+      <path d="M2.5 5.5 8 2.5l5.5 3M2.5 8.5 8 5.5l5.5 3M2.5 11.5 8 8.5l5.5 3v2l-5.5 3-5.5-3z" strokeLinejoin="round" />
+    ),
+  },
+  {
     href: "/projects",
     label: "Current projects",
     icon: (
@@ -89,7 +96,7 @@ export function SideNav() {
               >
                 {link.icon}
               </svg>
-              {link.label}
+              <span className="min-w-0 truncate">{link.label}</span>
             </Link>
           );
         })}

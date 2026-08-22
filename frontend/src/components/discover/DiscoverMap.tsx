@@ -132,7 +132,7 @@ export function DiscoverMap({
       {!scoring && (
         <div
           className={clsx(
-            "absolute left-1/2 top-4 -translate-x-1/2 rounded-full px-3 py-1 text-[12.5px] font-medium",
+            "absolute left-1/2 top-4 max-w-[calc(100%-2rem)] -translate-x-1/2 truncate rounded-full px-3 py-1 text-[12.5px] font-medium",
             PREVIEW_LAYERS[activeLayer].chip,
           )}
         >

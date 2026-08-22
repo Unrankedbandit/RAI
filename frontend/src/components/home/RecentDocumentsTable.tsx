@@ -28,14 +28,16 @@ export function RecentDocumentsTable({ docs }: { docs: RecentDocument[] }) {
               key={`${doc.project}-${doc.title}`}
               className="border-t border-hairline"
             >
-              <td className="max-w-[18rem] truncate py-3 pr-4 text-ink">
+              <td className="max-w-[18rem] truncate py-3 pr-4 text-ink" title={doc.title}>
                 {doc.title}
               </td>
-              <td className="py-3 pr-4 text-muted">{doc.project}</td>
+              <td className="whitespace-nowrap py-3 pr-4 text-muted">
+                {doc.project}
+              </td>
               <td className="py-3 pr-4">
                 <ProcessPill status={doc.status} />
               </td>
-              <td className="py-3 text-muted tabular-nums">
+              <td className="whitespace-nowrap py-3 text-muted tabular-nums">
                 {formatDate(doc.addedAt)}
               </td>
             </tr>

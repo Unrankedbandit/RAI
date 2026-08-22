@@ -24,9 +24,11 @@ export function ProjectLane({
   return (
     <section className="overflow-hidden rounded-[11px] border border-hairline bg-canvas shadow-card">
       <header className="flex items-baseline gap-2.5 border-b border-hairline px-5 py-[14px]">
-        <span className="text-sm font-semibold text-ink">{projectName}</span>
-        <span className="text-[12.5px] text-muted">{bandLabel}</span>
-        <span className="ml-auto text-[12.5px] text-faint">
+        <span className="min-w-0 truncate text-sm font-semibold text-ink" title={projectName}>
+          {projectName}
+        </span>
+        <span className="shrink-0 text-[12.5px] text-muted">{bandLabel}</span>
+        <span className="ml-auto shrink-0 text-[12.5px] text-faint">
           {openCount} open
         </span>
       </header>

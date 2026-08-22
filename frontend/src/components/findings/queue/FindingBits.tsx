@@ -6,12 +6,19 @@ import type { FindingSeverity, FindingStatus } from "@/lib/types";
  * Status lozenge — the queue's pill. Colors resolve exclusively through
  * lib/findings.ts (never hardcoded hex).
  */
-export function StatusLozenge({ status }: { status: FindingStatus }) {
+export function StatusLozenge({
+  status,
+  className,
+}: {
+  status: FindingStatus;
+  className?: string;
+}) {
   return (
     <span
       className={clsx(
-        "inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-[12.5px] font-medium",
+        "inline-flex shrink-0 items-center whitespace-nowrap rounded-full px-2.5 py-1 text-[12.5px] font-medium",
         statusToLozengeClass[status],
+        className,
       )}
     >
       {status}

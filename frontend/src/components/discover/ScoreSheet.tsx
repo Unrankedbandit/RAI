@@ -30,11 +30,11 @@ function MetaRow({
   faint?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between py-2.5">
-      <span className="text-[12.5px] text-muted">{label}</span>
+    <div className="flex items-center justify-between gap-3 py-2.5">
+      <span className="shrink-0 text-[12.5px] text-muted">{label}</span>
       <span
         className={clsx(
-          "text-[12.5px]",
+          "min-w-0 text-right text-[12.5px]",
           mono && "font-jetbrains",
           faint ? "text-faint" : "text-ink",
         )}

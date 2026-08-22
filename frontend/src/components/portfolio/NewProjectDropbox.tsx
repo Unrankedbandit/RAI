@@ -48,7 +48,7 @@ export function NewProjectDropbox() {
         dragging ? "border-hairline bg-select" : "border-hairline bg-surface-2",
       )}
     >
-      <div className="flex items-center gap-3.5">
+      <div className="flex min-w-0 items-center gap-3.5">
         <svg
           width="20"
           height="20"
@@ -68,7 +68,7 @@ export function NewProjectDropbox() {
           <path d="M12 12v9" />
           <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" />
         </svg>
-        <div>
+        <div className="min-w-0">
           <div className="mb-[3px] text-[15px] font-semibold text-ink">
             Start a new project
           </div>

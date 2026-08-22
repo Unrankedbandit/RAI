@@ -63,14 +63,17 @@ export function PortfolioMap({
                 aria-hidden
               />
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-[12px] font-medium text-ink">
+                <span
+                  className="block truncate text-[12px] font-medium text-ink"
+                  title={p.name}
+                >
                   {p.name}
                 </span>
-                <span className="block text-[12.5px] text-faint">
+                <span className="block truncate text-[12.5px] text-faint">
                   {p.location}
                 </span>
               </span>
-              <span className="text-[12px] font-semibold text-ink">
+              <span className="shrink-0 text-[12px] font-semibold text-ink tabular-nums">
                 {p.activationScore}
               </span>
             </Link>

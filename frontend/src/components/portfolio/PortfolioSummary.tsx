@@ -182,7 +182,9 @@ function CountCard({
           className="inline-block h-[7px] w-[7px] flex-none rounded-full"
           style={{ backgroundColor: bandColorVar[band] }}
         />
-        {label}
+        <span className="min-w-0 truncate" title={label}>
+          {label}
+        </span>
       </div>
       <div
         className={`text-2xl font-semibold leading-none ${bandTextClass[band]}`}

@@ -153,8 +153,12 @@ export default function FindingsPage() {
         />
       </div>
 
-      <div className="flex items-start gap-3">
-        <div className="min-w-0 flex-1 space-y-3">
+      {/* flex-wrap + a minimum lane width: when the content column is too
+          narrow for queue rows beside the 380px pane (e.g. 1280px viewport
+          with the Ask rail open), the pane drops below instead of clipping
+          the rows' fixed columns. */}
+      <div className="flex flex-wrap items-start gap-3">
+        <div className="min-w-[460px] flex-1 space-y-3">
           {lanes.length === 0 ? (
             <div className="rounded-[11px] border border-hairline bg-canvas px-5 py-[18px] text-sm text-faint shadow-card">
               No findings match the current filters.
@@ -174,7 +178,7 @@ export default function FindingsPage() {
           )}
         </div>
 
-        <div className="w-[380px] shrink-0">
+        <div className="w-[380px] max-w-full shrink-0">
           <QuickLookPane
             finding={selected}
             projectName={
