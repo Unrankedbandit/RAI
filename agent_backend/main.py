@@ -19,6 +19,7 @@ from .agents.base import Agent
 from .agents.roles import ANALYST, ROLE_TOOLS
 from .obs import Trace
 from .pipeline import run_pipeline
+from .port_client import PortReporter, port as _port
 from .sandbox import sandbox_health, sandbox_selftest
 from .schemas import ChatAnswer, Report
 from .telemetry import init_telemetry
@@ -77,13 +78,23 @@ async def analyze(req: AnalyzeRequest):
     # One trace per job. Its sink pushes structured events onto the same queue
     # the SSE endpoint drains, so the dashboard and the console see identical
     # activity — and JOB_TRACES keeps it replayable after the run ends.
-    trace = Trace(job_id, sink=lambda ev: queue.put_nowait(ev))
+    # The Port reporter rides the same sink: every phase/agent/tool event is
+    # mirrored into factory_run / factory_agent_run entities. Fire-and-forget —
+    # with no Port credentials configured it is a no-op.
+    reporter = PortReporter(job_id, log=lambda m: trace.event("port", m, level="debug"))
+
+    def sink(ev: dict):
+        queue.put_nowait(ev)
+        reporter.handle_event(ev)
+
+    trace = Trace(job_id, sink=sink)
     JOB_TRACES[job_id] = trace
     trace.event(
         "http.request", "POST /api/projects/analyze",
         project=req.name, location=req.location, documents=req.docs,
     )
     trace.event("job.created", f"job {job_id} queued")
+    reporter.start(req.name, req.location, req.docs)
 
     async def work():
         def status(msg: str):
@@ -96,6 +107,12 @@ async def analyze(req: AnalyzeRequest):
             path.write_text(report.model_dump_json(indent=2), encoding="utf-8")
             trace.event("job.persisted", f"report written to {path}",
                         bytes=path.stat().st_size)
+            # Human-in-the-loop gate: the run is not "done" in Port until a
+            # person reviews the report there and flips status to APPROVED.
+            reporter.awaiting_review(
+                report_url=f"{os.getenv('APP_PUBLIC_URL', 'http://localhost:8000')}/api/reports/{job_id}",
+                readiness=report.readiness, decision=report.decision, report=report,
+            )
             trace.event("job.done", f"job {job_id} complete")
             trace.print_summary()
             queue.put_nowait("__DONE__")
@@ -104,6 +121,7 @@ async def analyze(req: AnalyzeRequest):
             # client — which for AgentDidNotConverge was just an agent name.
             trace.error("job.failed", f"{type(e).__name__}: {e}",
                         traceback=traceback.format_exc()[-2000:])
+            reporter.failed(type(e).__name__, str(e))
             trace.print_summary()
             queue.put_nowait(f"__ERROR__ {type(e).__name__}: {e}")
 
@@ -152,6 +170,7 @@ async def health():
         "llm": llm_info,
         "sandbox": sandbox_health(t),
         "webSearch": {"configured": bool(os.getenv("TAVILY_API_KEY"))},
+        "port": {"configured": _port.enabled, "apiBase": _port.api_base if _port.enabled else None},
         "docs": {"dir": os.getenv("DOC_DIR"), "knowledgeBase": os.getenv("KB_DIR")},
     }
     t.end()
