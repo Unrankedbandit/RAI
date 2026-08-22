@@ -60,8 +60,10 @@ interface GeocodeHit {
 }
 
 async function geocodePlace(text: string): Promise<GeocodeHit | null> {
+  // CA-biased and bounded: this viewer's parcel data is California-only, so a
+  // geocode outside the state can never identify a parcel.
   const res = await fetch(
-    `${NOMINATIM}?format=jsonv2&q=${encodeURIComponent(text)}&countrycodes=us&limit=1`,
+    `${NOMINATIM}?format=jsonv2&q=${encodeURIComponent(text)}&countrycodes=us&viewbox=-124.4,42.0,-114.1,32.5&bounded=1&limit=1`,
     { headers: { accept: "application/json" } },
   );
   if (!res.ok) throw new Error(`geocoder ${res.status}`);
@@ -340,6 +342,9 @@ export default function ParcelViewer() {
 
   const pickSuggestion = useCallback(
     (p: ParcelResult) => {
+      // A pick supersedes any in-flight map click and pending typeahead fetch.
+      requestRef.current++;
+      suggestSeqRef.current++;
       applySearchResult(p, p.apn ?? p.address ?? searchText.trim());
       setSuggestOpen(false);
       setSuggestions(null);
@@ -350,6 +355,8 @@ export default function ParcelViewer() {
   const handleSearch = useCallback(async () => {
     const text = searchText.trim();
     if (!text) return;
+    // Submitting cancels any pending debounced typeahead fetch.
+    suggestSeqRef.current++;
     // If the dropdown is open with results, Enter picks the active option.
     if (suggestOpen && suggestions && suggestions.length > 0) {
       pickSuggestion(suggestions[Math.min(activeOption, suggestions.length - 1)]);
@@ -373,9 +380,11 @@ export default function ParcelViewer() {
         }
         const lng = parseFloat(hit.lon);
         const lat = parseFloat(hit.lat);
-        mapRef.current?.flyTo({ center: [lng, lat], zoom: 16, duration: 1200 });
         const result = await queryParcelAtPoint(STATEWIDE_COUNTY_NAME, lng, lat);
+        // Fly only after the second stale-guard — a superseded request must
+        // not move the map either.
         if (req !== requestRef.current) return;
+        mapRef.current?.flyTo({ center: [lng, lat], zoom: 16, duration: 1200 });
         if (!result) {
           setPanel({ status: "empty" });
           setSearchNote(
