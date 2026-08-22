@@ -13,12 +13,11 @@ import anthropic
 from pydantic import BaseModel, ValidationError
 
 from ..obs import Trace, set_current_trace
-from ..sandbox import agent_sandbox_async, close_agent_sandbox
 
 MAX_STEPS = int(os.getenv("AGENT_MAX_STEPS", "8"))
 
 # Provider selection: "openai" — any OpenAI-compatible endpoint, DEFAULT: the
-# Fireworks bridge (hackathon.josephbissell.com) the Daytona bots use.
+# Fireworks bridge (hackathon.josephbissell.com).
 # "anthropic" routes to direct Claude instead (Kiran's path).
 PROVIDER = os.getenv("LLM_PROVIDER", "openai")
 
@@ -306,10 +305,6 @@ class Agent:
         if PROVIDER == "openai":
             return await self._run_openai(task, context)
         self.on_status(f"[{self.name}] starting")
-        # Every agent owns a sandbox for its run: provisioned up front so the
-        # lifecycle is deterministic, reused across its tool calls, torn down in
-        # the finally below even if the loop raises.
-        sandbox = await agent_sandbox_async(self.name, self.trace)
         # The role prompt rides in `system`, not as a message — that keeps the
         # cached prefix stable across every turn of the loop.
         messages: list[dict[str, Any]] = [
@@ -323,129 +318,113 @@ class Agent:
             },
         ]
 
-        try:
-            retries = 0
-            with self.trace.span(
-                "agent", f"{self.name} → {self.contract.__name__}",
-                tools=sorted(self.tools), maxSteps=self.max_steps,
-            ) as agent_span:
-                for step in range(1, self.max_steps + 1):
-                    response = await self._chat(messages, step)
+        retries = 0
+        with self.trace.span(
+            "agent", f"{self.name} → {self.contract.__name__}",
+            tools=sorted(self.tools), maxSteps=self.max_steps,
+        ) as agent_span:
+            for step in range(1, self.max_steps + 1):
+                response = await self._chat(messages, step)
 
-                    if response.stop_reason == "refusal":
-                        detail = getattr(response.stop_details, "category", None)
-                        self.trace.error(
-                            "agent.refused",
-                            f"{self.name}: safety classifiers declined the request",
-                            category=detail,
+                if response.stop_reason == "refusal":
+                    detail = getattr(response.stop_details, "category", None)
+                    self.trace.error(
+                        "agent.refused",
+                        f"{self.name}: safety classifiers declined the request",
+                        category=detail,
+                    )
+                    raise AgentRefused(f"{self.name}: refused ({detail})")
+
+                # Echo the whole assistant turn back — thinking blocks included
+                # and unmodified. Editing or dropping them breaks the next turn.
+                messages.append({"role": "assistant", "content": response.content})
+
+                tool_uses = [b for b in response.content if b.type == "tool_use"]
+
+                if not tool_uses:
+                    text = "".join(b.text for b in response.content if b.type == "text")
+                    try:
+                        result = self.contract.model_validate(
+                            _extract_json(text)
                         )
-                        raise AgentRefused(f"{self.name}: refused ({detail})")
-
-                    # Echo the whole assistant turn back — thinking blocks included
-                    # and unmodified. Editing or dropping them breaks the next turn.
-                    messages.append({"role": "assistant", "content": response.content})
-
-                    tool_uses = [b for b in response.content if b.type == "tool_use"]
-
-                    if not tool_uses:
-                        text = "".join(b.text for b in response.content if b.type == "text")
-                        try:
-                            result = self.contract.model_validate(
-                                _extract_json(text)
-                            )
-                        except (json.JSONDecodeError, ValidationError, TypeError) as e:
-                            # Previously invisible: the agent would silently burn a
-                            # step and retry, so a run that failed on a schema
-                            # mismatch looked identical to one that was just slow.
-                            retries += 1
-                            self.trace.warn(
-                                "contract.invalid",
-                                f"{type(e).__name__} on step {step} — asking for valid JSON again",
-                                error=str(e)[:400],
-                                rawPreview=text[:400],
-                            )
-                            self.on_status(f"[{self.name}] invalid output, retrying")
-                            messages.append({
-                                "role": "user",
-                                "content": f"Invalid output ({e}). Return ONLY valid JSON matching the schema.",
-                            })
-                            continue
-
-                        agent_span["steps"] = step
-                        agent_span["retries"] = retries
-                        self.trace.event(
-                            "agent.contract", f"{self.contract.__name__} validated",
-                            steps=step, retries=retries,
+                    except (json.JSONDecodeError, ValidationError, TypeError) as e:
+                        # Previously invisible: the agent would silently burn a
+                        # step and retry, so a run that failed on a schema
+                        # mismatch looked identical to one that was just slow.
+                        retries += 1
+                        self.trace.warn(
+                            "contract.invalid",
+                            f"{type(e).__name__} on step {step} — asking for valid JSON again",
+                            error=str(e)[:400],
+                            rawPreview=text[:400],
                         )
-                        self.on_status(f"[{self.name}] done")
-                        return result
-
-                    results = []
-                    for call in tool_uses:
-                        args = call.input or {}
-                        self.on_status(f"[{self.name}] {call.name}({json.dumps(args, default=str)[:80]})")
-
-                        with self.trace.span("tool", f"{call.name}", args=args) as ts:
-                            if call.name not in self.tools:
-                                # Not an exception — the model hallucinated a tool.
-                                # Worth flagging: it usually means the whitelist and
-                                # the role prompt disagree.
-                                self.trace.warn(
-                                    "tool.unknown",
-                                    f"{self.name} called {call.name!r}, not in its whitelist",
-                                    available=sorted(self.tools),
-                                )
-                                output, is_error = f"unknown tool {call.name}", True
-                                ts["ok"] = False
-                            else:
-                                try:
-                                    # Tools are synchronous and some are slow —
-                                    # provisioning a sandbox takes seconds. Calling
-                                    # them inline would block the event loop and
-                                    # stall every other agent in the same gather.
-                                    output = await asyncio.to_thread(self.tools[call.name], **args)
-                                    is_error = False
-                                    ts["ok"] = True
-                                except Exception as e:  # tool failures are observations, not crashes
-                                    output, is_error = f"tool error: {e}", True
-                                    ts["ok"] = False
-                                    ts["error"] = str(e)[:300]
-                                    self.trace.warn("tool.failed", f"{call.name}: {e}")
-
-                            rendered = str(output)
-                            ts["resultChars"] = len(rendered)
-                            if len(rendered) > 8000:
-                                # Silent truncation hides why an agent "ignored" a
-                                # document it was given.
-                                ts["truncated"] = True
-                                self.trace.warn(
-                                    "tool.truncated",
-                                    f"{call.name} returned {len(rendered)} chars, truncated to 8000",
-                                )
-
-                        results.append({
-                            "type": "tool_result",
-                            "tool_use_id": call.id,
-                            "content": rendered[:8000],
-                            "is_error": is_error,
+                        self.on_status(f"[{self.name}] invalid output, retrying")
+                        messages.append({
+                            "role": "user",
+                            "content": f"Invalid output ({e}). Return ONLY valid JSON matching the schema.",
                         })
+                        continue
 
-                    # Every tool_result for a turn goes back in ONE user message —
-                    # splitting them trains the model out of parallel tool calls.
-                    messages.append({"role": "user", "content": results})
+                    agent_span["steps"] = step
+                    agent_span["retries"] = retries
+                    self.trace.event(
+                        "agent.contract", f"{self.contract.__name__} validated",
+                        steps=step, retries=retries,
+                    )
+                    self.on_status(f"[{self.name}] done")
+                    return result
 
-                agent_span["steps"] = self.max_steps
-                agent_span["retries"] = retries
-                self.trace.error(
-                    "agent.no_converge",
-                    f"{self.name} exhausted {self.max_steps} steps without producing valid "
-                    f"{self.contract.__name__} ({retries} schema retries)",
-                )
-                raise AgentDidNotConverge(
-                    f"{self.name} did not converge in {self.max_steps} steps "
-                    f"({retries} invalid-output retries) for contract {self.contract.__name__}"
-                )
-        finally:
-            # The box outlives every tool call in this run, so it can only be
-            # torn down once the loop is done — including the failure paths.
-            await close_agent_sandbox(sandbox)
+                results = []
+                for call in tool_uses:
+                    args = call.input or {}
+                    self.on_status(f"[{self.name}] {call.name}({json.dumps(args, default=str)[:80]})")
+
+                    with self.trace.span("tool", f"{call.name}", args=args) as ts:
+                        if call.name not in self.tools:
+                            self.trace.warn(
+                                "tool.unknown",
+                                f"{self.name} called {call.name!r}, not in its whitelist",
+                                available=sorted(self.tools),
+                            )
+                            output, is_error = f"unknown tool {call.name}", True
+                            ts["ok"] = False
+                        else:
+                            try:
+                                output = await asyncio.to_thread(self.tools[call.name], **args)
+                                is_error = False
+                                ts["ok"] = True
+                            except Exception as e:
+                                output, is_error = f"tool error: {e}", True
+                                ts["ok"] = False
+                                ts["error"] = str(e)[:300]
+                                self.trace.warn("tool.failed", f"{call.name}: {e}")
+
+                        rendered = str(output)
+                        ts["resultChars"] = len(rendered)
+                        if len(rendered) > 8000:
+                            ts["truncated"] = True
+                            self.trace.warn(
+                                "tool.truncated",
+                                f"{call.name} returned {len(rendered)} chars, truncated to 8000",
+                            )
+
+                    results.append({
+                        "type": "tool_result",
+                        "tool_use_id": call.id,
+                        "content": rendered[:8000],
+                        "is_error": is_error,
+                    })
+
+                messages.append({"role": "user", "content": results})
+
+            agent_span["steps"] = self.max_steps
+            agent_span["retries"] = retries
+            self.trace.error(
+                "agent.no_converge",
+                f"{self.name} exhausted {self.max_steps} steps without producing valid "
+                f"{self.contract.__name__} ({retries} schema retries)",
+            )
+            raise AgentDidNotConverge(
+                f"{self.name} did not converge in {self.max_steps} steps "
+                f"({retries} invalid-output retries) for contract {self.contract.__name__}"
+            )

@@ -102,43 +102,26 @@ Every agent — all nine roles — runs the same loop in `agents/base.py`:
   rather than returning something plausible.
 - **Tools are whitelisted per role** (`agents/roles.py`). The doc extractor
   cannot search the web; the analyst answering questions about a finished report
-  cannot execute code. A call outside the whitelist is traced as a warning, not
-  silently honored.
-- **Arithmetic is executed, not imagined.** The cross-examiner and scorer are
-  instructed to write Python and run it for unit conversions and weighted
-  scores. A readiness number that disagrees with its own dimension scores is the
-  one error the scorer cannot make.
+  gets no web tools at all. A call outside the whitelist is traced as a warning,
+  not silently honored.
+- **Arithmetic is shown, not imagined.** The cross-examiner and scorer compute
+  unit conversions and weighted scores explicitly, step by step, in their
+  reasoning. A readiness number that disagrees with its own dimension scores is
+  the one error the scorer cannot make.
 - **Provider is switchable.** `LLM_PROVIDER=anthropic` calls Claude directly
   through the Anthropic SDK (adaptive thinking, configurable effort);
   `LLM_PROVIDER=openai` routes the same loop through any OpenAI-compatible
   endpoint.
 
-### Isolation
-
-Model-generated code runs in a **Daytona** microVM, never on the host. Each
-agent run provisions one sandbox up front, reuses it across that agent's tool
-calls, and tears it down in a `finally` — so a crashed run cannot leak a box.
-Egress is deny-by-default: the sandbox carries model credentials so agents can
-call the model from inside it, and the allow-list is what stops generated code
-from posting those credentials anywhere else.
-
-With no `DAYTONA_API_KEY`, `sandbox_run` **refuses to execute** rather than
-falling back to running generated code on the host.
-
-> **Current gap:** the per-agent sandbox and the tracing below are wired into
-> the Anthropic path. The OpenAI-compatible path (`LLM_PROVIDER=openai`, the
-> present default) runs its own loop and is not yet instrumented — no spans, no
-> sandbox session.
-
 ### Observability
 
-Every phase, LLM call, tool call, and sandbox operation is a timed span
-(`obs.py`). One `Trace` per job, and its sink pushes structured events onto the
-same queue the SSE endpoint drains — so the dashboard's live narration and the
-server console show the same activity, and `GET /api/jobs/{id}/trace` replays
-the whole run afterwards. "The agent is slow" and "Daytona took 8s to
-provision" are meant to be distinguishable. Anything shaped like a credential is
-masked at the sink, since traces get pasted into issues and shown in demos.
+Every phase, LLM call, and tool call is a timed span (`obs.py`). One `Trace`
+per job, and its sink pushes structured events onto the same queue the SSE
+endpoint drains — so the dashboard's live narration and the server console show
+the same activity, and `GET /api/jobs/{id}/trace` replays the whole run
+afterwards. "The agent is slow" and "the Bright Data scrape took 8s" are meant
+to be distinguishable. Anything shaped like a credential is masked at the sink,
+since traces get pasted into issues and shown in demos.
 
 **SigNoz export.** Set `SIGNOZ_INGESTION_KEY` (+ `SIGNOZ_REGION`) for SigNoz
 Cloud, or `OTEL_EXPORTER_OTLP_ENDPOINT` for a self-hosted collector, and every
@@ -169,7 +152,7 @@ The dashboard talks to the backend over plain HTTP plus one SSE stream:
 | `GET /api/reports/{id}` | the finished report |
 | `POST /api/reports/{id}/ask` | grounded Q&A against a finished report |
 | `GET /api/projects` | portfolio view, worst readiness first |
-| `GET /api/health` · `/api/health/sandbox` | dependency and sandbox self-test |
+| `GET /api/health` | dependency self-test |
 
 `frontend/src/lib/agent/adapter.ts` converts an `AgentReport` into the UI's
 `ProjectDetail` shape. A Python twin (`agent_backend/sentinel_adapter.py`)
@@ -185,9 +168,8 @@ unreachable the UI degrades to mock data rather than crashing.
 | Frontend | Next.js 16 (App Router) · React 19 · TypeScript 5 · Tailwind CSS 4 · Framer Motion |
 | Backend | Python · FastAPI · Uvicorn · Pydantic |
 | Agent models | Anthropic SDK (Claude Opus 5), or any OpenAI-compatible endpoint |
-| Code execution | Daytona ephemeral sandboxes |
 | Document parsing | pypdf · openpyxl |
-| Web research | Tavily search + Bright Data Web Unlocker scraping (both optional — fall back to the local knowledge base; see `CLAUDE.md`) |
+| Web research | Bright Data Web Unlocker — Google results for search, direct scraping for known sources (optional — falls back to the local knowledge base; see `CLAUDE.md`) |
 | Streaming | Server-Sent Events |
 | CI | GitHub Actions |
 
@@ -200,7 +182,7 @@ unreachable the UI degrades to mock data rather than crashing.
 | `agent_backend/agents/` | the shared agent loop (`base.py`) and the nine role prompts (`roles.py`) |
 | `agent_backend/pipeline.py` | orchestration, parallel fan-out, the cross-examination feedback loop |
 | `agent_backend/schemas.py` | typed contracts between agents |
-| `agent_backend/tools.py` · `sandbox.py` | tool layer; Daytona lifecycle and egress policy |
+| `agent_backend/tools.py` | tool layer; Bright Data lifecycle and validation/repair policy |
 | `agent_backend/obs.py` | tracing — spans, structured events, SSE sink |
 | `agent_backend/sentinel_adapter.py` | Python twin of the TS adapter, parity-locked in CI |
 | `frontend/src/lib/agent/` | the report contract and adapter — the frontend↔agent boundary |
@@ -229,6 +211,5 @@ The frontend defaults to `http://localhost:8000`; override with
 `NEXT_PUBLIC_AGENT_API`. Without a backend it runs on mock data.
 
 Required: a model key (`ANTHROPIC_API_KEY`, or `LLM_API_KEY` for the
-OpenAI-compatible bridge). Optional: `DAYTONA_API_KEY` for sandboxed execution,
-`TAVILY_API_KEY` for live web research. See `agent_backend/.env.example` for the
-full set.
+OpenAI-compatible bridge). Optional: `BRIGHTDATA_API_TOKEN` for live web
+research. See `agent_backend/.env.example` for the full set.

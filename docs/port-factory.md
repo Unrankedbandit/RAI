@@ -16,8 +16,7 @@ building blocks line up one-to-one:
 
 **Everything here is optional.** With `PORT_CLIENT_ID`/`PORT_CLIENT_SECRET`
 unset, `agent_backend/port_client.py` performs zero HTTP calls and the pipeline
-runs end-to-end — same graceful-degradation pattern as `TAVILY_API_KEY` and
-`DAYTONA_API_KEY`. All Port calls are fire-and-forget on a background thread
+runs end-to-end — same graceful-degradation pattern as `BRIGHTDATA_API_TOKEN`. All Port calls are fire-and-forget on a background thread
 pool: Port being down can never block or fail a job.
 
 ## Setup

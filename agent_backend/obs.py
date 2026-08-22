@@ -7,7 +7,7 @@ One `Trace` per job. Every event goes to three places at once:
   * **an in-memory buffer** — so `GET /api/jobs/{id}/trace` can replay it after
 
 The point is to make the whole path visible: the HTTP request in, each agent's
-loop steps, every LLM call and tool call with its latency, the sandbox
+loop steps, every LLM call and tool call with its latency, the scraper
 lifecycle, and the response back out. If something hangs or silently retries,
 the trace shows exactly where.
 """
@@ -83,7 +83,7 @@ class Event:
     ts: float
     elapsed_ms: int
     level: str
-    kind: str          # e.g. "llm.response", "tool.call", "sandbox.create"
+    kind: str          # e.g. "llm.response", "tool.call", "scraper.fetch"
     msg: str
     phase: str | None = None
     agent: str | None = None
@@ -108,7 +108,7 @@ class Event:
 
 _KIND_COLOR = {
     "http": "magenta", "job": "magenta", "phase": "bold", "agent": "cyan",
-    "llm": "blue", "tool": "green", "sandbox": "yellow", "contract": "yellow",
+    "llm": "blue", "tool": "green", "scraper": "yellow", "contract": "yellow",
 }
 
 
@@ -384,7 +384,7 @@ class Trace:
 # Tools are invoked as bare callables (`self.tools[name](**args)`), so there is
 # no parameter to thread a Trace through without changing every tool signature.
 # A context variable carries it instead: the agent sets it around its loop, and
-# any tool that wants to trace picks it up. Without this, sandbox events would
+# any tool that wants to trace picks it up. Without this, scraper events would
 # print to stdout but never reach the job's SSE stream or /trace replay.
 
 _CURRENT: ContextVar["Trace | None"] = ContextVar("current_trace", default=None)

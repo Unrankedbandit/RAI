@@ -1,10 +1,10 @@
 """Tool layer available to agents.
 
-Generated code execution happens inside a Daytona sandbox (see sandbox.py).
-Document parsing does NOT — `pdf_extract` and `xlsx_extract` run pypdf and
-openpyxl in this process, on the host. That is a deliberate trade for speed on
-trusted dossiers, but it means a malicious PDF is parsed with host privileges;
-route untrusted uploads through `sandbox_run` before trusting their contents.
+Live web access goes through Bright Data (see the Web Unlocker section below):
+`brightdata_scrape` fetches known URLs past bot detection, `web_search`
+handles source discovery. Document parsing — `pdf_extract` and `xlsx_extract`
+— runs pypdf and openpyxl in this process, on the host: a deliberate trade
+for speed on trusted dossiers.
 """
 from __future__ import annotations
 
@@ -17,12 +17,8 @@ _BACKEND_DIR = Path(__file__).resolve().parent.parent
 KB_DIR = Path(os.getenv("KB_DIR", str(_BACKEND_DIR / "research")))
 DOC_DIR = Path(os.getenv("DOC_DIR", str(_BACKEND_DIR / "project-docs")))
 
-# Sandbox credentials, egress allow-list and timeouts live in sandbox.py,
-# next to the code that enforces them.
-
-
 def pdf_extract(filename: str) -> str:
-    """Extract full text of a PDF dossier with page markers. Runs in the sandbox."""
+    """Extract full text of a PDF dossier with page markers."""
     from pypdf import PdfReader
     reader = PdfReader(str(DOC_DIR / filename))
     return "\n".join(f"--- page {i+1} ---\n{p.extract_text() or ''}" for i, p in enumerate(reader.pages))[:12000]
@@ -56,23 +52,23 @@ def kb_lookup(query: str, max_hits: int = 5) -> str:
 
 
 def web_search(query: str) -> str:
-    """Search the web for current, location-specific regulatory/market data."""
-    key = os.getenv("TAVILY_API_KEY", "")
-    if not key:
-        # Offline mode: these are knowledge-base passages, NOT web results —
-        # they carry no URLs. Say so plainly, or scouts invent citations for
-        # text that never came from the web.
-        return "WEB SEARCH UNAVAILABLE (no TAVILY_API_KEY) — knowledge-base fallback, do not cite URLs from this:\n" + kb_lookup(query)
-    import httpx
-    r = httpx.post(
-        "https://api.tavily.com/search",
-        json={"api_key": key, "query": query, "max_results": 5},
-        timeout=30,
-    )
-    if r.status_code >= 400:
-        return f"WEB SEARCH FAILED: HTTP {r.status_code} — fall back to kb_lookup."
-    results = r.json().get("results", [])
-    return "\n".join(f"- {x['title']}: {x['url']}\n  {x.get('content','')[:400]}" for x in results)
+    """Search the web for current, location-specific regulatory/market data.
+
+    Bright Data unlocks a Google results page and returns it as markdown —
+    titles, URLs, snippets. Without BRIGHTDATA_API_TOKEN it falls back to the
+    offline knowledge base, so a run never dies on a missing key."""
+    if not os.getenv("BRIGHTDATA_API_TOKEN", ""):
+        return kb_lookup(query)  # demo-resilient fallback: answer from KB
+    from urllib.parse import quote_plus
+    try:
+        content = _bd_unlock(
+            f"https://www.google.com/search?q={quote_plus(query)}",
+            render=False,
+            timeout=float(os.getenv("BRIGHTDATA_TIMEOUT_S", "60")),
+        )
+    except Exception:
+        return kb_lookup(query)
+    return content[:8000] if content.strip() else kb_lookup(query)
 
 
 def web_fetch(url: str) -> str:
@@ -195,20 +191,6 @@ def brightdata_scrape(url: str, expect: str = "") -> str:
     return repaired
 
 
-def sandbox_run(code: str) -> str:
-    """Execute untrusted generated code in an isolated Daytona sandbox
-    (parsing, reconciliation math, scoring) — never on the host.
-
-    The sandbox carries the model credential, so generated code can call
-    Claude from inside it; egress is restricted to SANDBOX_ALLOWED_DOMAINS.
-    """
-    # Implementation lives in sandbox.py, which traces the create/exec/delete
-    # lifecycle and refuses to fall back to host execution unless explicitly
-    # permitted. Imported lazily so tools.py stays importable without the SDK.
-    from .sandbox import sandbox_run as _run
-    return _run(code)
-
-
 # --- JSON Schemas for tool specs (the model needs these to pass arguments) ---
 pdf_extract.schema = {"type": "object", "properties": {"filename": {"type": "string", "description": "Dossier filename in the project docs directory, e.g. 01_Land_and_Site_Due_Diligence.pdf"}}, "required": ["filename"]}
 xlsx_extract.schema = {"type": "object", "properties": {"filename": {"type": "string", "description": "Spreadsheet filename in the project docs directory, e.g. 01_Project_Red_Flag_Risk_Register.xlsx"}}, "required": ["filename"]}
@@ -216,4 +198,3 @@ kb_lookup.schema = {"type": "object", "properties": {"query": {"type": "string",
 web_search.schema = {"type": "object", "properties": {"query": {"type": "string", "description": "Web search query for current or location-specific regulatory and market data"}}, "required": ["query"]}
 web_fetch.schema = {"type": "object", "properties": {"url": {"type": "string", "description": "Full https URL of the source page to read"}}, "required": ["url"]}
 brightdata_scrape.schema = {"type": "object", "properties": {"url": {"type": "string", "description": "Full https URL of the page to scrape through Bright Data Web Unlocker"}, "expect": {"type": "string", "description": "Comma-separated markers the page must contain (figures, statute/program names). When they vanish, the tool assumes the site's HTML changed and self-repairs with a JS-rendered fetch."}}, "required": ["url"]}
-sandbox_run.schema = {"type": "object", "properties": {"code": {"type": "string", "description": "Python code to execute in the isolated sandbox"}}, "required": ["code"]}

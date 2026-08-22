@@ -1,4 +1,4 @@
-# RAI Assistant QA Dataset — Handoff (for the Daytona agent)
+# RAI Assistant QA Dataset — Handoff
 
 ## Contents
 - `schema.json` — canonical schema for one QA pair. Validate any new pair against it before merging.

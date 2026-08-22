@@ -20,7 +20,6 @@ from .agents.roles import ANALYST, ROLE_TOOLS
 from .obs import Trace
 from .pipeline import run_pipeline
 from .port_client import PortReporter, port as _port
-from .sandbox import sandbox_health, sandbox_selftest
 from .schemas import ChatAnswer, Report
 from .telemetry import init_telemetry
 from .tools import DOC_DIR
@@ -144,8 +143,8 @@ async def analyze(req: AnalyzeRequest):
 
 @app.get("/api/jobs/{job_id}/trace")
 async def job_trace(job_id: str):
-    """Full structured trace for a job — every phase, LLM call, tool call, and
-    sandbox operation with timings. This is the end-to-end view."""
+    """Full structured trace for a job — every phase, LLM call, and tool call
+    with timings. This is the end-to-end view."""
     t = JOB_TRACES.get(job_id)
     if t is None:
         return {"error": "unknown job", "jobId": job_id}
@@ -181,23 +180,12 @@ async def health():
     result = {
         "ok": llm_configured,
         "llm": llm_info,
-        "sandbox": sandbox_health(t),
-        "webSearch": {"configured": bool(os.getenv("TAVILY_API_KEY"))},
+        "webSearch": {"configured": bool(os.getenv("BRIGHTDATA_API_TOKEN"))},
         "port": {"configured": _port.enabled, "apiBase": _port.api_base if _port.enabled else None},
         "docs": {"dir": os.getenv("DOC_DIR"), "knowledgeBase": os.getenv("KB_DIR")},
     }
     t.end()
     return result
-
-
-@app.get("/api/health/sandbox")
-async def health_sandbox():
-    """Spin a real Daytona sandbox, run code in it, tear it down. Proves the
-    sandbox path end-to-end without running a full diligence job."""
-    t = Trace("sandbox-selftest")
-    result = sandbox_selftest(t)
-    t.end()
-    return {**result, "trace": t.dump()}
 
 
 @app.get("/api/jobs/{job_id}/stream")
@@ -260,7 +248,7 @@ async def ask(report_id: str, req: AskRequest):
             queue.put_nowait(msg)
         try:
             # kb_lookup only — the analyst answers from the finished report,
-            # so there is nothing to execute and no sandbox in this path.
+            # so it needs no web tools in this path.
             answer = await Agent(
                 "Analyst", ANALYST, ChatAnswer, ROLE_TOOLS["analyst"], status, trace=trace,
             ).run(req.question, {"report": report.model_dump()})

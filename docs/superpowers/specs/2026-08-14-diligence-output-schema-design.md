@@ -449,11 +449,10 @@ derived-math helpers (scoring, RAG, decision), the reducer, `roles.ts` for
 (`useRunStream`, `mockRunStream`).
 
 **Out:** the agent loop and its implementations (owned by the agent framework),
-the backend server, document parsing, Daytona sandbox orchestration, and the
-dashboard UI.
+the backend server, document parsing, and the dashboard UI.
 
 **Interface with the agent framework.** The framework owns the loop — `plan →
 tool call → observe → validate contract`, 8 steps, the tool whitelist, and the
-Daytona runtime. This package owns every JSON contract that loop validates
+agent backend. This package owns every JSON contract that loop validates
 against. The seam is exactly `roles.ts`: if a role's output parses against its
 schema, the framework's obligation is met and the reducer can render it.
