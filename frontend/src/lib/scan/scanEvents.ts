@@ -7,10 +7,24 @@
 
 import type { RiskBand } from "@/lib/types";
 
+/** Lifecycle of one agent box in the live run view. */
+export type AgentStatus = "working" | "done" | "error" | "waiting";
+
 export type ScanEvent =
   | { type: "reading_document"; filename: string }
   | { type: "finding"; text: string; flag: boolean }
   | { type: "subagent_spawned"; name: string; parentPillar: string }
+  /**
+   * One agent's latest state, keyed by name. The run view renders these as
+   * status boxes that update in place; `activity` is the agent's latest
+   * one-line narration (never a model name — sources must strip those).
+   */
+  | {
+      type: "agent_update";
+      agent: string;
+      status: AgentStatus;
+      activity: string;
+    }
   | {
       type: "pillar_complete";
       pillar: string;

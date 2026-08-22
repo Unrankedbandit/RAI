@@ -5,7 +5,19 @@
 // events fill in small increments *within* the current pillar's share but can
 // never reach the next milestone — five honest jumps, no fabricated smooth 0–100.
 
-import { PILLAR_COUNT, type GapItem, type ScanEvent } from "./scanEvents";
+import {
+  PILLAR_COUNT,
+  type AgentStatus,
+  type GapItem,
+  type ScanEvent,
+} from "./scanEvents";
+
+/** One agent's live box: name, lifecycle status, latest one-line activity. */
+export type AgentBox = {
+  name: string;
+  status: AgentStatus;
+  activity: string;
+};
 
 export type TrailKind = "read" | "flag" | "score" | "subagent" | "gate";
 
@@ -47,6 +59,8 @@ export type ScanData = {
   error: string | null;
   /** Gap-review gate while open, and after resolution. Null = gate disabled. */
   gate: GapGateState | null;
+  /** Agent boxes in first-seen order — the hero of the live run view. */
+  agents: AgentBox[];
   /** Total events folded so far (0 = nothing has arrived yet). */
   eventCount: number;
 };
@@ -62,6 +76,7 @@ export const initialScanData: ScanData = {
   result: null,
   error: null,
   gate: null,
+  agents: [],
   eventCount: 0,
 };
 
@@ -122,6 +137,29 @@ export function reduceScan(state: ScanData, event: ScanEvent): ScanData {
         percent: computePercent(state.pillarsComplete, sinceMilestone),
       };
     }
+    case "agent_update": {
+      const idx = state.agents.findIndex((a) => a.name === event.agent);
+      const prev = idx >= 0 ? state.agents[idx] : undefined;
+      let status = event.status;
+      // done/error are terminal for a box — later ambient activity for the
+      // same name must not reopen it.
+      if (
+        prev &&
+        (prev.status === "done" || prev.status === "error") &&
+        status === "working"
+      ) {
+        status = prev.status;
+      }
+      const box: AgentBox = {
+        name: event.agent,
+        status,
+        activity: event.activity,
+      };
+      const agents = prev
+        ? state.agents.map((a, i) => (i === idx ? box : a))
+        : [...state.agents, box];
+      return { ...next, agents };
+    }
     case "pillar_complete": {
       const pillarsComplete = Math.min(PILLAR_COUNT, state.pillarsComplete + 1);
       return {
@@ -149,6 +187,10 @@ export function reduceScan(state: ScanData, event: ScanEvent): ScanData {
       return {
         ...next,
         gate: { gaps: event.gaps, timeoutS: event.timeoutS, resolved: null },
+        // The pipeline is parked awaiting a human: active agents go dim.
+        agents: state.agents.map((a) =>
+          a.status === "working" ? { ...a, status: "waiting" } : a,
+        ),
         trail: [
           ...state.trail,
           line(
@@ -174,6 +216,10 @@ export function reduceScan(state: ScanData, event: ScanEvent): ScanData {
       return {
         ...next,
         gate,
+        // The pipeline woke up: parked agents are working again.
+        agents: state.agents.map((a) =>
+          a.status === "waiting" ? { ...a, status: "working" } : a,
+        ),
         trail: [...state.trail, line(text, "gate")],
       };
     }
@@ -181,6 +227,12 @@ export function reduceScan(state: ScanData, event: ScanEvent): ScanData {
       return {
         ...next,
         percent: 100,
+        // Terminal frame closes everything still open — boxes freeze done.
+        agents: state.agents.map((a) =>
+          a.status === "working" || a.status === "waiting"
+            ? { ...a, status: "done" }
+            : a,
+        ),
         result: {
           projectId: event.projectId,
           activationScore: event.activationScore,
@@ -188,7 +240,16 @@ export function reduceScan(state: ScanData, event: ScanEvent): ScanData {
       };
     }
     case "error": {
-      return { ...next, error: event.message };
+      return {
+        ...next,
+        error: event.message,
+        // Terminal frame closes everything still open — boxes freeze on error.
+        agents: state.agents.map((a) =>
+          a.status === "working" || a.status === "waiting"
+            ? { ...a, status: "error" }
+            : a,
+        ),
+      };
     }
     default:
       return state;

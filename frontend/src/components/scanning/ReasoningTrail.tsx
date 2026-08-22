@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { clsx } from "@/lib/clsx";
 import type { TrailLine, TrailKind } from "@/lib/scan/scanState";
 
 /** Dot color encodes the meaning of the line, not decoration. */
@@ -24,6 +25,8 @@ const kindLabel: Record<TrailKind, string | null> = {
 
 type ReasoningTrailProps = {
   lines: TrailLine[];
+  /** Slim height — used when the log is demoted under the agent boxes. */
+  compact?: boolean;
 };
 
 /**
@@ -31,7 +34,7 @@ type ReasoningTrailProps = {
  * the newest as the agent reads the document set. Driven by real backend
  * events — each line arrives as a distinct fade-in, never a block replace.
  */
-export function ReasoningTrail({ lines }: ReasoningTrailProps) {
+export function ReasoningTrail({ lines, compact = false }: ReasoningTrailProps) {
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -39,7 +42,12 @@ export function ReasoningTrail({ lines }: ReasoningTrailProps) {
   }, [lines.length]);
 
   return (
-    <div className="h-72 overflow-y-auto rounded-[5px] bg-surface-2 p-4">
+    <div
+      className={clsx(
+        "overflow-y-auto rounded-[5px] bg-surface-2 p-4",
+        compact ? "h-40" : "h-72",
+      )}
+    >
       <ol className="space-y-2.5">
         <AnimatePresence initial={false}>
           {lines.map((line) => (

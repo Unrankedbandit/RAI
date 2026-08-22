@@ -11,7 +11,7 @@
 // hands it to the project view via the live store, and emits `complete` with
 // the real readiness as the activation score.
 
-import type { ScanSource } from "./scanEvents";
+import type { AgentStatus, ScanSource } from "./scanEvents";
 import { getReport, streamJob } from "@/lib/agent/client";
 import { saveLiveRun } from "@/lib/agent/liveStore";
 
@@ -22,6 +22,15 @@ function approximateProgress(eventCount: number): number {
 
 const FILENAME = /([\w.\-]+\.(?:pdf|xlsx|csv|docx))/i;
 const AGENT_PREFIX = /^\[([^\]]+)\]\s*/;
+
+/** Box status from a narration body ("starting" / "done" / free activity). */
+function agentStatusFrom(body: string): AgentStatus {
+  const t = body.trim().toLowerCase();
+  if (t === "done") return "done";
+  if (t === "starting") return "working";
+  if (t.includes("error") || t.includes("failed")) return "error";
+  return "working";
+}
 
 function isFlag(message: string): boolean {
   const t = message.toLowerCase();
@@ -65,21 +74,61 @@ export function createLiveScanSource(
         const agent = AGENT_PREFIX.exec(message)?.[1];
         const body = message.replace(AGENT_PREFIX, "").trim();
 
-        // First sighting of a sub-agent → a pill + a muted trail line.
-        if (agent && !seenAgents.has(agent)) {
-          seenAgents.add(agent);
+        // Agent-attributed narration drives the status boxes, not the log.
+        if (agent) {
+          if (!seenAgents.has(agent)) {
+            seenAgents.add(agent);
+            onEvent({
+              type: "subagent_spawned",
+              name: agent,
+              parentPillar: "pipeline",
+            });
+          }
           onEvent({
-            type: "subagent_spawned",
-            name: agent,
-            parentPillar: "pipeline",
+            type: "agent_update",
+            agent,
+            status: agentStatusFrom(body),
+            activity: body || "working",
           });
+          return;
         }
 
+        // Ambient line (no agent) — the collapsible run log keeps it.
         const filename = FILENAME.exec(message)?.[1];
         if (filename && isRead(message)) {
           onEvent({ type: "reading_document", filename });
         } else {
-          onEvent({ type: "finding", text: body || message, flag: isFlag(message) });
+          onEvent({ type: "finding", text: message, flag: isFlag(message) });
+        }
+        return;
+      }
+
+      if (event.kind === "trace") {
+        count += 1;
+        onEvent({ type: "progress", percent: approximateProgress(count) });
+
+        // Frames naming an agent map onto that agent's box, same as the
+        // "[Name] ..." narration; anything else is ambient run-log material.
+        if (event.agent) {
+          const agent = event.agent;
+          if (!seenAgents.has(agent)) {
+            seenAgents.add(agent);
+            onEvent({
+              type: "subagent_spawned",
+              name: agent,
+              parentPillar: "pipeline",
+            });
+          }
+          onEvent({
+            type: "agent_update",
+            agent,
+            status:
+              event.level === "error" ? "error" : agentStatusFrom(event.msg),
+            activity: event.msg,
+          });
+        } else {
+          const text = event.phase ? `[${event.phase}] ${event.msg}` : event.msg;
+          onEvent({ type: "finding", text, flag: isFlag(event.msg) });
         }
         return;
       }

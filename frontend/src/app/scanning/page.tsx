@@ -6,10 +6,11 @@ import { PageContainer } from "@/components/ui/PageContainer";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { ScanProgress } from "@/components/scanning/ScanProgress";
+import { AgentStatusGrid } from "@/components/scanning/AgentStatusGrid";
 import { ReasoningTrail } from "@/components/scanning/ReasoningTrail";
 import { SubAgentTrail } from "@/components/scanning/SubAgentTrail";
 import { GapReviewCard } from "@/components/scanning/GapReviewCard";
-import { useScanStream } from "@/lib/scan/useScanStream";
+import { useScanStream, type ScanStreamState } from "@/lib/scan/useScanStream";
 import { createMockScanSource, type MockScenario } from "@/lib/scan/mockScanSource";
 import { createSseScanSource } from "@/lib/scan/sseScanSource";
 import { createLiveScanSource } from "@/lib/scan/liveScanSource";
@@ -21,6 +22,64 @@ function parseScenario(value: string | null): MockScenario {
   return value === "error" || value === "slow" || value === "gate"
     ? value
     : "default";
+}
+
+/**
+ * The run-view activity section. When the stream has attributed narration to
+ * named agents, the hero is the grid of per-agent status boxes and the raw
+ * narration drops into a slim collapsible run log beneath them. Sources that
+ * never attribute (the mock, a generic SSE feed) keep the original log-only
+ * presentation.
+ */
+function AgentActivity({
+  agents,
+  trail,
+  flagCount,
+  idleLabel,
+}: {
+  agents: ScanStreamState["agents"];
+  trail: ScanStreamState["trail"];
+  flagCount: number;
+  idleLabel: string;
+}) {
+  if (agents.length === 0) {
+    return (
+      <div className="mt-5">
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-xs text-faint">Live reasoning</p>
+          <p className="text-xs text-faint tabular-nums">
+            {flagCount > 0 ? `${flagCount} flagged` : idleLabel}
+          </p>
+        </div>
+        <ReasoningTrail lines={trail} />
+      </div>
+    );
+  }
+
+  const working = agents.filter((a) => a.status === "working").length;
+  return (
+    <>
+      <div className="mt-5">
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-xs text-faint">Agents</p>
+          <p className="text-xs text-faint tabular-nums">
+            {working > 0 ? `${working} working` : idleLabel}
+          </p>
+        </div>
+        <AgentStatusGrid agents={agents} />
+      </div>
+
+      <details className="mt-4">
+        <summary className="cursor-pointer select-none text-xs text-faint">
+          Run log · {trail.length} line{trail.length === 1 ? "" : "s"}
+          {flagCount > 0 ? ` · ${flagCount} flagged` : ""}
+        </summary>
+        <div className="mt-2">
+          <ReasoningTrail lines={trail} compact />
+        </div>
+      </details>
+    </>
+  );
 }
 
 /**
@@ -149,15 +208,12 @@ function ScanningView() {
             done
           />
 
-          <div className="mt-5">
-            <div className="mb-2 flex items-center justify-between">
-              <p className="text-xs text-faint">Live reasoning</p>
-              <p className="text-xs text-faint tabular-nums">
-                {state.flagCount > 0 ? `${state.flagCount} flagged` : "Complete"}
-              </p>
-            </div>
-            <ReasoningTrail lines={state.trail} />
-          </div>
+          <AgentActivity
+            agents={state.agents}
+            trail={state.trail}
+            flagCount={state.flagCount}
+            idleLabel="Complete"
+          />
 
           <div className="mt-5 border-t border-hairline pt-4">
             <SubAgentTrail subAgents={state.subAgents} done />
@@ -218,15 +274,12 @@ function ScanningView() {
           </div>
         )}
 
-        <div className="mt-5">
-          <div className="mb-2 flex items-center justify-between">
-            <p className="text-xs text-faint">Live reasoning</p>
-            <p className="text-xs text-faint tabular-nums">
-              {state.flagCount > 0 ? `${state.flagCount} flagged` : "Scanning"}
-            </p>
-          </div>
-          <ReasoningTrail lines={state.trail} />
-        </div>
+        <AgentActivity
+          agents={state.agents}
+          trail={state.trail}
+          flagCount={state.flagCount}
+          idleLabel="Scanning"
+        />
 
         <div className="mt-5 border-t border-hairline pt-4">
           <SubAgentTrail subAgents={state.subAgents} done={false} />
