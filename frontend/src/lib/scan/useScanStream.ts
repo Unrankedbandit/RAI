@@ -136,7 +136,10 @@ export function useScanStream(makeSource: () => ScanSource): {
     armTimers();
   }, [armTimers]);
 
-  const phase = derivePhase(data, stale, timedOut);
+  // While the gap-review gate is open the pipeline is deliberately paused —
+  // silence is expected, so it must never trip the stream-timeout screen.
+  const gateOpen = data.gate !== null && data.gate.resolved === null;
+  const phase = derivePhase(data, stale, timedOut && !gateOpen);
 
   return { state: { ...data, phase }, cancel, retry, keepWaiting };
 }

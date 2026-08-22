@@ -16,6 +16,7 @@ import os
 from collections.abc import Callable
 
 from .agents.base import Agent, AgentDidNotConverge
+from .gate import GapGate, gap_review_enabled, gap_review_timeout
 from .obs import Trace
 from .agents.roles import (
     ORCHESTRATOR, DOC_EXTRACTOR, GAP_ANALYZER, DATA_SCOUT, RESEARCHER,
@@ -72,6 +73,7 @@ async def run_pipeline(
     docs: list[str],
     on_status: StatusFn = print,
     trace: Trace | None = None,
+    gap_gate: GapGate | None = None,
 ) -> Report:
     trace = trace or Trace()
     trace.event(
@@ -168,8 +170,63 @@ async def run_pipeline(
             on_status, "GapAnalyzer",
         )
 
-        # 2c. Data acquisition: one scout per need, pulling real data from public sources
-        on_status(f"[pipeline] {len(gap.needs)} data gaps found — dispatching data scouts")
+        # 2c. Human gap-review gate (opt-in via GAP_REVIEW=1): park the run
+        # here so a person can read the gaps and approve which ones the data
+        # scouts chase (POST /api/jobs/{id}/resume). The wait is bounded — on
+        # timeout the run proceeds with ALL gaps. The factory never blocks
+        # forever on a human. With no gate object or GAP_REVIEW unset this is
+        # skipped entirely: zero behavior change, zero new events.
+        needs = gap.needs
+        if gap_gate is not None and gap_review_enabled() and needs:
+            timeout_s = gap_review_timeout()
+            # DataNeed carries no stable id or severity — synthesize gap-1..n
+            # (index-stable within this run) so the resume call can name the
+            # approved subset; severity defaults to "medium" for every gap.
+            review = [
+                {
+                    "id": f"gap-{i + 1}",
+                    "title": n.component,
+                    "detail": n.missing + (f" — {n.why_it_matters}" if n.why_it_matters else ""),
+                    "severity": "medium",
+                }
+                for i, n in enumerate(needs)
+            ]
+            trace.event(
+                "gate.gap_review",
+                f"awaiting human gap review — {len(review)} gaps, timeout {timeout_s}s",
+                gaps=review, timeoutS=timeout_s,
+            )
+            gap_gate.awaiting = True
+            approved: list[str] | None = None  # None = timeout → chase ALL gaps
+            try:
+                await asyncio.wait_for(gap_gate.event.wait(), timeout=timeout_s)
+            except asyncio.TimeoutError:
+                trace.warn(
+                    "gate.resolved",
+                    f"gap review timed out after {timeout_s}s — proceeding with all {len(review)} gaps",
+                    mode="timeout", approved=[g["id"] for g in review],
+                )
+            else:
+                approved = gap_gate.approved or []
+                trace.event(
+                    "gate.resolved",
+                    f"gap review approved {len(approved)}/{len(review)} gaps",
+                    mode="approved", approved=approved,
+                )
+            finally:
+                gap_gate.awaiting = False
+            if approved is not None:
+                # Filter in original gap order; ids the human sent that don't
+                # match a real gap are dropped silently.
+                wanted = set(approved)
+                needs = [n for i, n in enumerate(needs) if f"gap-{i + 1}" in wanted]
+                if not needs:
+                    trace.event("gate.scouts_skipped",
+                                "approved gap list is empty — skipping data scouts")
+                    on_status("[pipeline] gap review approved zero gaps — data scouts skipped")
+
+        # 2d. Data acquisition: one scout per (approved) need, pulling real data from public sources
+        on_status(f"[pipeline] {len(needs)} data gaps found — dispatching data scouts")
         acquired: list[AcquiredData] = list(await asyncio.gather(*[
             _degrade(
                 _agent(f"DataScout:{n.component}", DATA_SCOUT, AcquiredData, "data_scout", on_status, trace).run(
@@ -179,7 +236,7 @@ async def run_pipeline(
                 AcquiredData(component=n.component, still_missing=[n.missing]),
                 on_status, f"DataScout:{n.component}",
             )
-            for n in gap.needs[:6]  # cap parallel scouts (burst limits on the bridge)
+            for n in needs[:6]  # cap parallel scouts (burst limits on the bridge)
         ]))
         acquired_ctx = [a.model_dump() for a in acquired]
 

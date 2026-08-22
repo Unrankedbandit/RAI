@@ -24,8 +24,32 @@ export type ScanEvent =
    * milestone path, which computes progress from pillar_complete events.
    */
   | { type: "progress"; percent: number }
+  /**
+   * Mid-run human-approval gate. The pipeline paused after the first research
+   * step and is waiting for a human to pick which gaps the swarm should chase.
+   * Purely additive — when the gate is disabled server-side this never arrives.
+   */
+  | { type: "gate_gap_review"; gaps: GapItem[]; timeoutS: number }
+  /**
+   * The gate closed: either the human submitted a selection ("approved") or the
+   * timeout elapsed server-side ("timeout", in which case the swarm chases all
+   * gaps and `approved` is empty).
+   */
+  | {
+      type: "gate_resolved";
+      mode: "approved" | "timeout";
+      approved: string[];
+    }
   | { type: "complete"; projectId: string; activationScore: number }
   | { type: "error"; message: string };
+
+/** One gap the research agents surfaced for human review. */
+export type GapItem = {
+  id: string;
+  title: string;
+  detail?: string;
+  severity?: string;
+};
 
 /** The five primary agents — one milestone each. */
 export const PILLARS = ["Land", "Law", "Finance", "Materials", "Demand"] as const;

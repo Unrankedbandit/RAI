@@ -59,8 +59,8 @@ control-plane view, not the payload firehose.
       },
       "status": {
         "type": "string", "title": "Status",
-        "enum": ["RUNNING", "AWAITING_REVIEW", "APPROVED", "REJECTED", "FAILED"],
-        "enumColors": { "RUNNING": "blue", "AWAITING_REVIEW": "yellow", "APPROVED": "green", "REJECTED": "red", "FAILED": "red" }
+        "enum": ["RUNNING", "AWAITING_GAP_REVIEW", "AWAITING_REVIEW", "APPROVED", "REJECTED", "FAILED"],
+        "enumColors": { "RUNNING": "blue", "AWAITING_GAP_REVIEW": "lightGray", "AWAITING_REVIEW": "yellow", "APPROVED": "green", "REJECTED": "red", "FAILED": "red" }
       },
       "readiness": { "type": "number", "title": "Readiness (0–100)" },
       "decision": { "type": "string", "title": "Decision" },
