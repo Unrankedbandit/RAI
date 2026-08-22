@@ -26,7 +26,24 @@ from .telemetry import init_telemetry
 from .tools import DOC_DIR
 
 app = FastAPI(title="Red Flag Agent Backend")
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+# Explicit origins + credentials: the hackathon gate authenticates via an
+# HttpOnly cookie on .josephbissell.com, so browser fetches from the parcel
+# viewer arrive credentialed — and browsers reject allow_origins=["*"] for
+# credentialed requests. localhost ports cover local dev.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://parcel.josephbissell.com",
+        "https://mockup.josephbissell.com",
+        "https://rai.josephbissell.com",
+        "http://localhost:5173",
+        "http://localhost:4173",
+        "http://localhost:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # SigNoz/OpenTelemetry export. No-op unless SIGNOZ_INGESTION_KEY or
 # OTEL_EXPORTER_OTLP_ENDPOINT is set — see agent_backend/telemetry.py.
@@ -36,6 +53,9 @@ STORE = Path(__file__).resolve().parent / "reports"
 STORE.mkdir(exist_ok=True)
 JOB_QUEUES: dict[str, asyncio.Queue] = {}
 JOB_TRACES: dict[str, Trace] = {}
+# Append-only per-job narration log (status strings + trace events) — the
+# reconnect-safe source for /api/jobs/{id}/stream; queues stay for back-compat.
+JOB_LOGS: dict[str, list] = {}
 # Finished chat answers, keyed by the ask's own job id. In memory because an
 # answer is only meaningful while the asking tab is open.
 ANSWERS: dict[str, ChatAnswer] = {}
@@ -75,6 +95,7 @@ async def analyze(req: AnalyzeRequest):
     job_id = uuid.uuid4().hex[:12]
     queue: asyncio.Queue = asyncio.Queue()
     JOB_QUEUES[job_id] = queue
+    JOB_LOGS[job_id] = []
 
     # One trace per job. Its sink pushes structured events onto the same queue
     # the SSE endpoint drains, so the dashboard and the console see identical
@@ -86,6 +107,7 @@ async def analyze(req: AnalyzeRequest):
 
     def sink(ev: dict):
         queue.put_nowait(ev)
+        JOB_LOGS[job_id].append(ev)
         reporter.handle_event(ev)
 
     trace = Trace(job_id, sink=sink)
@@ -106,12 +128,14 @@ async def analyze(req: AnalyzeRequest):
         _which = "LLM_API_KEY" if PROVIDER == "openai" else "ANTHROPIC_API_KEY"
         _msg = f"{_which} not configured — set it in agent_backend/.env (check /api/health)"
         trace.event("job.error", _msg, level="error")
+        JOB_LOGS[job_id].append(f"__ERROR__ {_msg}")
         queue.put_nowait(f"__ERROR__ {_msg}")
         return {"jobId": job_id}
 
     async def work():
         def status(msg: str):
             queue.put_nowait(msg)
+            JOB_LOGS[job_id].append(msg)
         try:
             report = await run_pipeline(
                 req.name, req.location, req.docs, on_status=status, trace=trace,
@@ -128,6 +152,7 @@ async def analyze(req: AnalyzeRequest):
             )
             trace.event("job.done", f"job {job_id} complete")
             trace.print_summary()
+            JOB_LOGS[job_id].append("__DONE__")
             queue.put_nowait("__DONE__")
         except Exception as e:
             # Previously the traceback was swallowed and only str(e) reached the
@@ -136,6 +161,7 @@ async def analyze(req: AnalyzeRequest):
                         traceback=traceback.format_exc()[-2000:])
             reporter.failed(type(e).__name__, str(e))
             trace.print_summary()
+            JOB_LOGS[job_id].append(f"__ERROR__ {type(e).__name__}: {e}")
             queue.put_nowait(f"__ERROR__ {type(e).__name__}: {e}")
 
     asyncio.create_task(work())
@@ -201,21 +227,32 @@ async def health_sandbox():
 
 
 @app.get("/api/jobs/{job_id}/stream")
-async def stream(job_id: str):
-    """SSE feed of agent activity — powers the demo's live 'agents working' narration."""
+async def stream(job_id: str, from_idx: int = 0):
+    """SSE feed of agent activity — powers the demo's live 'agents working' narration.
+
+    Reconnect-safe: the stream is a replay of the append-only JOB_LOGS, not a
+    consumed queue, so a client that drops mid-research re-opens with
+    ?from_idx=<items already seen> and loses nothing. Multiple viewers OK.
+    """
     async def events():
-        queue = JOB_QUEUES[job_id]
-        while True:
-            msg = await queue.get()
-            # The queue carries two shapes: legacy status strings from
-            # `on_status`, and structured trace events from the Trace sink.
-            # Both go out; the client can render whichever it understands.
-            if isinstance(msg, dict):
-                yield f"data: {json.dumps({'event': msg})}\n\n"
-                continue
-            yield f"data: {json.dumps({'status': msg})}\n\n"
-            if msg.startswith("__DONE__") or msg.startswith("__ERROR__"):
-                break
+        idx = max(0, from_idx)
+        terminal = False
+        while not terminal:
+            log = JOB_LOGS.get(job_id)
+            if log is None:
+                yield f"data: {json.dumps({'status': '__ERROR__ unknown job'})}\n\n"
+                return
+            while idx < len(log):
+                msg = log[idx]
+                idx += 1
+                if isinstance(msg, dict):
+                    yield f"data: {json.dumps({'event': msg})}\n\n"
+                    continue
+                yield f"data: {json.dumps({'status': msg})}\n\n"
+                if msg.startswith("__DONE__") or msg.startswith("__ERROR__"):
+                    terminal = True
+            if not terminal:
+                await asyncio.sleep(0.25)
     return StreamingResponse(events(), media_type="text/event-stream")
 
 
