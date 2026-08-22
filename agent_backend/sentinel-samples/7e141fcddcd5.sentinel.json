@@ -1,0 +1,350 @@
+{
+  "project": {
+    "id": "7e141fcddcd5",
+    "name": "Ventura 040016011",
+    "location": "Ventura County, CA",
+    "capacityMW": 0,
+    "latitude": 0,
+    "longitude": 0,
+    "activationScore": 5.75,
+    "band": "risk",
+    "scoreReason": "Empty fact set: extraction has not been run on any deal documents (CAPEX, interconnection, PPA, permits, title, supply agreements, schedule) \u2014 no dimension is evidence-backed",
+    "status": "at-risk",
+    "pillars": [
+      {
+        "name": "Land",
+        "score": 5.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "2 flags open",
+        "subAgents": [
+          "extractor:land-docs",
+          "scout:zoning",
+          "researcher:land_use"
+        ],
+        "factors": [
+          {
+            "id": "land-flag-0",
+            "name": "No title, site-control, or acreage evidence (site_acres is null); no extraction run on any",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No title, site-control, or acreage evidence (site_acres is null); no extraction run on any site documents",
+            "sources": []
+          },
+          {
+            "id": "land-flag-1",
+            "name": "Land basis for a 100 MW solar+storage facility entirely unverified",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Land basis for a 100 MW solar+storage facility entirely unverified",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Law",
+        "score": 5.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "2 flags open",
+        "subAgents": [
+          "researcher:state_law",
+          "researcher:federal_law",
+          "researcher:ecology_epa"
+        ],
+        "factors": [
+          {
+            "id": "law-flag-0",
+            "name": "Zoning status unknown \u2014 unresolved kill criterion (KB: zoning prohibition is a threshold k",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Zoning status unknown \u2014 unresolved kill criterion (KB: zoning prohibition is a threshold kill-switch, not a schedule risk)",
+            "sources": []
+          },
+          {
+            "id": "law-flag-1",
+            "name": "No permits, CEQA/NEPA posture, or interconnection-agreement facts extracted; permitting pa",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No permits, CEQA/NEPA posture, or interconnection-agreement facts extracted; permitting path indeterminate",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Finance",
+        "score": 5.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "2 flags open",
+        "subAgents": [
+          "researcher:financials",
+          "cross-examiner"
+        ],
+        "factors": [
+          {
+            "id": "finance-flag-0",
+            "name": "Tax-credit (ITC/PTC) eligibility unverified \u2014 unresolved kill criterion (KB: OBBBA beginni",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Tax-credit (ITC/PTC) eligibility unverified \u2014 unresolved kill criterion (KB: OBBBA beginning-of-construction evidence is the top go/no-go item)",
+            "sources": []
+          },
+          {
+            "id": "finance-flag-1",
+            "name": "No CAPEX/budget, PPA/offtake, or financial model documents provided; bankability cannot be",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No CAPEX/budget, PPA/offtake, or financial model documents provided; bankability cannot be assessed",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Materials",
+        "score": 5.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "2 flags open",
+        "subAgents": [
+          "researcher:supply_chain"
+        ],
+        "factors": [
+          {
+            "id": "materials-flag-0",
+            "name": "No equipment supply agreements or procurement facts; module/BESS/transformer sourcing unkn",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No equipment supply agreements or procurement facts; module/BESS/transformer sourcing unknown",
+            "sources": []
+          },
+          {
+            "id": "materials-flag-1",
+            "name": "No benchmark data to test lead times against (KB norm: large transformers 128-144 weeks)",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No benchmark data to test lead times against (KB norm: large transformers 128-144 weeks)",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Demand",
+        "score": 10.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "2 flags open",
+        "subAgents": [
+          "researcher:demand",
+          "researcher:interconnection"
+        ],
+        "factors": [
+          {
+            "id": "demand-flag-0",
+            "name": "No PPA/offtake or interconnection-queue evidence; revenue path unproven",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No PPA/offtake or interconnection-queue evidence; revenue path unproven",
+            "sources": []
+          },
+          {
+            "id": "demand-flag-1",
+            "name": "Only generic CA demand tailwind (SB 100/1020 100% zero-carbon by 2045) supports the dimens",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Only generic CA demand tailwind (SB 100/1020 100% zero-carbon by 2045) supports the dimension at all",
+            "sources": []
+          }
+        ]
+      }
+    ]
+  },
+  "eyebrow": "Solar \u00b7 0 MW \u00b7 Ventura County, CA",
+  "runSummary": "0 documents analyzed \u00b7 3 open items",
+  "scoreBandLabel": "Risk \u00b7 6/100",
+  "scoreNote": "Empty fact set: extraction has not been run on any deal documents (CAPEX, interconnection, PPA, permits, title, supply agreements, schedule) \u2014 no dimension is evidence-backed",
+  "evidence": {},
+  "timeline": [
+    {
+      "id": "tl-0",
+      "label": "ITC deadline",
+      "date": "2030-12-31",
+      "kind": "deadline",
+      "band": "risk",
+      "position": 50
+    }
+  ],
+  "documents": [],
+  "priorityActions": [
+    {
+      "id": "pa-1",
+      "rank": 1,
+      "title": "Document acquisition complete: full deal document set delivered and indexed (title/site co",
+      "detail": "Document acquisition complete: full deal document set delivered and indexed (title/site control, interconnection, offtake, CAPEX/budget, financial model, equipment supply agreements, permits, schedule), and extraction run on all documents so cross-examination can occur. No IC vote before this is done.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-2",
+      "rank": 2,
+      "title": "Kill criterion 1 \u2014 Tax credits: written tax counsel opinion confirming ITC/PTC eligibility",
+      "detail": "Kill criterion 1 \u2014 Tax credits: written tax counsel opinion confirming ITC/PTC eligibility under OBBBA, including beginning-of-construction evidence (physical work test or 5% safe harbor with executed contracts and invoices), prevailing wage and apprenticeship compliance plan, and FEOC material-assistance screening for modules, BESS cells, and transformers.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-3",
+      "rank": 3,
+      "title": "Kill criterion 2 \u2014 Zoning: written zoning verification from Ventura County RMA Planning co",
+      "detail": "Kill criterion 2 \u2014 Zoning: written zoning verification from Ventura County RMA Planning confirming solar+storage is a permitted or conditionally permitted use on all APNs, plus confirmation of Williamson Act status and a defined entitlement path (County CUP/CEQA or CEC Opt-In Certification under AB 205).",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-4",
+      "rank": 4,
+      "title": "Site control verified: independent title report and ALTA survey confirming control of suff",
+      "detail": "Site control verified: independent title report and ALTA survey confirming control of sufficient acreage for 100 MW solar + BESS, with mineral severances and encumbrances identified and acceptable.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-5",
+      "rank": 5,
+      "title": "Interconnection verified: CAISO queue position, cluster study results, deliverability stat",
+      "detail": "Interconnection verified: CAISO queue position, cluster study results, deliverability status, and network upgrade cost exposure confirmed directly with CAISO; upgrade costs reflected in the CAPEX budget and financial model.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-6",
+      "rank": 6,
+      "title": "Revenue path evidenced: executed PPA/tolling/RA agreement or a credible, documented offtak",
+      "detail": "Revenue path evidenced: executed PPA/tolling/RA agreement or a credible, documented offtake strategy with counterparty engagement evidence; merchant-only cases require a market revenue study from an independent consultant.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-7",
+      "rank": 7,
+      "title": "Equipment risk bounded: supply agreements or binding quotes for modules, BESS, and transfo",
+      "detail": "Equipment risk bounded: supply agreements or binding quotes for modules, BESS, and transformers with delivery schedules consistent with the project schedule; transformer lead times tested against the 128-144 week KB norm; tariff/UFLPA/FEOC exposure documented.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-8",
+      "rank": 8,
+      "title": "Environmental path defined: Phase I ESA complete with no unresolved RECs; biological and c",
+      "detail": "Environmental path defined: Phase I ESA complete with no unresolved RECs; biological and cultural survey scopes set with CDFW/USFWS/NAHC engagement initiated; CEQA lead agency and document type confirmed; tribal consultation (AB 52) initiated.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-9",
+      "rank": 9,
+      "title": "BESS fire safety: VCFPD pre-application review completed with a written compliance pathway",
+      "detail": "BESS fire safety: VCFPD pre-application review completed with a written compliance pathway (NFPA 855, UL 9540A data, emergency response plan) acceptable to the fire authority.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-10",
+      "rank": 10,
+      "title": "Benchmark package in place: independent market benchmark research (equipment pricing, lead",
+      "detail": "Benchmark package in place: independent market benchmark research (equipment pricing, lead times, Ventura County permitting timelines) delivered so all developer claims can be tested; re-score the deal only after the above items close.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-11",
+      "rank": 11,
+      "title": "Complete document inventory: provide a closing-set style index of every document that exis",
+      "detail": "Complete document inventory: provide a closing-set style index of every document that exists for Ventura 040016011, flagging which categories are executed vs. draft vs. nonexistent (title/site control, interconnection, offtake, CAPEX/budget, financial model, equipment supply, permits, schedule). No extraction has been run on any document; diligence cannot proceed without this.",
+      "impact": "medium",
+      "scoreDelta": 3
+    },
+    {
+      "id": "pa-12",
+      "rank": 12,
+      "title": "Site control: provide all vesting deeds, lease agreements or lease options, easements, tit",
+      "detail": "Site control: provide all vesting deeds, lease agreements or lease options, easements, title commitments/preliminary title reports, ALTA survey, and total controlled acreage (site_acres is null in the deal file). Confirm acreage is sufficient for 100 MW solar + BESS (typically 500-900 acres depending on terrain and BESS footprint).",
+      "impact": "medium",
+      "scoreDelta": 3
+    },
+    {
+      "id": "pa-13",
+      "rank": 13,
+      "title": "Zoning: provide the Assessor Parcel Numbers (APNs), current zoning designation(s), General",
+      "detail": "Zoning: provide the Assessor Parcel Numbers (APNs), current zoning designation(s), General Plan land-use designations, any zoning verification letters from Ventura County, and confirmation whether the parcels are under Williamson Act contracts or in an Agricultural Preserve.",
+      "impact": "medium",
+      "scoreDelta": 3
+    }
+  ],
+  "projectedScoreAfterMitigation": 33.75,
+  "suggestedQuestions": [
+    {
+      "question": "What's the top item to clear next?",
+      "answer": {
+        "role": "assistant",
+        "text": "Empty fact set: extraction has not been run on any deal documents (CAPEX, interconnection, PPA, permits, title, supply agreements, schedule) \u2014 no dimension is evidence-backed"
+      }
+    },
+    {
+      "question": "Why is the activation score 6?",
+      "answer": {
+        "role": "assistant",
+        "text": "0 critical red flags and 0 cross-document contradictions. Weakest pillars: land 5, law 5."
+      }
+    }
+  ],
+  "chatHistory": [
+    {
+      "role": "assistant",
+      "text": "I've completed diligence on Ventura 040016011. Activation score 6/100 \u2014 decision: Hold. 0 critical flags, 0 cross-document contradictions, 3 open information requests. Ask me what to prioritize."
+    }
+  ],
+  "report": {
+    "badge": "RED FLAG REPORT",
+    "title": "Ventura 040016011 \u2014 due-diligence report",
+    "preparedBy": "Red Flag agent framework",
+    "summary": "Empty fact set: extraction has not been run on any deal documents (CAPEX, interconnection, PPA, permits, title, supply agreements, schedule) \u2014 no dimension is evidence-backed",
+    "findings": [],
+    "recommendedActions": [
+      "Document acquisition complete: full deal document set delivered and indexed (title/site control, interconnection, offtake, CAPEX/budget, financial model, equipment supply agreements, permits, schedule), and extraction run on all documents so cross-examination can occur. No IC vote before this is done.",
+      "Kill criterion 1 \u2014 Tax credits: written tax counsel opinion confirming ITC/PTC eligibility under OBBBA, including beginning-of-construction evidence (physical work test or 5% safe harbor with executed contracts and invoices), prevailing wage and apprenticeship compliance plan, and FEOC material-assistance screening for modules, BESS cells, and transformers.",
+      "Kill criterion 2 \u2014 Zoning: written zoning verification from Ventura County RMA Planning confirming solar+storage is a permitted or conditionally permitted use on all APNs, plus confirmation of Williamson Act status and a defined entitlement path (County CUP/CEQA or CEC Opt-In Certification under AB 205).",
+      "Site control verified: independent title report and ALTA survey confirming control of sufficient acreage for 100 MW solar + BESS, with mineral severances and encumbrances identified and acceptable.",
+      "Interconnection verified: CAISO queue position, cluster study results, deliverability status, and network upgrade cost exposure confirmed directly with CAISO; upgrade costs reflected in the CAPEX budget and financial model."
+    ],
+    "sourceBasis": "0 source documents + 0 acquired research packs"
+  },
+  "map": {
+    "parcelSize": "\u2014",
+    "toggles": [
+      {
+        "id": "zoning",
+        "label": "Zoning",
+        "on": true
+      },
+      {
+        "id": "protected-land",
+        "label": "Protected land",
+        "on": true
+      },
+      {
+        "id": "transmission",
+        "label": "Transmission",
+        "on": false
+      }
+    ],
+    "distances": [],
+    "zones": [],
+    "pin": {
+      "left": 50,
+      "top": 50,
+      "label": "Ventura County, CA"
+    }
+  },
+  "teamMembers": []
+}

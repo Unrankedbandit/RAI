@@ -127,9 +127,12 @@ since traces get pasted into issues and shown in demos.
 Cloud, or `OTEL_EXPORTER_OTLP_ENDPOINT` for a self-hosted collector, and every
 span above also exports as OpenTelemetry (`telemetry.py`): one trace per job,
 rooted at the HTTP request that started it, with token counts, durations, and
-failure/repair events as span attributes. FastAPI and httpx are
+failure/repair events as span attributes. Every trace event also exports as a
+**log record** carrying its span's context, so SigNoz's Logs tab shows the full
+narrative and cross-links each line to its trace. FastAPI and httpx are
 auto-instrumented on top. Unset, the backend is byte-for-byte as before.
-`TELEMETRY_CONSOLE=1` prints spans to stdout for debugging without a backend.
+`TELEMETRY_CONSOLE=1` prints spans and logs to stdout for debugging without a
+backend.
 
 ### Control plane (optional Port integration)
 
