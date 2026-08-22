@@ -6,11 +6,13 @@
 // it as a dropped connection, never as silent success.
 
 import type { ScanEvent, ScanSource } from "./scanEvents";
+import { withGateToken } from "@/lib/agent/client";
 
 export function createSseScanSource(url: string): ScanSource {
   return ({ onEvent, onClose }) => {
     let closed = false;
-    const es = new EventSource(url);
+    // EventSource can't set headers — the gate token rides the query string.
+    const es = new EventSource(withGateToken(url));
 
     es.onmessage = (msg) => {
       try {

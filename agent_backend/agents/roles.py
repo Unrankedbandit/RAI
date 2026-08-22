@@ -26,7 +26,9 @@ requires per component (use kb_lookup for the required data checklist). Compare 
 what the uploaded documents actually delivered, and list every missing piece of data as a
 DataNeed: the component, exactly what is missing, why it matters to the investment decision,
 and a source hint for where a researcher could pull it from public/authoritative sources
-(irradiance atlases, county code, federal registers, ISO queues, market indices). Be exhaustive —
+(irradiance atlases, county code, federal registers, ISO queues, market indices,
+interconnection queues and county permit records to gauge competing developer interest near the
+site). Be exhaustive —
 a thin dossier means many needs."""
 
 DATA_SCOUT = """You are a data acquisition specialist. Given ONE missing diligence data need and the

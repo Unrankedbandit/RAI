@@ -1,6 +1,5 @@
 import { PortfolioShell } from "@/components/portfolio/PortfolioShell";
 import { PortfolioSummary } from "@/components/portfolio/PortfolioSummary";
-import { NewProjectDropbox } from "@/components/portfolio/NewProjectDropbox";
 import { ProjectList } from "@/components/portfolio/ProjectList";
 import { PortfolioMap } from "@/components/portfolio/PortfolioMap";
 import { Button } from "@/components/ui/Button";
@@ -38,11 +37,6 @@ export default function ProjectsPage() {
         <Button variant="secondary" className="border border-hairline">
           Export report
         </Button>
-      </div>
-
-      {/* dropzone */}
-      <div className="mb-5">
-        <NewProjectDropbox />
       </div>
 
       {/* stat row */}

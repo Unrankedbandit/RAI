@@ -1,13 +1,27 @@
 // HTTP client for the Red Flag agent backend (agent_backend/main.py, FastAPI).
 //
-// The backend runs as a separate process — `uvicorn agent_backend.main:app` on
-// port 8000 by default — and sets CORS to allow any origin, so the browser
-// talks to it directly. Point NEXT_PUBLIC_AGENT_API elsewhere to move it.
+// In production the browser reaches the backend through the hackathon gate at
+// https://rai-api.josephbissell.com, which authenticates every request. Auth
+// travels as a `token` query param on each call (EventSource cannot set
+// headers, so a header-based scheme would leave the job stream out), with
+// `credentials: "include"` on fetches as the SSO-cookie fallback. Point
+// NEXT_PUBLIC_AGENT_API elsewhere (e.g. http://localhost:8000) for local dev.
 
 import type { AgentReport } from "./report";
 
 export const AGENT_API =
-  process.env.NEXT_PUBLIC_AGENT_API ?? "http://localhost:8000";
+  process.env.NEXT_PUBLIC_AGENT_API ?? "https://rai-api.josephbissell.com";
+
+/** The hackathon gate's shared read token — sent as a query param. */
+const GATE_TOKEN = "fwk_r_150d6c7cd1370d88868bef84";
+
+/** Appends the gate token to any URL, preserving existing query params. */
+export const withGateToken = (url: string): string =>
+  `${url}${url.includes("?") ? "&" : "?"}token=${GATE_TOKEN}`;
+
+/** Builds an authenticated backend URL for a path like "/api/projects". */
+export const apiUrl = (path: string): string =>
+  withGateToken(`${AGENT_API}${path}`);
 
 export interface AnalyzeRequest {
   name: string;
@@ -38,7 +52,8 @@ export class AgentApiError extends Error {
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response;
   try {
-    response = await fetch(`${AGENT_API}${path}`, {
+    response = await fetch(apiUrl(path), {
+      credentials: "include",
       ...init,
       headers: { "content-type": "application/json", ...init?.headers },
     });
@@ -188,8 +203,9 @@ function parseGateFrame(frame: TraceFrame): JobStatus | null {
 export async function resumeJob(jobId: string, approved: string[]): Promise<void> {
   let response: Response;
   try {
-    response = await fetch(`${AGENT_API}/api/jobs/${jobId}/resume`, {
+    response = await fetch(apiUrl(`/api/jobs/${jobId}/resume`), {
       method: "POST",
+      credentials: "include",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ approved }),
     });
@@ -211,8 +227,9 @@ export async function resumeJob(jobId: string, approved: string[]): Promise<void
  * sentinel strings `__DONE__` or `__ERROR__ <message>`; both are translated
  * here so callers never parse sentinels themselves.
  *
- * Note the backend drains a single asyncio.Queue per job, so a second
- * subscriber to the same job would steal frames — one listener per job.
+ * The stream is replayable — pass `?from_idx=N` to re-read from frame N — so
+ * multiple subscribers to the same job each get the full narration rather
+ * than stealing frames from one another.
  *
  * Returns an unsubscribe function.
  */
@@ -220,7 +237,7 @@ export function streamJob(
   jobId: string,
   onEvent: (event: JobStatus) => void,
 ): () => void {
-  const source = new EventSource(`${AGENT_API}/api/jobs/${jobId}/stream`);
+  const source = new EventSource(apiUrl(`/api/jobs/${jobId}/stream`));
 
   const close = () => source.close();
 

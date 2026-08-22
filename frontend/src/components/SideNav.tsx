@@ -19,16 +19,6 @@ const links = [
     ),
   },
   {
-    href: "/discover",
-    label: "Discover",
-    icon: (
-      <>
-        <circle cx="8" cy="8" r="5.5" />
-        <path d="m10.2 5.8-1.2 3.2-3.2 1.2 1.2-3.2z" strokeLinejoin="round" />
-      </>
-    ),
-  },
-  {
     href: "/parcels",
     label: "Parcels",
     icon: (
