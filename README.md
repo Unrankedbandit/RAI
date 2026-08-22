@@ -140,6 +140,14 @@ the whole run afterwards. "The agent is slow" and "Daytona took 8s to
 provision" are meant to be distinguishable. Anything shaped like a credential is
 masked at the sink, since traces get pasted into issues and shown in demos.
 
+**SigNoz export.** Set `SIGNOZ_INGESTION_KEY` (+ `SIGNOZ_REGION`) for SigNoz
+Cloud, or `OTEL_EXPORTER_OTLP_ENDPOINT` for a self-hosted collector, and every
+span above also exports as OpenTelemetry (`telemetry.py`): one trace per job,
+rooted at the HTTP request that started it, with token counts, durations, and
+failure/repair events as span attributes. FastAPI and httpx are
+auto-instrumented on top. Unset, the backend is byte-for-byte as before.
+`TELEMETRY_CONSOLE=1` prints spans to stdout for debugging without a backend.
+
 ### Frontend contract
 
 The dashboard talks to the backend over plain HTTP plus one SSE stream:
