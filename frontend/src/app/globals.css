@@ -89,3 +89,78 @@ h6 {
   background: var(--color-select);
   color: var(--color-ink);
 }
+
+/* --------------------------------------------------------------------------
+   MapLibre popup overrides — portfolio map (PortfolioMapView.tsx).
+   Aligns maplibre's popup chrome with the RAI design system (11px radius,
+   hairline border, card shadow, Poppins) and styles the band-coloured
+   project markers, incl. the subtle pulse on selected / at-risk pins.
+   -------------------------------------------------------------------------- */
+.maplibregl-popup .maplibregl-popup-content {
+  min-width: 220px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-hairline);
+  border-radius: 11px;
+  box-shadow: var(--shadow-card);
+  color: var(--color-ink);
+  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.maplibregl-popup .maplibregl-popup-close-button {
+  padding: 4px 8px 0 0;
+  color: var(--color-faint);
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* Popup tip stays white so it reads as part of the card. */
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
+  border-top-color: #ffffff;
+}
+.maplibregl-popup-anchor-top .maplibregl-popup-tip {
+  border-bottom-color: #ffffff;
+}
+.maplibregl-popup-anchor-left .maplibregl-popup-tip {
+  border-right-color: #ffffff;
+}
+.maplibregl-popup-anchor-right .maplibregl-popup-tip {
+  border-left-color: #ffffff;
+}
+
+/* Project marker dot — fill colour is set inline via bandColorVar[band]. */
+.rai-marker-dot {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #ffffff;
+  border-radius: 9999px;
+  box-shadow:
+    0 0 0 1px var(--color-hairline),
+    0 2px 6px rgba(11, 8, 41, 0.25);
+  cursor: pointer;
+}
+
+/* Subtle expanding ring on the selected / at-risk marker (neutral ink). */
+.rai-marker-pulse {
+  animation: rai-marker-pulse 2.2s ease-out infinite;
+}
+
+@keyframes rai-marker-pulse {
+  0% {
+    box-shadow:
+      0 0 0 1px var(--color-hairline),
+      0 2px 6px rgba(11, 8, 41, 0.25),
+      0 0 0 0 rgba(11, 8, 41, 0.35);
+  }
+  70% {
+    box-shadow:
+      0 0 0 1px var(--color-hairline),
+      0 2px 6px rgba(11, 8, 41, 0.25),
+      0 0 0 10px rgba(11, 8, 41, 0);
+  }
+  100% {
+    box-shadow:
+      0 0 0 1px var(--color-hairline),
+      0 2px 6px rgba(11, 8, 41, 0.25),
+      0 0 0 0 rgba(11, 8, 41, 0);
+  }
+}

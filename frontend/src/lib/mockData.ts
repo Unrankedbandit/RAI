@@ -7,6 +7,7 @@
 
 import type {
   ChatMessage,
+  Finding,
   Project,
   ProjectDetail,
   ProjectStatus,
@@ -768,3 +769,299 @@ export const portfolioSuggestedQuestions: ScriptedQA[] = [
     },
   },
 ];
+
+/* ------------------------------------------------------------------ */
+/* Findings — the cross-project contradiction ledger (mock).           */
+/* Every finding cites its evidence; gap findings have no pair.        */
+/* ------------------------------------------------------------------ */
+
+export const findings: Finding[] = [
+  {
+    id: "F-1042",
+    projectId: "project-alpha",
+    title: "CAPEX in financial model is $13–25M below the materials quote",
+    workstream: "Finance × Materials",
+    severity: "High",
+    status: "Open",
+    detectedAt: "Today, 09:41",
+    updatedAt: "1h ago",
+    ownerInitials: [],
+    resolutionSummary: "Re-model at $199.4M and $211.2M; RFI to developer pending.",
+    whyItMatters:
+      "The model's equity return is calculated on the lower number. At the quoted price, IRR drops below the fund's hurdle and the December ITC safe-harbor window closes before re-trading finishes.",
+    recommendedAction:
+      "Re-run the model at $199.4M and $211.2M; issue an RFI asking the developer to reconcile scope between the two documents.",
+    evidence: {
+      left: {
+        value: "$186.0M",
+        source: "financial_model_v3.xlsx · Sheet 2",
+        excerpt: "Total project CAPEX carried at $186.0M, incl. modules, trackers, and BOS. Contingency 6.5%.",
+      },
+      right: {
+        value: "$199–211M",
+        source: "vendor_proposal.pdf · Page 14",
+        excerpt: "Fixed supply price: $199.4M base; $211.2M with extended warranty and spares package.",
+      },
+    },
+    linkedFindings: [
+      { findingId: "F-1041", relation: "Blocks", title: "Offtake contracts 200 MW but executed agreements cover 150 MW", status: "In review" },
+    ],
+    activity: [
+      { actor: "RAI", text: "Flagged by cross-document check (Finance × Materials)", timestamp: "09:41" },
+      { actor: "RAI", text: "Severity set to High — value delta > 5% of CAPEX", timestamp: "09:41" },
+      { actor: "RAI", text: "Added to Project Alpha review queue", timestamp: "09:42" },
+    ],
+  },
+  {
+    id: "F-1041",
+    projectId: "project-alpha",
+    title: "Offtake contracts 200 MW but executed agreements cover 150 MW",
+    workstream: "Demand × Finance",
+    severity: "High",
+    status: "In review",
+    detectedAt: "Today, 09:38",
+    updatedAt: "45m ago",
+    ownerInitials: ["JR"],
+    resolutionSummary: "JR confirming whether a second tranche agreement exists.",
+    whyItMatters:
+      "Revenue in the model is sized to 200 MW. A 50 MW shortfall is ~25% of contracted revenue — the debt sizing case does not survive it.",
+    recommendedAction:
+      "Confirm whether a second tranche agreement exists; if not, restate the revenue case at 150 MW before IC.",
+    evidence: {
+      left: {
+        value: "200 MW",
+        source: "offtake_term_sheet.pdf · Page 2",
+        excerpt: "Buyer to take 200 MWac of nameplate output for a 20-year term commencing COD.",
+      },
+      right: {
+        value: "150 MW",
+        source: "executed_ppa_bundle.pdf · Schedule A",
+        excerpt: "Aggregate contracted capacity across executed agreements: 150 MWac.",
+      },
+    },
+    linkedFindings: [
+      { findingId: "F-1042", relation: "Caused by", title: "CAPEX in financial model is $13–25M below the materials quote", status: "Open" },
+    ],
+    activity: [
+      { actor: "RAI", text: "Flagged by cross-document check (Demand × Finance)", timestamp: "09:38" },
+      { actor: "JR", text: "Assigned as owner", timestamp: "09:52" },
+      { actor: "JR", text: "Status → In review", timestamp: "09:55" },
+    ],
+  },
+  {
+    id: "F-1037",
+    projectId: "project-gamma",
+    title: "Grading mobilization is scheduled before environmental review closes",
+    workstream: "Land × Law",
+    severity: "High",
+    status: "Open",
+    detectedAt: "Yesterday, 16:20",
+    updatedAt: "3h ago",
+    ownerInitials: [],
+    resolutionSummary: "Re-sequence mobilization to July; escalation to counsel drafted.",
+    whyItMatters:
+      "Mobilizing before permit exposes the project to a stop-work order and jeopardizes the ITC safe-harbor narrative the financing depends on.",
+    recommendedAction:
+      "Re-sequence mobilization to July; escalate to the developer's counsel with the county record attached.",
+    evidence: {
+      left: {
+        value: "June 1",
+        source: "grading_schedule.pdf · Page 3",
+        excerpt: "Mobilize grading crews and begin mass earthwork: June 1.",
+      },
+      right: {
+        value: "June 30",
+        source: "County planning record · fetched yesterday",
+        excerpt: "Environmental review comment period closes June 30; no grading permit may issue before close.",
+      },
+    },
+    activity: [
+      { actor: "RAI", text: "Flagged by schedule-vs-record check (Land × Law)", timestamp: "16:20" },
+      { actor: "RAI", text: "Evidence linked: county planning record (live source)", timestamp: "16:20" },
+      { actor: "RAI", text: "Project Gamma status → at risk", timestamp: "16:21" },
+    ],
+  },
+  {
+    id: "F-1044",
+    projectId: "project-delta",
+    title: "Module supplier quote expires before financing close",
+    workstream: "Materials × Finance",
+    severity: "Medium",
+    status: "Blocked",
+    detectedAt: "Yesterday, 14:02",
+    updatedAt: "20h ago",
+    ownerInitials: ["AK"],
+    resolutionSummary: "Blocked on the tracker PO decision — quote validity ends first.",
+    whyItMatters:
+      "If the quote lapses, re-pricing adds an estimated $4–6M to CAPEX and pushes the financial model out of its approved band.",
+    recommendedAction:
+      "Escalate to the sponsor: either execute the module PO now or negotiate a 30-day quote extension in writing.",
+    linkedFindings: [
+      { findingId: "F-1024", relation: "Caused by", title: "Tracker lead time exceeds the construction start window", status: "Open" },
+    ],
+    activity: [
+      { actor: "RAI", text: "Flagged by document-vs-timeline check (Materials × Finance)", timestamp: "14:02" },
+      { actor: "AK", text: "Marked Blocked — waiting on tracker PO decision", timestamp: "15:10" },
+    ],
+  },
+  {
+    id: "F-1033",
+    projectId: "project-epsilon",
+    title: "Claimed interconnection queue position does not match the public queue",
+    workstream: "Land × Finance",
+    severity: "Medium",
+    status: "Open",
+    detectedAt: "Yesterday, 11:05",
+    updatedAt: "6h ago",
+    ownerInitials: [],
+    resolutionSummary: "Queue confirmation letter requested from developer.",
+    whyItMatters:
+      "Queue position drives the COD assumption. A 17-slot gap typically means a later study window and fresh upgrade cost allocation.",
+    recommendedAction:
+      "Request the developer's queue confirmation letter; re-baseline COD sensitivity at position #31.",
+    evidence: {
+      left: {
+        value: "#14",
+        source: "feasibility_study.pdf · Page 22",
+        excerpt: "The project holds position #14 in the cluster study queue.",
+      },
+      right: {
+        value: "#31",
+        source: "ISO public queue · fetched yesterday",
+        excerpt: "Queue listing for the project point of interconnection: position #31.",
+      },
+    },
+    activity: [
+      { actor: "RAI", text: "Flagged by live source check (Land × Finance)", timestamp: "11:05" },
+      { actor: "RAI", text: "Evidence linked: ISO public queue (live source)", timestamp: "11:05" },
+    ],
+  },
+  {
+    id: "F-1029",
+    projectId: "project-epsilon",
+    title: "No bankable P50 irradiance study in the dossier",
+    workstream: "Finance × Demand",
+    severity: "Medium",
+    status: "In review",
+    detectedAt: "2 days ago",
+    updatedAt: "1d ago",
+    ownerInitials: ["AK"],
+    resolutionSummary: "Bankable study commissioned — 6–8 week lead time.",
+    whyItMatters:
+      "Energy yield is the revenue denominator. Without the bankable study, the debt commitment cannot paper.",
+    recommendedAction:
+      "Commission the on-site corrected study now — it gates close and has a 6–8 week lead time.",
+    // Gap finding: something is ABSENT, so there is no evidence pair.
+    activity: [
+      { actor: "RAI", text: "Flagged by gap analysis (Finance × Demand)", timestamp: "2 days ago" },
+      { actor: "AK", text: "Assigned as owner", timestamp: "Yesterday" },
+      { actor: "AK", text: "Status → In review", timestamp: "Yesterday" },
+    ],
+  },
+  {
+    id: "F-1024",
+    projectId: "project-delta",
+    title: "Tracker lead time exceeds the construction start window",
+    workstream: "Materials × Finance",
+    severity: "Medium",
+    status: "Open",
+    detectedAt: "2 days ago",
+    updatedAt: "8h ago",
+    ownerInitials: [],
+    resolutionSummary: "Execute tracker PO within 2 weeks or re-sequence installation.",
+    whyItMatters:
+      "Six weeks of float disappears. Either the PO executes immediately or the COD moves.",
+    recommendedAction:
+      "Execute the tracker PO within 2 weeks or re-sequence installation; confirm liquidated damages terms either way.",
+    evidence: {
+      left: {
+        value: "34 weeks",
+        source: "vendor_proposal.pdf · Page 9",
+        excerpt: "Standard lead time: 34 weeks from executed PO to first delivery.",
+      },
+      right: {
+        value: "28 weeks",
+        source: "construction_schedule.pdf · Page 2",
+        excerpt: "Tracker installation begins week 28 following NTP.",
+      },
+    },
+    linkedFindings: [
+      { findingId: "F-1044", relation: "Blocks", title: "Module supplier quote expires before financing close", status: "Blocked" },
+    ],
+    activity: [
+      { actor: "RAI", text: "Flagged by schedule-vs-quote check (Materials × Finance)", timestamp: "2 days ago" },
+    ],
+  },
+  {
+    id: "F-1018",
+    projectId: "project-beta",
+    title: "Survey boundary and legal description differ by 14 acres",
+    workstream: "Land × Law",
+    severity: "Low",
+    status: "Resolved",
+    detectedAt: "5 days ago",
+    updatedAt: "3d ago",
+    ownerInitials: ["MS"],
+    resolutionSummary: "Exhibit A amended to match the survey; boundary re-rendered.",
+    whyItMatters:
+      "The delta sits on the northeast corner where the gen-tie easement enters — it mattered until the exhibit was corrected.",
+    recommendedAction: "Completed: Exhibit A amended to match the survey.",
+    evidence: {
+      left: {
+        value: "512.2 ac",
+        source: "alta_survey.pdf · Page 1",
+        excerpt: "Total enclosed area: 512.2 acres.",
+      },
+      right: {
+        value: "498.0 ac",
+        source: "option_agreement.pdf · Exhibit A",
+        excerpt: "The Premises comprise 498.0 acres, more or less.",
+      },
+    },
+    activity: [
+      { actor: "RAI", text: "Flagged by boundary check (Land × Law)", timestamp: "5 days ago" },
+      { actor: "MS", text: "Assigned as owner", timestamp: "4 days ago" },
+      { actor: "MS", text: "Amended Exhibit A uploaded", timestamp: "3 days ago" },
+      { actor: "MS", text: "Status → Resolved", timestamp: "3 days ago" },
+    ],
+  },
+  {
+    id: "F-1015",
+    projectId: "project-beta",
+    title: "Site control document is an LOI, not an executed option",
+    workstream: "Law × Land",
+    severity: "Low",
+    status: "Resolved",
+    detectedAt: "5 days ago",
+    updatedAt: "4d ago",
+    ownerInitials: ["MS"],
+    resolutionSummary: "Executed option agreement uploaded and verified.",
+    whyItMatters: "An LOI does not establish site control for financing purposes.",
+    recommendedAction: "Completed: executed option agreement uploaded and verified.",
+    activity: [
+      { actor: "RAI", text: "Flagged by gap analysis (Law × Land)", timestamp: "5 days ago" },
+      { actor: "MS", text: "Executed option uploaded", timestamp: "4 days ago" },
+      { actor: "MS", text: "Status → Resolved", timestamp: "4 days ago" },
+    ],
+  },
+];
+
+/** Find a single finding by its human-facing key ("F-1042"). */
+export function getFinding(id: string): Finding | undefined {
+  return findings.find((f) => f.id === id);
+}
+
+/** Findings belonging to one project, for swimlane grouping. */
+export function findingsForProject(projectId: string): Finding[] {
+  return findings.filter((f) => f.projectId === projectId);
+}
+
+/**
+ * Qualitative label for a project's activation score — swimlane headers show
+ * this, never the raw number (translate, don't expose).
+ */
+export function qualitativeScoreLabel(score: number): string {
+  if (score >= 70) return "Proceed";
+  if (score >= 40) return "Investigate";
+  return "Hold";
+}

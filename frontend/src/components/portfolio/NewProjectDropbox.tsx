@@ -48,12 +48,33 @@ export function NewProjectDropbox() {
         dragging ? "border-hairline bg-select" : "border-hairline bg-surface-2",
       )}
     >
-      <div>
-        <div className="mb-[3px] text-[13.5px] font-semibold text-ink">
-          Start a new project
-        </div>
-        <div className="text-[11.5px] text-faint">
-          Drag in one or multiple documents to begin analysis
+      <div className="flex items-center gap-3.5">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+          className={clsx(
+            "shrink-0 transition-colors",
+            dragging ? "text-brand" : "text-faint",
+          )}
+        >
+          <path d="M16 16l-4-4-4 4" />
+          <path d="M12 12v9" />
+          <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" />
+        </svg>
+        <div>
+          <div className="mb-[3px] text-[13.5px] font-semibold text-ink">
+            Start a new project
+          </div>
+          <div className="text-[11.5px] text-faint">
+            Drag in one or multiple documents to begin analysis
+          </div>
         </div>
       </div>
       <button
