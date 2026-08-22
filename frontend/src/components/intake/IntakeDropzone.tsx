@@ -3,7 +3,7 @@
 import { useRef, useState, type DragEvent } from "react";
 import { useRouter } from "next/navigation";
 import { clsx } from "@/lib/clsx";
-import { AGENT_API, analyze } from "@/lib/agent/client";
+import { apiUrl, analyze } from "@/lib/agent/client";
 import { slugify } from "@/lib/agent/liveStore";
 
 const ACCEPT = ".pdf,.docx,.xlsx,.csv,.txt";
@@ -14,8 +14,9 @@ type Phase = "idle" | "staged" | "starting";
 async function uploadFiles(files: File[]): Promise<string[]> {
   const form = new FormData();
   files.forEach((f) => form.append("files", f));
-  const res = await fetch(`${AGENT_API}/api/uploads`, {
+  const res = await fetch(apiUrl("/api/uploads"), {
     method: "POST",
+    credentials: "include",
     body: form,
   });
   if (!res.ok) throw new Error(`upload failed: ${res.status}`);
@@ -55,10 +56,20 @@ function extLabel(fileName: string): string {
  * Retry / demo-scan buttons — never a silent fall back to the mock scan.
  * Success routes to the live scanning view.
  */
-export function IntakeDropzone({ variant }: { variant: "hero" | "compact" }) {
+export function IntakeDropzone({
+  variant = "hero",
+  presentation = "inline",
+  onStarted,
+}: {
+  variant?: "hero" | "compact";
+  presentation?: "inline" | "modal";
+  onStarted?: () => void;
+}) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
-  const [phase, setPhase] = useState<Phase>("idle");
+  const [phase, setPhase] = useState<Phase>(
+    presentation === "modal" ? "staged" : "idle",
+  );
   const [files, setFiles] = useState<File[]>([]);
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
@@ -93,7 +104,9 @@ export function IntakeDropzone({ variant }: { variant: "hero" | "compact" }) {
     setName("");
     setLocation("");
     setError(null);
-    setPhase("idle");
+    // Modal presentation never returns to the hero zone — it resets to the
+    // zero-files staged layout instead.
+    setPhase(presentation === "modal" ? "staged" : "idle");
   }
 
   async function start() {
@@ -116,6 +129,8 @@ export function IntakeDropzone({ variant }: { variant: "hero" | "compact" }) {
         docs,
       });
       router.push(`/scanning?job=${jobId}&project=${slugify(trimmedName)}`);
+      // Fire-and-forget: let the host modal close itself after routing.
+      onStarted?.();
     } catch (err) {
       setPhase("staged");
       setError(err instanceof Error ? err.message : String(err));
@@ -248,14 +263,53 @@ export function IntakeDropzone({ variant }: { variant: "hero" | "compact" }) {
     <>
       {picker}
       <div
-        {...dropTargetProps}
+        {...(presentation === "inline" ? dropTargetProps : {})}
         aria-busy={busy}
         className={clsx(
-          "rounded-[11px] border border-hairline bg-canvas p-5 shadow-card transition-colors",
-          dragging && "bg-select",
+          presentation === "modal"
+            ? // Flat — the modal panel provides the frame.
+              ""
+            : "rounded-[11px] border border-hairline bg-canvas p-5 shadow-card transition-colors",
+          presentation === "inline" && dragging && "bg-select",
         )}
       >
-        <div className="flex items-baseline justify-between gap-3">
+        {presentation === "modal" && (
+          <div
+            role="button"
+            tabIndex={0}
+            aria-label="Add documents"
+            onClick={openPicker}
+            onKeyDown={zoneKeyDown}
+            {...dropTargetProps}
+            className={clsx(
+              "cursor-pointer rounded-[9px] border-[1.5px] border-dashed border-hairline px-4 py-4 text-center transition-colors",
+              dragging ? "bg-select" : "hover:bg-vista-soft",
+            )}
+          >
+            <span className="text-[13px] text-muted">
+              Drop documents here or{" "}
+              <button
+                type="button"
+                disabled={busy}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openPicker();
+                }}
+                className="underline underline-offset-2 transition-colors hover:text-ink disabled:opacity-40"
+              >
+                browse
+              </button>
+            </span>
+          </div>
+        )}
+
+        {presentation === "modal" && files.length === 0 && (
+          <p className="mt-2 text-center text-[12px] text-faint">
+            No documents yet
+          </p>
+        )}
+
+        <div className="mt-3 flex items-baseline justify-between gap-3 first:mt-0">
           <h3 className="text-[14px] font-semibold text-ink">
             Ready to analyze
           </h3>

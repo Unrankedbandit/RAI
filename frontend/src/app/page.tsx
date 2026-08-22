@@ -1,5 +1,4 @@
 import { PortfolioShell } from "@/components/portfolio/PortfolioShell";
-import { DropZone } from "@/components/home/DropZone";
 import { StatusDonut, type DonutSegment } from "@/components/home/StatusDonut";
 import { ScoreBars, type ScoreBarRow } from "@/components/home/ScoreBars";
 import { StatusPill } from "@/components/ui/StatusPill";
@@ -53,12 +52,8 @@ export default function HomePage() {
     <PortfolioShell>
       <div className="text-2xl font-semibold text-ink">Home</div>
       <p className="mt-1 mb-[22px] text-[15px] text-muted">
-        Drop in a new project, or check on recent activity across your pipeline.
+        Start a new project from the top bar, or check on recent activity across your pipeline.
       </p>
-
-      <div className="mb-[22px]">
-        <DropZone />
-      </div>
 
       <div className="mb-[18px] grid grid-cols-3 gap-3">
         {stats.map((s) => (
