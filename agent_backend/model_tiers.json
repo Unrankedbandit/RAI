@@ -1,0 +1,8 @@
+{
+  "//": "Live-reloaded per call. main = kimi-k3 (orchestrators + judgment/checks); flash = glm-fast-latest (subagent workhorses). deepseek-v4-flash is 404 on this Fireworks account (2026-08-22) — don't use it.",
+  "default": "glm-fast-latest",
+  "tiers": {
+    "main":  { "model": "kimi-latest",     "agents": ["ORCHESTRATOR", "CROSSEXAMINER", "SCORER", "ANALYST"] },
+    "flash": { "model": "glm-fast-latest", "agents": ["RESEARCHER", "EXTRACTOR", "GAPANALYZER", "DATASCOUT", "LIAISON"] }
+  }
+}

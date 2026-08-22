@@ -7,6 +7,7 @@ import asyncio
 import json
 import os
 import re
+from pathlib import Path
 from typing import Any, Callable
 
 import anthropic
@@ -28,6 +29,21 @@ LLM_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-opus-5")
 # OpenAI-compatible bridge config (PROVIDER=openai).
 LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://hackathon.josephbissell.com/v1")
 LLM_OPENAI_MODEL = os.getenv("LLM_MODEL", "kimi-latest")
+
+# Per-agent model tiers — read live from model_tiers.json (tune without a restart).
+_TIERS_FILE = Path(__file__).resolve().parent.parent / "model_tiers.json"
+
+
+def model_for(agent_name: str) -> str:
+    try:
+        tiers = json.loads(_TIERS_FILE.read_text())
+        key = agent_name.upper().split(":")[0].replace(" ", "")
+        for tier in tiers.get("tiers", {}).values():
+            if key in [a.upper() for a in tier.get("agents", [])]:
+                return tier.get("model", LLM_OPENAI_MODEL)
+        return tiers.get("default", LLM_OPENAI_MODEL)
+    except Exception:
+        return LLM_OPENAI_MODEL
 LLM_API_KEY = os.getenv("LLM_API_KEY", "")
 # Cap generated text per turn — long generations are what trips the bridge's
 # 524 gateway timeout — and retry transient failures instead of aborting the
@@ -79,12 +95,12 @@ def _extract_json(text: str) -> Any:
         raise
 
 
-async def _openai_chat(messages: list[dict], role_prompt: str, tools: dict) -> dict:
+async def _openai_chat(messages: list[dict], role_prompt: str, tools: dict, model: str | None = None) -> dict:
     """One call against an OpenAI-compatible endpoint (the Fireworks bridge),
     with retry on transient 5xx (the bridge's 524 gateway timeout)."""
     import httpx
     payload: dict[str, Any] = {
-        "model": LLM_OPENAI_MODEL,
+        "model": model or LLM_OPENAI_MODEL,
         "messages": [{"role": "system", "content": role_prompt}] + messages,
         "temperature": 0,
         "max_tokens": OPENAI_MAX_TOKENS,
@@ -233,7 +249,12 @@ class Agent:
     async def _run_openai(self, task: str, context: dict[str, Any] | None) -> BaseModel:
         """Same loop over an OpenAI-compatible endpoint (message format differs:
         system rides as a message, tool results are role=tool messages)."""
-        self.on_status(f"[{self.name}] starting ({LLM_OPENAI_MODEL})")
+        _model = model_for(self.name)
+        # Agent name only in the user-facing narration — the model tier stays in
+        # debug telemetry (job trace), not in the demo UI.
+        self.on_status(f"[{self.name}] starting")
+        if self.trace:
+            self.trace.event("agent.start", self.name, model=_model, level="debug")
         ctx = json.dumps(context or {}, default=str)
         if len(ctx) > 9000:
             # Same trap as the anthropic path's tool.truncated: silent
@@ -254,7 +275,7 @@ class Agent:
         ]
         for _ in range(self.max_steps):
             try:
-                msg = await _openai_chat(messages, self.role_prompt, self.tools)
+                msg = await _openai_chat(messages, self.role_prompt, self.tools, model=_model)
             except Exception as e:
                 # First tracing on this provider path: an auth/config failure
                 # here previously surfaced only as a truncated "degraded" line.
