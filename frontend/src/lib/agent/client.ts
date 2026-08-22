@@ -32,6 +32,8 @@ export interface AnalyzeRequest {
 }
 
 export interface PortfolioRow {
+  /** The job id the finished report is stored under (GET /api/reports/<id>). */
+  id: string;
   project: string;
   location: string;
   readiness: number;

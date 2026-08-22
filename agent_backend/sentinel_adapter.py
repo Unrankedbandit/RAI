@@ -125,6 +125,19 @@ def _iso_from(text: str | None) -> str | None:
     return None
 
 
+# Timeline-entry severity -> marker band: dated deal-killers read red, secured
+# items read green. Keep in lockstep with frontend/src/lib/agent/adapter.ts.
+_SEV_TO_BAND = {"critical": "risk", "high": "risk", "medium": "watch", "low": "strong"}
+
+
+def _date_display(iso: str) -> str:
+    """"2026-08-03" -> "Aug 3, 2026" (mockData's tooltip date format)."""
+    y, m, d = iso.split("-")
+    mon = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][int(m) - 1]
+    return f"{mon} {int(d)}, {y}"
+
+
 def to_sentinel(report: Report, project_id: str, lat: float = 0, lon: float = 0,
                 capacity_mw: float = 0, uploaded: str = "2026-08-14") -> dict:
     """Convert a Red Flag Report into a complete Solar Sentinel ProjectDetail."""
@@ -192,12 +205,26 @@ def to_sentinel(report: Report, project_id: str, lat: float = 0, lon: float = 0,
             "comparison": {"dimension": c.explanation[:60], "rows": rows},
         }
 
-    # timeline: parseable agency-action deadlines + ITC pin
+    # timeline: the agent-emitted critical path wins when present (full strip
+    # elements: shortLabel, dateDisplay, description, per-event band); the
+    # agency-action deadline parse is the fallback for pre-contract reports.
     raw_timeline = []
-    for a in report.action_pack.agency_actions:
-        iso = _iso_from(a.deadline)
+    for t in report.action_pack.timeline:
+        iso = t.date if re.fullmatch(r"\d{4}-\d{2}-\d{2}", t.date or "") else _iso_from(t.date)
         if iso:
-            raw_timeline.append({"label": f"{a.agency} — {a.action}"[:80], "date": iso, "kind": "milestone"})
+            entry = {
+                "label": t.label[:80], "date": iso, "kind": t.kind,
+                "shortLabel": t.label[:26], "dateDisplay": _date_display(iso),
+                "band": _SEV_TO_BAND.get(t.severity, "watch"),
+            }
+            if t.detail:
+                entry["description"] = t.detail
+            raw_timeline.append(entry)
+    if not raw_timeline:
+        for a in report.action_pack.agency_actions:
+            iso = _iso_from(a.deadline)
+            if iso:
+                raw_timeline.append({"label": f"{a.agency} — {a.action}"[:80], "date": iso, "kind": "milestone"})
     raw_timeline.append({"label": "ITC deadline", "date": ITC_DEADLINE, "kind": "deadline"})
     raw_timeline.sort(key=lambda e: e["date"])
 
@@ -205,11 +232,17 @@ def to_sentinel(report: Report, project_id: str, lat: float = 0, lon: float = 0,
     b = band(report.readiness)
     ords = [_date.fromisoformat(e["date"]).toordinal() for e in raw_timeline]
     mn, mx = min(ords), max(ords)
-    timeline = [{
-        "id": f"tl-{i}", "label": e["label"], "date": e["date"], "kind": e["kind"],
-        "band": b,
-        "position": 50 if mx == mn else int(((ords[i] - mn) / (mx - mn)) * 1000 + 0.5) / 10,
-    } for i, e in enumerate(raw_timeline)]
+    timeline = []
+    for i, e in enumerate(raw_timeline):
+        ev = {
+            "id": f"tl-{i}", "label": e["label"], "date": e["date"], "kind": e["kind"],
+            "band": e.get("band", b),
+            "position": 50 if mx == mn else int(((ords[i] - mn) / (mx - mn)) * 1000 + 0.5) / 10,
+        }
+        for opt in ("shortLabel", "dateDisplay", "description"):
+            if opt in e:
+                ev[opt] = e[opt]
+        timeline.append(ev)
 
     # documents from all cited sources
     seen: dict[str, dict] = {}

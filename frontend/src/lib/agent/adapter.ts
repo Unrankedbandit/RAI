@@ -144,6 +144,22 @@ function isoFrom(text: string | null): string | undefined {
   return undefined;
 }
 
+// Timeline-entry severity -> marker band: dated deal-killers read red, secured
+// items read green. Keep in lockstep with agent_backend/sentinel_adapter.py.
+const SEV_TO_BAND: Record<string, RiskBand> = {
+  critical: "risk",
+  high: "risk",
+  medium: "watch",
+  low: "strong",
+};
+
+/** "2026-08-03" -> "Aug 3, 2026" (mockData's tooltip date format). */
+function dateDisplay(iso: string): string {
+  const [y, m, d] = iso.split("-");
+  const mon = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][Number(m) - 1];
+  return `${mon} ${Number(d)}, ${y}`;
+}
+
 /** Convert one agent report into a complete Solar Sentinel ProjectDetail. */
 export function toSentinel(report: AgentReport, meta: SentinelMeta): ProjectDetail {
   // Dimension names arrive in whatever case the model felt like ("land" vs
@@ -245,10 +261,38 @@ export function toSentinel(report: AgentReport, meta: SentinelMeta): ProjectDeta
     };
   }
 
-  const rawTimeline: { label: string; date: string; kind: "milestone" | "deadline" }[] = [];
-  for (const a of report.action_pack.agency_actions) {
-    const iso = isoFrom(a.deadline);
-    if (iso) rawTimeline.push({ label: `${a.agency} — ${a.action}`.slice(0, 80), date: iso, kind: "milestone" });
+  // Timeline: the agent-emitted critical path wins when present (full strip
+  // elements: shortLabel, dateDisplay, description, per-event band); the
+  // agency-action deadline parse is the fallback for pre-contract reports.
+  const rawTimeline: {
+    label: string;
+    date: string;
+    kind: "milestone" | "deadline";
+    shortLabel?: string;
+    dateDisplay?: string;
+    description?: string;
+    band?: RiskBand;
+  }[] = [];
+  for (const t of report.action_pack.timeline ?? []) {
+    const iso = /^\d{4}-\d{2}-\d{2}$/.test(t.date || "") ? t.date : isoFrom(t.date);
+    if (iso) {
+      const entry: (typeof rawTimeline)[number] = {
+        label: t.label.slice(0, 80),
+        date: iso,
+        kind: t.kind,
+        shortLabel: t.label.slice(0, 26),
+        dateDisplay: dateDisplay(iso),
+        band: SEV_TO_BAND[t.severity] ?? "watch",
+      };
+      if (t.detail) entry.description = t.detail;
+      rawTimeline.push(entry);
+    }
+  }
+  if (rawTimeline.length === 0) {
+    for (const a of report.action_pack.agency_actions) {
+      const iso = isoFrom(a.deadline);
+      if (iso) rawTimeline.push({ label: `${a.agency} — ${a.action}`.slice(0, 80), date: iso, kind: "milestone" });
+    }
   }
   rawTimeline.push({ label: "ITC deadline", date: ITC_DEADLINE, kind: "deadline" });
   rawTimeline.sort((x, y) => x.date.localeCompare(y.date));
@@ -257,14 +301,20 @@ export function toSentinel(report: AgentReport, meta: SentinelMeta): ProjectDeta
   const times = rawTimeline.map((e) => Date.parse(e.date));
   const minT = Math.min(...times);
   const maxT = Math.max(...times);
-  const timeline: TimelineEvent[] = rawTimeline.map((e, i) => ({
-    id: `tl-${i}`,
-    label: e.label,
-    date: e.date,
-    kind: e.kind,
-    band: b,
-    position: maxT === minT ? 50 : Math.round(((Date.parse(e.date) - minT) / (maxT - minT)) * 1000) / 10,
-  }));
+  const timeline: TimelineEvent[] = rawTimeline.map((e, i) => {
+    const ev: TimelineEvent = {
+      id: `tl-${i}`,
+      label: e.label,
+      date: e.date,
+      kind: e.kind,
+      band: e.band ?? b,
+      position: maxT === minT ? 50 : Math.round(((Date.parse(e.date) - minT) / (maxT - minT)) * 1000) / 10,
+    };
+    if (e.shortLabel !== undefined) ev.shortLabel = e.shortLabel;
+    if (e.dateDisplay !== undefined) ev.dateDisplay = e.dateDisplay;
+    if (e.description !== undefined) ev.description = e.description;
+    return ev;
+  });
 
   const seen = new Map<string, ReturnType<typeof docEntry>>();
   const allSources = [
