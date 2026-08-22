@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import Map, { Marker, Popup } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import { bandColorVar, statusLabelText } from "@/lib/band";
 import { clsx } from "@/lib/clsx";
+import { useTheme } from "@/lib/theme";
 import type { Project } from "@/lib/types";
 import { ProjectIntel } from "@/components/portfolio/ProjectIntel";
 
@@ -24,42 +25,15 @@ const MAP_STYLE_LIGHT =
 const MAP_STYLE_DARK =
   "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
 
-type Theme = "light" | "dark";
-
-function readTheme(): Theme {
-  return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
-}
-
 export default function PortfolioMapView({
   projects,
 }: {
   projects: Project[];
 }) {
   const [selected, setSelected] = useState<Project | null>(null);
-  const [theme, setTheme] = useState<Theme>("light");
-
-  // Track the app theme: initialise from <html data-theme>, then subscribe to
-  // the rai-theme-change CustomEvent and (belt-and-braces) attribute mutations
-  // on <html> in case the dataset is flipped without dispatching the event.
-  useEffect(() => {
-    setTheme(readTheme());
-
-    const onThemeChange = (e: Event) => {
-      const next = (e as CustomEvent<Theme>).detail;
-      setTheme(next === "dark" ? "dark" : "light");
-    };
-    const observer = new MutationObserver(() => setTheme(readTheme()));
-
-    window.addEventListener("rai-theme-change", onThemeChange);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["data-theme"],
-    });
-    return () => {
-      window.removeEventListener("rai-theme-change", onThemeChange);
-      observer.disconnect();
-    };
-  }, []);
+  // Reactive theme (lib/theme.ts): switching the mapStyle prop makes
+  // react-map-gl call setStyle internally — no remount, camera preserved.
+  const theme = useTheme();
 
   // [west, south, east, north] covering every project, fitted on load.
   const bounds = useMemo<[number, number, number, number]>(() => {

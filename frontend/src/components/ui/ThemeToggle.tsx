@@ -1,11 +1,7 @@
 "use client";
 
-import { useEffect, useState, type ComponentType } from "react";
-
-type Theme = "light" | "dark";
-
-const THEME_KEY = "rai-theme";
-const THEME_EVENT = "rai-theme-change";
+import type { ComponentType } from "react";
+import { applyTheme, useTheme, type Theme } from "@/lib/theme";
 
 function SunIcon() {
   return (
@@ -54,27 +50,12 @@ const OPTIONS: { value: Theme; label: string; Icon: ComponentType }[] = [
  * window event 'rai-theme-change' with detail 'light' | 'dark' — the
  * portfolio map listens for this event (frozen cross-builder contract).
  *
- * The active option is only known after mount: state initialises from
- * <html data-theme> in useEffect (the attribute is set pre-paint by the
- * beforeInteractive script in layout.tsx). SSR and the first client render
- * both paint the pill with no active option, so there is no hydration
- * mismatch.
+ * The active option comes from useTheme() (lib/theme.ts): SSR and the first
+ * client render use the 'light' server snapshot, then the real <html
+ * data-theme> value resolves without a hydration mismatch.
  */
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme | null>(null);
-
-  useEffect(() => {
-    setTheme(
-      document.documentElement.dataset.theme === "dark" ? "dark" : "light",
-    );
-  }, []);
-
-  function select(next: Theme) {
-    setTheme(next);
-    localStorage.setItem(THEME_KEY, next);
-    document.documentElement.dataset.theme = next;
-    window.dispatchEvent(new CustomEvent<Theme>(THEME_EVENT, { detail: next }));
-  }
+  const theme = useTheme();
 
   return (
     <div
@@ -89,7 +70,7 @@ export function ThemeToggle() {
             key={value}
             type="button"
             aria-pressed={active}
-            onClick={() => select(value)}
+            onClick={() => applyTheme(value)}
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-[5px] text-[12px] font-medium transition-colors ${
               active ? "bg-oxford text-white" : "text-muted hover:text-ink"
             }`}
