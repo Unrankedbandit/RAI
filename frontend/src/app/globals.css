@@ -50,6 +50,12 @@
   --font-mono: var(--font-jetbrains);
 }
 
+/* JetBrains Mono utility — components use `font-jetbrains` for numerals/APNs.
+ * @theme only emits font-sans/font-mono, so register the class explicitly. */
+@utility font-jetbrains {
+  font-family: var(--font-jetbrains), "JetBrains Mono", monospace;
+}
+
 /*
   Dark theme — applied via <html data-theme="dark"> (set pre-paint by the
   inline script in layout.tsx, switched by ui/ThemeToggle.tsx).
