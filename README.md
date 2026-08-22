@@ -170,7 +170,7 @@ unreachable the UI degrades to mock data rather than crashing.
 | Agent models | Anthropic SDK (Claude Opus 5), or any OpenAI-compatible endpoint |
 | Code execution | Daytona ephemeral sandboxes |
 | Document parsing | pypdf · openpyxl |
-| Web research | Tavily (optional — falls back to the local knowledge base) |
+| Web research | Tavily search + Bright Data Web Unlocker scraping (both optional — fall back to the local knowledge base; see `CLAUDE.md`) |
 | Streaming | Server-Sent Events |
 | CI | GitHub Actions |
 
