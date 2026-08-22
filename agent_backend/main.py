@@ -19,7 +19,7 @@ from .agents.base import Agent
 from .agents.roles import ANALYST, ROLE_TOOLS
 from .gate import GapGate
 from .obs import Trace
-from .pipeline import run_pipeline
+from .pipeline import _degrade, run_pipeline
 from .port_client import PortReporter, port as _port
 from .schemas import ChatAnswer, Report
 from .telemetry import init_telemetry
@@ -62,6 +62,11 @@ JOB_GATES: dict[str, GapGate] = {}
 # Append-only per-job narration log (status strings + trace events) — the
 # reconnect-safe source for /api/jobs/{id}/stream; queues stay for back-compat.
 JOB_LOGS: dict[str, list] = {}
+# Whole-job watchdog. Every agent is individually capped by pipeline.AGENT_TIMEOUT,
+# but a run is many serial phases — on a sick bridge each phase can burn its
+# full cap, and before this watchdog the SSE stream simply went quiet forever.
+# Bounded here so a job ALWAYS ends in a terminal __DONE__/__ERROR__ frame.
+PIPELINE_TIMEOUT = int(os.getenv("PIPELINE_TIMEOUT", "2700"))  # 45 min
 # Finished chat answers, keyed by the ask's own job id. In memory because an
 # answer is only meaningful while the asking tab is open.
 ANSWERS: dict[str, ChatAnswer] = {}
@@ -153,9 +158,12 @@ async def analyze(req: AnalyzeRequest, x_hax_user: str | None = Header(None)):
             queue.put_nowait(msg)
             JOB_LOGS[job_id].append(msg)
         try:
-            report = await run_pipeline(
-                req.name, req.location, req.docs, on_status=status, trace=trace,
-                gap_gate=gate, user=x_hax_user,
+            report = await asyncio.wait_for(
+                run_pipeline(
+                    req.name, req.location, req.docs, on_status=status, trace=trace,
+                    gap_gate=gate, user=x_hax_user,
+                ),
+                timeout=PIPELINE_TIMEOUT,
             )
             path = STORE / f"{job_id}.json"
             path.write_text(report.model_dump_json(indent=2), encoding="utf-8")
@@ -171,6 +179,16 @@ async def analyze(req: AnalyzeRequest, x_hax_user: str | None = Header(None)):
             trace.print_summary()
             JOB_LOGS[job_id].append("__DONE__")
             queue.put_nowait("__DONE__")
+        except asyncio.TimeoutError:
+            # Watchdog fired: the pipeline was cancelled mid-phase. This is the
+            # terminal frame the SSE stream was missing when a run "hung".
+            msg = (f"job exceeded PIPELINE_TIMEOUT={PIPELINE_TIMEOUT}s — "
+                   "aborted instead of hanging; check the bridge and retry")
+            trace.error("job.timeout", msg)
+            reporter.failed("PipelineTimeout", msg)
+            trace.print_summary()
+            JOB_LOGS[job_id].append(f"__ERROR__ {msg}")
+            queue.put_nowait(f"__ERROR__ {msg}")
         except Exception as e:
             # Previously the traceback was swallowed and only str(e) reached the
             # client — which for AgentDidNotConverge was just an agent name.
@@ -323,10 +341,19 @@ async def ask(report_id: str, req: AskRequest):
             queue.put_nowait(msg)
         try:
             # kb_lookup only — the analyst answers from the finished report,
-            # so it needs no web tools in this path.
-            answer = await Agent(
-                "Analyst", ANALYST, ChatAnswer, ROLE_TOOLS["analyst"], status, trace=trace,
-            ).run(req.question, {"report": report.model_dump()})
+            # so it needs no web tools in this path. Capped by AGENT_TIMEOUT via
+            # _degrade: an uncapped analyst on a sick bridge hung the Ask rail
+            # the same way bare pipeline agents hung a run.
+            answer = await _degrade(
+                Agent(
+                    "Analyst", ANALYST, ChatAnswer, ROLE_TOOLS["analyst"], status, trace=trace,
+                ).run(req.question, {"report": report.model_dump()}),
+                ChatAnswer(
+                    answer="The analyst timed out before answering — please try again.",
+                    grounded=False,
+                ),
+                status, "Analyst",
+            )
             ANSWERS[ask_id] = answer
             trace.event("job.done", f"ask {ask_id} complete")
             queue.put_nowait("__DONE__")

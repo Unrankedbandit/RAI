@@ -12,7 +12,8 @@ import type { AgentReport } from "./report";
 export const AGENT_API =
   process.env.NEXT_PUBLIC_AGENT_API ?? "https://rai-api.josephbissell.com";
 
-/** The hackathon gate's shared read token — sent as a query param. */
+/** The hackathon gate's shared read token — sent as a query param
+ * (EventSource can't set headers). */
 const GATE_TOKEN = "fwk_r_150d6c7cd1370d88868bef84";
 
 /** Appends the gate token to any URL, preserving existing query params. */
@@ -237,7 +238,9 @@ export function streamJob(
   jobId: string,
   onEvent: (event: JobStatus) => void,
 ): () => void {
-  const source = new EventSource(apiUrl(`/api/jobs/${jobId}/stream`));
+  const source = new EventSource(apiUrl(`/api/jobs/${jobId}/stream`), {
+    withCredentials: true,
+  });
 
   const close = () => source.close();
 

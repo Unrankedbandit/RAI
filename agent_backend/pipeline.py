@@ -32,6 +32,10 @@ StatusFn = Callable[[str], None]
 PIPELINE_MODE = os.getenv("PIPELINE_MODE", "fast")
 # Hard wall per agent: a stalled turn on a slow bridge must fail fast into the
 # degrade path, not burn 6 minutes of retries before anyone notices.
+# EVERY agent call in this module must go through _degrade — an unwrapped call
+# has no cap at all, and on a sick bridge (the exact moment a timeout fires
+# elsewhere) one bare agent grinds retry×backoff per step and the run reads
+# as a hang. main.py additionally caps the whole job with PIPELINE_TIMEOUT.
 AGENT_TIMEOUT = int(os.getenv("AGENT_TIMEOUT", "300"))
 
 
@@ -82,12 +86,18 @@ async def run_pipeline(
         documents=docs, documentCount=len(docs),
     )
     trace.event("phase", "building project profile + diligence plan", phase="orchestrate")
-    # 1. Orchestrate: build the project profile + diligence plan
-    profile: ProjectProfile = await _agent(
-        "Orchestrator", ORCHESTRATOR, ProjectProfile, "orchestrator", on_status, trace
-    ).run(
-        "Build the diligence plan for this project.",
-        {"request": {"name": project_name, "location": location, "documents": docs}},
+    # 1. Orchestrate: build the project profile + diligence plan. Degrades to a
+    # bare-minimum profile (the request itself) — a blind plan still lets the
+    # extractors run, while a hang here used to stall the run before it began.
+    profile: ProjectProfile = await _degrade(
+        _agent(
+            "Orchestrator", ORCHESTRATOR, ProjectProfile, "orchestrator", on_status, trace
+        ).run(
+            "Build the diligence plan for this project.",
+            {"request": {"name": project_name, "location": location, "documents": docs}},
+        ),
+        ProjectProfile(name=project_name, capacity_mw=0, county=location),
+        on_status, "Orchestrator",
     )
 
     trace.event("phase", "parallel document extraction", phase="extract")
@@ -129,15 +139,19 @@ async def run_pipeline(
                 Findings(component="core"),
                 on_status, "Researcher:core",
             ),
-            _agent(
-                "CrossExaminer", CROSS_EXAMINER, ContradictionSet, "cross_examiner", on_status, trace
-            ).run(
-                "Cross-examine all extracted facts against each other and against research findings.",
-                {
-                    "facts": [f.model_dump() for f in fact_sets],
-                    "findings": [],
-                    "acquired": [],
-                },
+            _degrade(
+                _agent(
+                    "CrossExaminer", CROSS_EXAMINER, ContradictionSet, "cross_examiner", on_status, trace
+                ).run(
+                    "Cross-examine all extracted facts against each other and against research findings.",
+                    {
+                        "facts": [f.model_dump() for f in fact_sets],
+                        "findings": [],
+                        "acquired": [],
+                    },
+                ),
+                ContradictionSet(),
+                on_status, "CrossExaminer",
             ),
         )
         findings = [core_findings]
@@ -258,15 +272,19 @@ async def run_pipeline(
         trace.event("phase", "finding contradictions between documents", phase="cross_examine")
         # Deep mode: cross-examine after research, then one feedback loop of
         # follow-up researchers before scoring.
-        contradictions: ContradictionSet = await _agent(
-            "CrossExaminer", CROSS_EXAMINER, ContradictionSet, "cross_examiner", on_status, trace
-        ).run(
-            "Cross-examine all extracted facts against each other and against research findings.",
-            {
-                "facts": [f.model_dump() for f in fact_sets],
-                "findings": [f.model_dump() for f in findings],
-                "acquired": acquired_ctx,
-            },
+        contradictions: ContradictionSet = await _degrade(
+            _agent(
+                "CrossExaminer", CROSS_EXAMINER, ContradictionSet, "cross_examiner", on_status, trace
+            ).run(
+                "Cross-examine all extracted facts against each other and against research findings.",
+                {
+                    "facts": [f.model_dump() for f in fact_sets],
+                    "findings": [f.model_dump() for f in findings],
+                    "acquired": acquired_ctx,
+                },
+            ),
+            ContradictionSet(),
+            on_status, "CrossExaminer",
         )
         if contradictions.needs_more_research:
             followups = await asyncio.gather(*[
@@ -283,26 +301,40 @@ async def run_pipeline(
             findings = list(findings) + list(followups)
 
     trace.event("phase", "weighted rubric → readiness + decision", phase="score")
-    # 4. Score
-    score: Score = await _agent("Scorer", SCORER, Score, "scorer", on_status, trace).run(
-        "Score the project and issue a decision.",
-        {
-            "project": profile.model_dump(),
-            "contradictions": contradictions.model_dump(),
-            "findings": [f.model_dump() for f in findings],
-        },
+    # 4. Score. The fallback is an explicit 0/Hold — a crashed scorer must read
+    # as "incomplete", never as a plausible mid-range grade.
+    score: Score = await _degrade(
+        _agent("Scorer", SCORER, Score, "scorer", on_status, trace).run(
+            "Score the project and issue a decision.",
+            {
+                "project": profile.model_dump(),
+                "contradictions": contradictions.model_dump(),
+                "findings": [f.model_dump() for f in findings],
+            },
+        ),
+        Score(
+            readiness=0,
+            decision="Hold",
+            dimensions=[],
+            top_risks=["Scoring agent unavailable — treat this report as incomplete"],
+        ),
+        on_status, "Scorer",
     )
 
     trace.event("phase", "drafting RFIs and agency actions", phase="liaison")
     # 5. Liaison artifacts
-    actions: ActionPack = await _agent("Liaison", LIAISON, ActionPack, "liaison", on_status, trace).run(
-        "Produce the liaison action pack for the deal team.",
-        {
-            "project": profile.model_dump(),
-            "contradictions": contradictions.model_dump(),
-            "gaps": [g for f in fact_sets for g in f.gaps] + contradictions.coverage_gaps,
-            "score": score.model_dump(),
-        },
+    actions: ActionPack = await _degrade(
+        _agent("Liaison", LIAISON, ActionPack, "liaison", on_status, trace).run(
+            "Produce the liaison action pack for the deal team.",
+            {
+                "project": profile.model_dump(),
+                "contradictions": contradictions.model_dump(),
+                "gaps": [g for f in fact_sets for g in f.gaps] + contradictions.coverage_gaps,
+                "score": score.model_dump(),
+            },
+        ),
+        ActionPack(),
+        on_status, "Liaison",
     )
 
     trace.event("phase", "assembling the typed report", phase="compose")
