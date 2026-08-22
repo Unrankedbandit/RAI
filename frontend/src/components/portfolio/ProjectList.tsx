@@ -81,8 +81,13 @@ function ProjectRow({ project }: { project: Project }) {
       className="group flex cursor-pointer items-center gap-3 px-[18px] py-[13px] transition-colors hover:bg-surface-2"
     >
       <div className="min-w-0 flex-1">
-        <div className="text-sm font-semibold text-ink">{project.name}</div>
-        <div className="mt-px truncate text-[12.5px] text-faint">
+        <div className="truncate text-sm font-semibold text-ink" title={project.name}>
+          {project.name}
+        </div>
+        <div
+          className="mt-px truncate text-[12.5px] text-faint"
+          title={`${project.tech ?? "Solar"} · ${project.capacityMW} MW · ${project.location}`}
+        >
           {project.tech ?? "Solar"} · {project.capacityMW} MW · {project.location}
         </div>
       </div>

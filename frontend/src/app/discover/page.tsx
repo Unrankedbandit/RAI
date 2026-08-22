@@ -53,7 +53,7 @@ export default function DiscoverPage() {
         <div className="ml-auto flex items-center gap-3">
           {/* search */}
           <div className="flex w-72 items-center gap-2 rounded-full bg-canvas px-4 py-2 ring-1 ring-hairline transition-shadow focus-within:ring-2 focus-within:ring-vista">
-            <svg viewBox="0 0 16 16" className="h-3.5 w-3.5 text-faint" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+            <svg viewBox="0 0 16 16" className="h-3.5 w-3.5 shrink-0 text-faint" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
               <circle cx="7" cy="7" r="4.5" />
               <path d="m10.5 10.5 3 3" strokeLinecap="round" />
             </svg>
@@ -68,7 +68,7 @@ export default function DiscoverPage() {
                 type="button"
                 onClick={() => setSearch("")}
                 aria-label="Clear search"
-                className="text-faint hover:text-ink"
+                className="shrink-0 text-faint hover:text-ink"
               >
                 <svg viewBox="0 0 12 12" className="h-3 w-3" aria-hidden="true">
                   <path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />

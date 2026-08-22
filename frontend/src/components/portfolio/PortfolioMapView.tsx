@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import Map, { Marker, Popup } from "react-map-gl/maplibre";
+import Map, { Marker, Popup, type MapRef } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import { bandColorVar, statusLabelText } from "@/lib/band";
@@ -31,6 +31,7 @@ export default function PortfolioMapView({
   projects: Project[];
 }) {
   const [selected, setSelected] = useState<Project | null>(null);
+  const mapRef = useRef<MapRef>(null);
   // Reactive theme (lib/theme.ts): switching the mapStyle prop makes
   // react-map-gl call setStyle internally — no remount, camera preserved.
   const theme = useTheme();
@@ -51,6 +52,7 @@ export default function PortfolioMapView({
 
   return (
     <Map
+      ref={mapRef}
       initialViewState={{
         bounds,
         fitBoundsOptions: { padding: 56, maxZoom: 6.5 },
@@ -70,6 +72,15 @@ export default function PortfolioMapView({
             onClick={(e) => {
               e.originalEvent.stopPropagation();
               setSelected(p);
+              // Move the pin away from the container edges so the popup
+              // never clips against the map frame (which is overflow-hidden).
+              // Offset puts the pin slightly above center, leaving the most
+              // room below it; the camera eases, so the map never remounts.
+              mapRef.current?.easeTo({
+                center: [p.longitude, p.latitude],
+                offset: [0, -60],
+                duration: 300,
+              });
             }}
           >
             <div
@@ -85,52 +96,57 @@ export default function PortfolioMapView({
         <Popup
           longitude={selected.longitude}
           latitude={selected.latitude}
-          anchor="bottom"
+          // No fixed anchor: MapLibre re-picks the anchor on every map move
+          // to keep the popup inside the map container (prefers bottom).
           offset={14}
           closeOnClick
           onClose={() => setSelected(null)}
           maxWidth="280px"
         >
-          <div className="text-[14px] font-semibold text-ink">
-            {selected.name}
-          </div>
-          <div className="mt-[3px] text-[12.5px] text-faint">
-            {selected.tech ?? "Solar"} · {selected.capacityMW} MW ·{" "}
-            {selected.location}
-          </div>
-
-          <div className="mt-2.5 flex items-center gap-2">
-            <div className="h-[5px] flex-1 rounded-full bg-hairline">
-              <div
-                className="h-full rounded-full"
-                style={{
-                  width: `${selected.activationScore}%`,
-                  backgroundColor: bandColorVar[selected.band],
-                }}
-              />
+          {/* Height-capped + self-scrolling so even a full intel strip keeps
+              the popup inside the 360px map frame. */}
+          <div style={{ maxHeight: 200, overflowY: "auto" }}>
+            <div className="text-[14px] font-semibold text-ink">
+              {selected.name}
             </div>
-            <span className="text-[12.5px] font-semibold text-ink">
-              {selected.activationScore}
-            </span>
-          </div>
-          <div
-            className="mt-1.5 text-[12.5px] font-medium"
-            style={{ color: bandColorVar[selected.band] }}
-          >
-            {statusLabelText[selected.status]}
-          </div>
+            <div className="mt-[3px] text-[12.5px] text-faint">
+              {selected.tech ?? "Solar"} · {selected.capacityMW} MW ·{" "}
+              {selected.location}
+            </div>
 
-          {/* Frozen contract with the intel agent — may render null. */}
-          <div className="mt-3">
-            <ProjectIntel project={selected} />
-          </div>
+            <div className="mt-2.5 flex items-center gap-2">
+              <div className="h-[5px] flex-1 rounded-full bg-hairline">
+                <div
+                  className="h-full rounded-full"
+                  style={{
+                    width: `${selected.activationScore}%`,
+                    backgroundColor: bandColorVar[selected.band],
+                  }}
+                />
+              </div>
+              <span className="text-[12.5px] font-semibold text-ink">
+                {selected.activationScore}
+              </span>
+            </div>
+            <div
+              className="mt-1.5 text-[12.5px] font-medium"
+              style={{ color: bandColorVar[selected.band] }}
+            >
+              {statusLabelText[selected.status]}
+            </div>
 
-          <Link
-            href={`/projects/${selected.id}`}
-            className="mt-2.5 inline-block text-[12.5px] font-medium text-ink underline decoration-hairline underline-offset-2 hover:decoration-ink"
-          >
-            → View project
-          </Link>
+            {/* Frozen contract with the intel agent — may render null. */}
+            <div className="mt-3">
+              <ProjectIntel project={selected} />
+            </div>
+
+            <Link
+              href={`/projects/${selected.id}`}
+              className="mt-2.5 inline-block text-[12.5px] font-medium text-ink underline decoration-hairline underline-offset-2 hover:decoration-ink"
+            >
+              → View project
+            </Link>
+          </div>
         </Popup>
       )}
     </Map>

@@ -72,7 +72,9 @@ export default function HomePage() {
             <div className="text-[24px] font-semibold text-ink tabular-nums">
               {s.value}
             </div>
-            <div className="mt-[3px] text-[12.5px] text-muted">{s.sub}</div>
+            <div className="mt-[3px] truncate text-[12.5px] text-muted" title={s.sub}>
+              {s.sub}
+            </div>
           </div>
         ))}
       </div>
@@ -105,7 +107,7 @@ export default function HomePage() {
               i > 0 && "border-t border-hairline",
             )}
           >
-            <div className="flex-1 text-sm font-medium text-ink">
+            <div className="min-w-0 flex-1 truncate text-sm font-medium text-ink" title={a.name}>
               {a.name}
             </div>
             <div className="w-20 shrink-0 text-[12.5px] text-faint">{a.kind}</div>
@@ -118,7 +120,12 @@ export default function HomePage() {
                   dot={false}
                 />
               ) : (
-                <span className="text-[12.5px] text-faint">{a.project}</span>
+                <span
+                  className="block truncate text-[12.5px] text-faint"
+                  title={a.project}
+                >
+                  {a.project}
+                </span>
               )}
             </div>
             <div className="w-[110px] shrink-0 text-right text-[12.5px] text-faint">

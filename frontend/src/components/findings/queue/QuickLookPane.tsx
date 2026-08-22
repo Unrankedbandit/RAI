@@ -44,11 +44,11 @@ export function QuickLookPane({
     <div className="sticky top-[22px] rounded-[11px] border border-hairline bg-canvas p-5 shadow-card">
       {/* Key + status + severity */}
       <div className="flex items-center gap-2">
-        <span className="font-jetbrains text-[12.5px] text-faint">
+        <span className="mono shrink-0 text-[12.5px] text-faint">
           {finding.id}
         </span>
         <StatusLozenge status={finding.status} />
-        <span className="ml-auto flex items-center gap-1.5 text-[12.5px] text-muted">
+        <span className="ml-auto flex shrink-0 items-center gap-1.5 text-[12.5px] text-muted">
           <SeverityFlag severity={finding.severity} />
           {finding.severity}
         </span>
@@ -61,33 +61,55 @@ export function QuickLookPane({
 
       {/* Meta row: project / owner / updated */}
       <div className="mt-2 flex items-center gap-2 text-[12.5px] text-faint">
-        <span className="truncate">{projectName ?? finding.projectId}</span>
+        <span className="min-w-0 truncate">{projectName ?? finding.projectId}</span>
         <span aria-hidden="true">·</span>
-        <OwnerAvatars initials={finding.ownerInitials} />
+        <span className="shrink-0">
+          <OwnerAvatars initials={finding.ownerInitials} />
+        </span>
         <span aria-hidden="true">·</span>
         <span className="shrink-0">{finding.updatedAt}</span>
       </div>
 
-      {/* Evidence banner — only for contradiction findings with a pair */}
+      {/*
+        Evidence banner — only for contradiction findings with a pair.
+        The "conflicts with" chip sits in normal flow on its own centered
+        row above the values, so it can never overlap the filenames.
+        Values truncate with a title tooltip; each column is min-w-0 so
+        long names clip instead of colliding.
+      */}
       {finding.evidence && (
         <div className="mt-4 rounded-[7px] bg-surface-2 px-[14px] py-3">
-          <div className="flex items-center gap-2.5">
+          <div className="flex justify-center">
+            <span className="rounded-full bg-brand-soft px-2.5 py-1 text-xs font-medium text-risk-ink">
+              conflicts with
+            </span>
+          </div>
+          <div className="mt-2.5 flex items-start gap-3">
             <div className="min-w-0 flex-1">
-              <div className="font-jetbrains text-sm font-semibold text-ink">
+              <div
+                className="mono truncate text-sm font-semibold text-ink"
+                title={finding.evidence.left.value}
+              >
                 {finding.evidence.left.value}
               </div>
-              <div className="mt-[3px] text-[12.5px] leading-[1.4] text-faint">
+              <div
+                className="mt-[3px] truncate text-[12.5px] leading-[1.4] text-faint"
+                title={finding.evidence.left.source}
+              >
                 {finding.evidence.left.source}
               </div>
             </div>
-            <span className="shrink-0 rounded-full bg-brand-soft px-2.5 py-1 text-xs font-medium text-risk-ink">
-              conflicts with
-            </span>
             <div className="min-w-0 flex-1 text-right">
-              <div className="font-jetbrains text-sm font-semibold text-ink">
+              <div
+                className="mono truncate text-sm font-semibold text-ink"
+                title={finding.evidence.right.value}
+              >
                 {finding.evidence.right.value}
               </div>
-              <div className="mt-[3px] text-[12.5px] leading-[1.4] text-faint">
+              <div
+                className="mt-[3px] truncate text-[12.5px] leading-[1.4] text-faint"
+                title={finding.evidence.right.source}
+              >
                 {finding.evidence.right.source}
               </div>
             </div>

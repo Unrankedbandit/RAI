@@ -8,7 +8,6 @@ import { EvidencePanels } from "@/components/findings/detail/EvidencePanels";
 import { FieldGrid } from "@/components/findings/detail/FieldGrid";
 import { LinkedFindings } from "@/components/findings/detail/LinkedFindings";
 import { AskLauncher } from "@/components/ui/AskLauncher";
-import { Card } from "@/components/ui/Card";
 import { getFinding } from "@/lib/mockData";
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -49,47 +48,52 @@ export default function FindingDetailPage() {
       </Link>
 
       <div className="mt-2 flex items-center gap-2.5">
-        <span className="font-jetbrains text-[12.5px] text-faint">
+        <span className="mono text-[12.5px] text-faint">
           {finding.id}
         </span>
-        <h1 className="text-[20px] font-semibold text-ink">{finding.title}</h1>
+        <h1 className="text-2xl font-semibold text-ink">{finding.title}</h1>
         <AskLauncher context={{ scope: "finding", findingId: finding.id }} />
       </div>
 
-      <div className="mt-4 flex flex-col gap-6">
-        <FieldGrid finding={finding} />
+      {/*
+        Unified document surface — ONE hairline-bordered container, no
+        shadow. Sections flow as a single document separated by hairline
+        dividers; inner content never gets its own card chrome.
+      */}
+      <div className="mt-4 rounded-[11px] border border-hairline bg-canvas">
+        <div className="divide-y divide-hairline">
+          <section className="px-6 py-5">
+            <FieldGrid finding={finding} />
+          </section>
 
-        <ActivityAccordion activity={finding.activity} />
+          <ActivityAccordion activity={finding.activity} />
 
-        <section>
-          <SectionTitle>Why it matters</SectionTitle>
-          <Card>
-            <p className="text-[15px] leading-[1.6] text-muted">
+          <section className="px-6 py-5">
+            <SectionTitle>Why it matters</SectionTitle>
+            <p className="text-sm leading-relaxed text-muted">
               {finding.whyItMatters}
             </p>
-          </Card>
-        </section>
+          </section>
 
-        <section>
-          <SectionTitle>Evidence</SectionTitle>
-          <EvidencePanels finding={finding} />
-        </section>
+          <section className="px-6 py-5">
+            <SectionTitle>Evidence</SectionTitle>
+            <EvidencePanels finding={finding} />
+          </section>
 
-        <section>
-          <SectionTitle>Recommended action</SectionTitle>
-          <Card>
-            <p className="text-[15px] leading-[1.6] text-muted">
+          <section className="px-6 py-5">
+            <SectionTitle>Recommended action</SectionTitle>
+            <p className="text-sm leading-relaxed text-muted">
               {finding.recommendedAction}
             </p>
-          </Card>
-        </section>
-
-        {finding.linkedFindings && finding.linkedFindings.length > 0 && (
-          <section>
-            <SectionTitle>Linked findings</SectionTitle>
-            <LinkedFindings links={finding.linkedFindings} />
           </section>
-        )}
+
+          {finding.linkedFindings && finding.linkedFindings.length > 0 && (
+            <section className="px-6 py-5">
+              <SectionTitle>Linked findings</SectionTitle>
+              <LinkedFindings links={finding.linkedFindings} />
+            </section>
+          )}
+        </div>
       </div>
     </PortfolioShell>
   );

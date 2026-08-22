@@ -39,7 +39,7 @@ export function RiskFactorLegend({
               style={{ backgroundColor: CATEGORY_COLOR[f.name] }}
               aria-hidden
             />
-            <div>
+            <div className="min-w-0">
               <div className="text-[12.5px] font-medium text-ink">{f.name}</div>
               <div className="text-xs text-faint">{CATEGORY_SUB[f.name]}</div>
             </div>

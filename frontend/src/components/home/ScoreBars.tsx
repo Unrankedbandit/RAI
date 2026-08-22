@@ -36,7 +36,9 @@ export function ScoreBars({ rows }: { rows: ScoreBarRow[] }) {
               animate={{ height: `${pct}%` }}
               transition={{ duration: 0.8, ease: "easeOut" }}
             />
-            <div className="text-[12.5px] text-faint">{row.name}</div>
+            <div className="max-w-full truncate text-[12.5px] text-faint" title={row.name}>
+              {row.name}
+            </div>
           </div>
         );
       })}

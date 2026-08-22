@@ -106,7 +106,7 @@ async def _openai_chat(messages: list[dict], role_prompt: str, tools: dict) -> d
     for attempt in range(OPENAI_RETRIES):
         try:
             async with _llm_semaphore():
-                async with httpx.AsyncClient(timeout=180) as client:
+                async with httpx.AsyncClient(timeout=httpx.Timeout(300, connect=30)) as client:
                     r = await client.post(
                         f"{LLM_BASE_URL}/chat/completions",
                         headers=headers,
@@ -134,6 +134,17 @@ async def _openai_chat(messages: list[dict], role_prompt: str, tools: dict) -> d
                     else _OPENAI_BACKOFF[min(attempt, len(_OPENAI_BACKOFF) - 1)]
                 )
                 await asyncio.sleep(wait)
+                continue
+            raise
+        except httpx.TransportError as e:
+            # RemoteProtocolError / ReadTimeout / ConnectError — the public path
+            # (Cloudflare -> tunnel -> gate -> bridge) can drop long calls
+            # mid-flight. These carry no status code, so the 5xx handler never
+            # saw them and one blip killed the whole pipeline. Same backoff.
+            last = e
+            e.add_note(f"transport error on {LLM_BASE_URL}/chat/completions (attempt {attempt + 1})")
+            if attempt < OPENAI_RETRIES - 1:
+                await asyncio.sleep(_OPENAI_BACKOFF[min(attempt, len(_OPENAI_BACKOFF) - 1)])
                 continue
             raise
     raise last  # unreachable, satisfies type checkers

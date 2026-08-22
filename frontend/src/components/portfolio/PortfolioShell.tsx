@@ -10,7 +10,9 @@ import { PortfolioRail } from "./PortfolioRail";
  * the rail instead of leaving a dead gutter on wide screens.
  */
 export function PortfolioShell({ children }: { children: React.ReactNode }) {
-  const [collapsed, setCollapsed] = useState(false);
+  // Always starts collapsed — every fresh page load shows the slim 44px
+  // strip; the user expands manually (not persisted on purpose).
+  const [collapsed, setCollapsed] = useState(true);
 
   return (
     <div className="flex h-full">

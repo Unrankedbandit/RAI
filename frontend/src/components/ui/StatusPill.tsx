@@ -33,7 +33,7 @@ export function StatusPill({
     >
       {dot && (
         <span
-          className="inline-block rounded-full"
+          className="inline-block shrink-0 rounded-full"
           style={{
             width: size === "sm" ? 6 : 7,
             height: size === "sm" ? 6 : 7,
@@ -46,7 +46,7 @@ export function StatusPill({
           }}
         />
       )}
-      {label}
+      <span className="min-w-0 truncate">{label}</span>
     </span>
   );
 }

@@ -53,7 +53,7 @@ export function Drawer({
             aria-label={title}
           >
             <header className="flex items-start justify-between gap-4 border-b border-hairline px-6 py-5">
-              <div>
+              <div className="min-w-0">
                 <h2 className="text-lg font-semibold text-ink">{title}</h2>
                 {subtitle && (
                   <p className="mt-0.5 text-sm text-muted">{subtitle}</p>
@@ -62,7 +62,7 @@ export function Drawer({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-full px-3 py-1 text-sm font-medium text-muted hover:bg-surface-2"
+                className="shrink-0 rounded-full px-3 py-1 text-sm font-medium text-muted hover:bg-surface-2"
               >
                 Close
               </button>

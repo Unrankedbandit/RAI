@@ -20,7 +20,9 @@ import { MapTab } from "./MapTab";
  */
 export function ProjectWorkspace() {
   const [tab, setTab] = useState<ProjectTab>("overview");
-  const [railCollapsed, setRailCollapsed] = useState(false);
+  // Always starts collapsed — every fresh page load shows the slim 44px
+  // strip; the user expands manually (not persisted on purpose).
+  const [railCollapsed, setRailCollapsed] = useState(true);
   const [shareOpen, setShareOpen] = useState(false);
 
   return (
