@@ -50,7 +50,7 @@ export default function HomePage() {
   }));
 
   return (
-    <PortfolioShell maxWidth={1000}>
+    <PortfolioShell>
       <div className="text-[22px] font-semibold text-ink">Home</div>
       <p className="mt-1 mb-[22px] text-[13.5px] text-muted">
         Drop in a new project, or check on recent activity across your pipeline.

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Poppins, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { TopNav } from "@/components/TopNav";
+import { SideNav } from "@/components/SideNav";
+import { TopBar } from "@/components/TopBar";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -27,9 +28,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${poppins.variable} ${jetbrainsMono.variable} h-full`}
     >
-      <body className="flex h-full flex-col bg-canvas text-ink">
-        <TopNav />
-        <main className="min-h-0 flex-1">{children}</main>
+      <body className="flex h-full bg-canvas text-ink">
+        <SideNav />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <TopBar />
+          <main className="min-h-0 flex-1">{children}</main>
+        </div>
       </body>
     </html>
   );
