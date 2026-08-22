@@ -270,6 +270,128 @@ async function queryMosaic(countyName: string, lon: number, lat: number): Promis
   return normalize(label, hit);
 }
 
+/** Escape a user string for a SQL string literal (ArcGIS + Socrata both use ''). */
+function sqlEscape(text: string): string {
+  return text.replace(/'/g, "''");
+}
+
+/** Match candidate names against the fields a dataset actually has (case-insensitive). */
+function matchFields(actual: string[], candidates: string[]): string[] {
+  const lower = new Map(actual.map((a) => [a.toLowerCase(), a]));
+  const out: string[] = [];
+  for (const c of candidates) {
+    const hit = lower.get(c.toLowerCase());
+    if (hit && !out.includes(hit)) out.push(hit);
+  }
+  return out;
+}
+
+// Field-name lookups are cached per endpoint so repeat searches cost one query.
+const arcGisFieldsCache = new Map<string, Promise<string[]>>();
+
+function arcGisFieldNames(endpoint: string): Promise<string[]> {
+  let cached = arcGisFieldsCache.get(endpoint);
+  if (!cached) {
+    cached = (async () => {
+      try {
+        const res = await fetch(`${endpoint}?f=json`);
+        if (!res.ok) return [];
+        const data = (await res.json()) as { fields?: Array<{ name?: unknown }> };
+        return (data.fields ?? [])
+          .map((f) => f.name)
+          .filter((n): n is string => typeof n === 'string');
+      } catch {
+        return [];
+      }
+    })();
+    arcGisFieldsCache.set(endpoint, cached);
+  }
+  return cached;
+}
+
+const socrataFieldsCache = new Map<string, Promise<string[]>>();
+
+function socrataFieldNames(endpoint: string): Promise<string[]> {
+  let cached = socrataFieldsCache.get(endpoint);
+  if (!cached) {
+    cached = (async () => {
+      try {
+        // Cheapest schema probe: one row's keys are the column names.
+        const res = await fetch(`${endpoint}?$limit=1`);
+        if (!res.ok) return [];
+        const rows = (await res.json()) as Array<Record<string, unknown>>;
+        const row = Array.isArray(rows) ? rows[0] : undefined;
+        return row ? Object.keys(row) : [];
+      } catch {
+        return [];
+      }
+    })();
+    socrataFieldsCache.set(endpoint, cached);
+  }
+  return cached;
+}
+
+/**
+ * Text search over APN/address columns. A WHERE clause naming a field the
+ * layer doesn't have makes the whole query 400, so the clause is built only
+ * from fields confirmed present in the layer schema.
+ */
+async function searchArcGis(endpoint: string, text: string): Promise<RawHit[]> {
+  const names = await arcGisFieldNames(endpoint);
+  const targets = matchFields(names, [...APN_FIELDS, ...ADDRESS_FIELDS]);
+  if (targets.length === 0) return [];
+  const like = `'%${sqlEscape(text.toUpperCase())}%'`;
+  const where = targets.map((f) => `UPPER(${f}) LIKE ${like}`).join(' OR ');
+  const url =
+    `${endpoint}/query?where=${encodeURIComponent(where)}` +
+    `&outFields=*&returnGeometry=true&outSR=4326&resultRecordCount=5&f=geojson`;
+  const res = await fetch(url);
+  if (!res.ok) return [];
+  const data = (await res.json()) as {
+    features?: Array<{ properties?: Record<string, unknown>; geometry?: GeoJSON.Geometry | null }>;
+  };
+  return (data.features ?? []).map((f) => ({
+    properties: f.properties ?? {},
+    geometry: f.geometry ?? null,
+  }));
+}
+
+async function searchSocrata(endpoint: string, text: string): Promise<RawHit[]> {
+  const names = await socrataFieldNames(endpoint);
+  const targets = matchFields(names, [...APN_FIELDS, ...ADDRESS_FIELDS]);
+  if (targets.length === 0) return [];
+  const like = `'%${sqlEscape(text.toUpperCase())}%'`;
+  const where = targets.map((f) => `upper(${f}) like ${like}`).join(' OR ');
+  const url = `${endpoint}?$where=${encodeURIComponent(where)}&$limit=5`;
+  const res = await fetch(url);
+  if (!res.ok) return [];
+  const rows = (await res.json()) as Array<Record<string, unknown>>;
+  if (!Array.isArray(rows)) return [];
+  return rows.map((row) => ({ properties: row, geometry: extractGeoJsonGeometry(row) }));
+}
+
+/**
+ * APN/address text search within one county, best 5 matches.
+ * The statewide mosaic is a raster-style aggregation with no reliable
+ * attribute query, so mosaic-only selections return [] — the viewer surfaces
+ * a "text search needs a live county" empty state for those. Never throws.
+ */
+export async function searchParcels(countyName: string, text: string): Promise<ParcelResult[]> {
+  try {
+    const query = text.trim();
+    if (!query || countyName === STATEWIDE_COUNTY_NAME) return [];
+    const county = countyByName(countyName);
+    if (!county || county.status === 'mosaic-only' || !county.endpoint) return [];
+    const hits =
+      county.api === 'socrata'
+        ? await searchSocrata(county.endpoint, query)
+        : await searchArcGis(county.endpoint, query);
+    return hits.map((hit) => normalize(county.name, hit));
+  } catch {
+    return [];
+  }
+}
+
 export function countyByName(name: string): CountyConfig | undefined {
   return (
     COUNTIES.find((c) => c.name === name) ??

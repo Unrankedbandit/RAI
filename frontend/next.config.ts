@@ -10,6 +10,16 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
   },
+  // Discover was folded into Parcels (single land-map experience).
+  redirects() {
+    return [
+      {
+        source: "/discover",
+        destination: "/parcels",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
