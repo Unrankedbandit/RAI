@@ -32,10 +32,13 @@ export interface AnalyzeRequest {
 }
 
 export interface PortfolioRow {
+  id: string;
   project: string;
   location: string;
   readiness: number;
   decision: string;
+  /** hackathon login that started the run (null on pre-tagged reports) */
+  user?: string | null;
   dimensions: { name: string; rag: string; score: number; flags: string[] }[];
 }
 
