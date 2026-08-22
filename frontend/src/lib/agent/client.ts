@@ -32,6 +32,8 @@ export interface AnalyzeRequest {
 }
 
 export interface PortfolioRow {
+  /** The run's jobId — the report's permalink key. */
+  id: string;
   project: string;
   location: string;
   readiness: number;
