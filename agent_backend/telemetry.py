@@ -115,6 +115,31 @@ def init_telemetry(app=None) -> bool:
 
     otel_trace.set_tracer_provider(provider)
 
+    # Logs pipeline: obs.py events export as OTel log records alongside the
+    # spans, sharing the same endpoint. Emitted with the active span's context
+    # so SigNoz links logs ↔ traces bidirectionally.
+    try:
+        from opentelemetry._logs import set_logger_provider
+        from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
+        from opentelemetry.sdk._logs import LoggerProvider
+        from opentelemetry.sdk._logs.export import (
+            BatchLogRecordProcessor,
+            ConsoleLogExporter,
+            SimpleLogRecordProcessor,
+        )
+
+        logger_provider = LoggerProvider(resource=resource)
+        if console_mode:
+            logger_provider.add_log_record_processor(
+                SimpleLogRecordProcessor(ConsoleLogExporter()))
+        else:
+            logger_provider.add_log_record_processor(BatchLogRecordProcessor(
+                OTLPLogExporter(endpoint=f"{endpoint}/v1/logs", headers=headers),
+            ))
+        set_logger_provider(logger_provider)
+    except ImportError:
+        print("telemetry: otel logs API unavailable — spans only", file=sys.stderr)
+
     if app is not None:
         try:
             from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
@@ -140,6 +165,21 @@ def enabled() -> bool:
 def get_tracer():
     from opentelemetry import trace as otel_trace
     return otel_trace.get_tracer(_SERVICE_NAME)
+
+
+def get_event_logger():
+    """Logger for obs.py events → SigNoz Logs. Only call when enabled()."""
+    from opentelemetry._logs import get_logger
+    return get_logger(_SERVICE_NAME)
+
+
+# obs.py level names → OTel severity numbers
+SEVERITY = {
+    "debug": "DEBUG",
+    "info": "INFO",
+    "warn": "WARN",
+    "error": "ERROR",
+}
 
 
 def sanitize_attrs(data: dict) -> dict:

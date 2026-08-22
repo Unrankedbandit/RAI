@@ -234,7 +234,9 @@ class Trace:
         try:
             from opentelemetry.trace import StatusCode
             st = self._otel_state()
-            target = st["stack"][-1] if st["stack"] else self._otel_root()
+            # stack entries are (span, context-manager) tuples — index [0]
+            top = st["stack"][-1] if st["stack"] else None
+            target = top[0] if top else self._otel_root()
             if target is None:
                 return
             attrs = {
@@ -253,8 +255,37 @@ class Trace:
                 target.set_status(StatusCode.ERROR, description=e.msg[:200])
             if e.kind in ("job.done", "job.failed"):
                 self.end()
+            self._otel_log(e, target)
         except Exception:
             pass  # telemetry is best-effort, never job-critical
+
+    def _otel_log(self, e: "Event", span) -> None:
+        """Every trace event is also a log record in SigNoz, carrying the
+        span's context so logs ↔ traces cross-link in the UI."""
+        from opentelemetry._logs import SeverityNumber
+        from opentelemetry._logs import LogRecord
+        from opentelemetry.trace import set_span_in_context
+
+        sev = getattr(SeverityNumber, telemetry.SEVERITY.get(e.level, "INFO"),
+                      SeverityNumber.INFO)
+        body = f"{e.kind} — {e.msg}"
+        if e.agent or e.phase:
+            body = f"[{e.agent or e.phase}] {body}"
+        attrs = {"rai.job_id": self.job_id, "rai.kind": e.kind, "rai.level": e.level}
+        if e.phase:
+            attrs["rai.phase"] = e.phase
+        if e.agent:
+            attrs["rai.agent"] = e.agent
+        attrs.update(telemetry.sanitize_attrs(e.data))
+        telemetry.get_event_logger().emit(LogRecord(
+            timestamp=int(e.ts * 1e9),
+            severity_number=sev,
+            severity_text=e.level.upper(),
+            body=body,
+            attributes=attrs,
+            # span context → the log record carries trace_id/span_id
+            context=set_span_in_context(span) if span is not None else None,
+        ))
 
     def _otel_span_start(self, kind: str, msg: str, data: dict):
         if not telemetry.enabled():
