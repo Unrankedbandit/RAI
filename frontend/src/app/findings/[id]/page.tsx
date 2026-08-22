@@ -13,7 +13,7 @@ import { getFinding } from "@/lib/mockData";
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="mb-2 text-[12.5px] font-semibold text-ink">{children}</h2>
+    <h2 className="mb-2 text-sm font-semibold text-ink">{children}</h2>
   );
 }
 
@@ -30,7 +30,7 @@ export default function FindingDetailPage() {
           </div>
           <Link
             href="/findings"
-            className="mt-3 text-[13px] text-muted underline underline-offset-2 hover:text-ink"
+            className="mt-3 text-sm text-muted underline underline-offset-2 hover:text-ink"
           >
             ← Back to Findings
           </Link>
@@ -43,13 +43,13 @@ export default function FindingDetailPage() {
     <PortfolioShell>
       <Link
         href="/findings"
-        className="text-[12.5px] text-muted hover:text-ink"
+        className="text-sm text-muted hover:text-ink"
       >
         ← Findings
       </Link>
 
       <div className="mt-2 flex items-center gap-2.5">
-        <span className="font-jetbrains text-[12px] text-faint">
+        <span className="font-jetbrains text-[12.5px] text-faint">
           {finding.id}
         </span>
         <h1 className="text-[20px] font-semibold text-ink">{finding.title}</h1>
@@ -64,7 +64,7 @@ export default function FindingDetailPage() {
         <section>
           <SectionTitle>Why it matters</SectionTitle>
           <Card>
-            <p className="text-[13.5px] leading-[1.6] text-muted">
+            <p className="text-[15px] leading-[1.6] text-muted">
               {finding.whyItMatters}
             </p>
           </Card>
@@ -78,7 +78,7 @@ export default function FindingDetailPage() {
         <section>
           <SectionTitle>Recommended action</SectionTitle>
           <Card>
-            <p className="text-[13.5px] leading-[1.6] text-muted">
+            <p className="text-[15px] leading-[1.6] text-muted">
               {finding.recommendedAction}
             </p>
           </Card>

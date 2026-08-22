@@ -46,13 +46,13 @@ export default function DiscoverPage() {
       <div className="mb-4 flex flex-none flex-wrap items-center gap-4">
         <div>
           <h1 className="text-[17px] font-semibold text-ink">Parcel discovery</h1>
-          <p className="text-[12px] text-muted">
+          <p className="text-[12.5px] text-muted">
             California · 17 parcels scored (mock) · red = no-go, green = go
           </p>
         </div>
         <div className="ml-auto flex items-center gap-3">
           {/* search */}
-          <div className="flex w-72 items-center gap-2 rounded-full bg-white px-4 py-2 ring-1 ring-hairline transition-shadow focus-within:ring-2 focus-within:ring-vista">
+          <div className="flex w-72 items-center gap-2 rounded-full bg-canvas px-4 py-2 ring-1 ring-hairline transition-shadow focus-within:ring-2 focus-within:ring-vista">
             <svg viewBox="0 0 16 16" className="h-3.5 w-3.5 text-faint" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
               <circle cx="7" cy="7" r="4.5" />
               <path d="m10.5 10.5 3 3" strokeLinecap="round" />
@@ -61,7 +61,7 @@ export default function DiscoverPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Address, APN, or county…"
-              className="w-full bg-transparent text-[13px] text-ink outline-none placeholder:text-faint"
+              className="w-full bg-transparent text-sm text-ink outline-none placeholder:text-faint"
             />
             {search && (
               <button
@@ -84,9 +84,9 @@ export default function DiscoverPage() {
                 type="button"
                 onClick={() => setActiveLayer(l.id)}
                 className={clsx(
-                  "rounded-full px-3 py-1.5 text-[11px] font-medium transition-colors",
+                  "rounded-full px-3 py-1.5 text-[12.5px] font-medium transition-colors",
                   activeLayer === l.id
-                    ? "bg-ink text-white"
+                    ? "bg-oxford text-white"
                     : "bg-surface-2 text-muted hover:text-ink",
                 )}
               >
@@ -110,8 +110,8 @@ export default function DiscoverPage() {
             onSelect={setSelectedId}
           />
           {/* legend — bottom-left overlay */}
-          <div className="absolute bottom-3 left-3 rounded-[8px] border border-hairline bg-white/95 px-3 py-2.5 shadow-card backdrop-blur">
-            <div className="flex items-center justify-between text-[10px] font-medium text-muted">
+          <div className="absolute bottom-3 left-3 rounded-[8px] border border-hairline bg-canvas/95 px-3 py-2.5 shadow-card backdrop-blur">
+            <div className="flex items-center justify-between gap-3 text-xs font-medium text-muted">
               <span>{scoreVerdict(0)}</span>
               <span className="text-faint">Solar score</span>
               <span>{scoreVerdict(100)}</span>
@@ -120,7 +120,7 @@ export default function DiscoverPage() {
               className="mt-1.5 h-2 w-44 rounded-full"
               style={{ background: RAMP_GRADIENT_CSS }}
             />
-            <div className="mt-1 flex items-center gap-1.5 text-[10px] text-faint">
+            <div className="mt-1 flex items-center gap-1.5 text-xs text-faint">
               <span
                 className="inline-block size-2 rounded-[2px]"
                 style={{ backgroundColor: NO_DATA_COLOR }}

@@ -75,7 +75,7 @@ export function ShareModal({ open, onClose }: { open: boolean; onClose: () => vo
 
             {/* Body */}
             <div className="p-5">
-              <div className="mb-[9px] text-[11px] font-semibold text-faint">
+              <div className="mb-[9px] text-[12.5px] font-semibold text-faint">
                 Add team members
               </div>
               <div className="mb-1 flex gap-2">
@@ -87,12 +87,12 @@ export function ShareModal({ open, onClose }: { open: boolean; onClose: () => vo
                     if (e.key === "Enter") addMember();
                   }}
                   placeholder="Name or email"
-                  className="flex-1 rounded-[1px] border border-hairline px-3 py-[9px] text-[12.5px] text-ink outline-none placeholder:text-faint"
+                  className="flex-1 rounded-[1px] border border-hairline px-3 py-[9px] text-sm text-ink outline-none placeholder:text-faint"
                 />
                 <button
                   type="button"
                   onClick={addMember}
-                  className="cursor-pointer rounded-full border border-hairline bg-canvas px-[15px] py-2 text-[12.5px] font-medium text-muted"
+                  className="cursor-pointer rounded-full border border-hairline bg-canvas px-[15px] py-2 text-sm font-medium text-muted"
                 >
                   Add
                 </button>
@@ -106,12 +106,12 @@ export function ShareModal({ open, onClose }: { open: boolean; onClose: () => vo
                     className="flex items-center justify-between gap-[10px] border-t border-hairline py-[10px] first:border-t-0"
                   >
                     <div>
-                      <div className="text-[12.5px] font-medium text-ink">{m.name}</div>
-                      <div className="text-[11px] text-faint">{m.email}</div>
+                      <div className="text-sm font-medium text-ink">{m.name}</div>
+                      <div className="text-[12.5px] text-faint">{m.email}</div>
                     </div>
                     <select
                       defaultValue={m.access === "full" ? "full" : "limited"}
-                      className="flex-none rounded-full border border-hairline bg-canvas px-[10px] py-[5px] text-[11px] text-muted"
+                      className="flex-none rounded-full border border-hairline bg-canvas px-[10px] py-[5px] text-[12.5px] text-muted"
                     >
                       <option value="full">Full access</option>
                       <option value="limited">Limited documents</option>
@@ -121,14 +121,14 @@ export function ShareModal({ open, onClose }: { open: boolean; onClose: () => vo
               </div>
 
               {/* Document permissions */}
-              <div className="mb-[9px] mt-[18px] text-[11px] font-semibold text-faint">
+              <div className="mb-[9px] mt-[18px] text-[12.5px] font-semibold text-faint">
                 Documents visible to shared members
               </div>
               <div className="rounded-[1px] border border-hairline px-3">
                 {documents.map((doc) => (
                   <label
                     key={doc.id}
-                    className="flex cursor-pointer items-center gap-[9px] border-t border-hairline py-[9px] text-[12.5px] text-muted first:border-t-0"
+                    className="flex cursor-pointer items-center gap-[9px] border-t border-hairline py-[9px] text-sm text-muted first:border-t-0"
                   >
                     <input
                       type="checkbox"
@@ -146,14 +146,14 @@ export function ShareModal({ open, onClose }: { open: boolean; onClose: () => vo
               <button
                 type="button"
                 onClick={onClose}
-                className="cursor-pointer rounded-full border border-hairline bg-canvas px-[15px] py-2 text-[12.5px] font-medium text-muted"
+                className="cursor-pointer rounded-full border border-hairline bg-canvas px-[15px] py-2 text-sm font-medium text-muted"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={onClose}
-                className="cursor-pointer rounded-full bg-ink px-4 py-2 text-[12.5px] font-medium text-white"
+                className="cursor-pointer rounded-full bg-oxford px-4 py-2 text-sm font-medium text-white"
               >
                 Send invites
               </button>

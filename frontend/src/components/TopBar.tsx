@@ -1,12 +1,15 @@
 import Link from "next/link";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 /**
  * Slim top bar: navigation moved to the left sidebar, so the top strip carries
- * only the app's primary action — start a new project (upload/scan flow).
+ * only the theme switch and the app's primary action — start a new project
+ * (upload/scan flow).
  */
 export function TopBar() {
   return (
-    <div className="flex h-[57px] flex-none items-center justify-end border-b border-hairline bg-canvas px-8">
+    <div className="flex h-[57px] flex-none items-center justify-end gap-3 border-b border-hairline bg-canvas px-8">
+      <ThemeToggle />
       <Link
         href="/scanning"
         className="inline-flex items-center gap-2 rounded-full bg-oxford px-4 py-2 text-[12.5px] font-semibold text-white transition-opacity hover:opacity-90"

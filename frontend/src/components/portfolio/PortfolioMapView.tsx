@@ -7,18 +7,23 @@ import "maplibre-gl/dist/maplibre-gl.css";
 
 import { bandColorVar, statusLabelText } from "@/lib/band";
 import { clsx } from "@/lib/clsx";
+import { useTheme } from "@/lib/theme";
 import type { Project } from "@/lib/types";
 import { ProjectIntel } from "@/components/portfolio/ProjectIntel";
 
 /**
- * Real interactive portfolio map: keyless CARTO Positron vector basemap, one
- * band-coloured marker per project (true coordinates), and a design-system
- * popup with the activation score, status and per-project intel.
+ * Real interactive portfolio map: keyless CARTO vector basemap (Positron in
+ * light theme, Dark Matter in dark theme), one band-coloured marker per
+ * project (true coordinates), and a design-system popup with the activation
+ * score, status and per-project intel.
  * Client-only — PortfolioMap loads this via next/dynamic with ssr: false.
  */
 
-// Keyless vector basemap, no watermark. Attribution stays visible (required).
-const MAP_STYLE = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
+// Keyless vector basemaps, no watermark. Attribution stays visible (required).
+const MAP_STYLE_LIGHT =
+  "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
+const MAP_STYLE_DARK =
+  "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
 
 export default function PortfolioMapView({
   projects,
@@ -26,6 +31,9 @@ export default function PortfolioMapView({
   projects: Project[];
 }) {
   const [selected, setSelected] = useState<Project | null>(null);
+  // Reactive theme (lib/theme.ts): switching the mapStyle prop makes
+  // react-map-gl call setStyle internally — no remount, camera preserved.
+  const theme = useTheme();
 
   // [west, south, east, north] covering every project, fitted on load.
   const bounds = useMemo<[number, number, number, number]>(() => {
@@ -47,7 +55,7 @@ export default function PortfolioMapView({
         bounds,
         fitBoundsOptions: { padding: 56, maxZoom: 6.5 },
       }}
-      mapStyle={MAP_STYLE}
+      mapStyle={theme === "dark" ? MAP_STYLE_DARK : MAP_STYLE_LIGHT}
       style={{ width: "100%", height: "100%" }}
       attributionControl={{ compact: false }}
     >
@@ -83,10 +91,10 @@ export default function PortfolioMapView({
           onClose={() => setSelected(null)}
           maxWidth="280px"
         >
-          <div className="text-[13px] font-semibold text-ink">
+          <div className="text-[14px] font-semibold text-ink">
             {selected.name}
           </div>
-          <div className="mt-[3px] text-[11px] text-faint">
+          <div className="mt-[3px] text-[12.5px] text-faint">
             {selected.tech ?? "Solar"} · {selected.capacityMW} MW ·{" "}
             {selected.location}
           </div>
@@ -101,12 +109,12 @@ export default function PortfolioMapView({
                 }}
               />
             </div>
-            <span className="text-[11px] font-semibold text-ink">
+            <span className="text-[12.5px] font-semibold text-ink">
               {selected.activationScore}
             </span>
           </div>
           <div
-            className="mt-1.5 text-[11px] font-medium"
+            className="mt-1.5 text-[12.5px] font-medium"
             style={{ color: bandColorVar[selected.band] }}
           >
             {statusLabelText[selected.status]}
@@ -119,7 +127,7 @@ export default function PortfolioMapView({
 
           <Link
             href={`/projects/${selected.id}`}
-            className="mt-2.5 inline-block text-[11px] font-medium text-ink underline decoration-hairline underline-offset-2 hover:decoration-ink"
+            className="mt-2.5 inline-block text-[12.5px] font-medium text-ink underline decoration-hairline underline-offset-2 hover:decoration-ink"
           >
             → View project
           </Link>

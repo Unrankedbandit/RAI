@@ -50,7 +50,7 @@ export function EvidencePanels({ finding }: { finding: Finding }) {
   if (!finding.evidence) {
     return (
       <Card>
-        <div className="text-[12.5px] text-muted">
+        <div className="text-sm text-muted">
           Gap — no counter-evidence in the dossier.
         </div>
       </Card>
@@ -61,17 +61,17 @@ export function EvidencePanels({ finding }: { finding: Finding }) {
 
   return (
     <div>
-      <span className="mb-2 inline-flex items-center rounded-full bg-brand-soft px-2.5 py-1 text-[10.5px] font-medium text-risk-ink">
+      <span className="mb-2 inline-flex items-center rounded-full bg-brand-soft px-2.5 py-1 text-[12.5px] font-medium text-risk-ink">
         conflicts with
       </span>
       <div className="flex flex-col gap-3 lg:flex-row">
         {[left, right].map((side) => (
           <Card key={side.source} className="flex-1">
-            <div className="text-[12px] font-medium text-ink">
+            <div className="text-[12.5px] font-medium text-ink">
               {side.source}
             </div>
             {side.excerpt && (
-              <blockquote className="mt-2 border-l-2 border-hairline pl-3 text-[12.5px] leading-[1.6] text-muted">
+              <blockquote className="mt-2 border-l-2 border-hairline pl-3 text-sm leading-[1.6] text-muted">
                 <HighlightedExcerpt excerpt={side.excerpt} value={side.value} />
               </blockquote>
             )}

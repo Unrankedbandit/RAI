@@ -37,17 +37,33 @@ AGENT_TIMEOUT = int(os.getenv("AGENT_TIMEOUT", "300"))
 async def _degrade(coro, fallback, on_status: StatusFn, label: str):
     """Run an agent with a hard wall-clock cap, but on failure continue with an
     empty result instead of killing the whole run. The bridge is slow/flaky and
-    the model is small — one flailing agent must not sink the others."""
+    the model is small — one flailing agent must not sink the others.
+
+    Exception: auth/config errors (401/404 from the model endpoint) are
+    deterministic — every agent will hit them — so they abort the run instead
+    of degrading each agent into an empty, plausible-looking report."""
     try:
         return await asyncio.wait_for(coro, timeout=AGENT_TIMEOUT)
     except Exception as e:
+        # Duck-typed status extraction: the OpenAI bridge raises
+        # httpx.HTTPStatusError (status on e.response.status_code) while the
+        # anthropic SDK raises anthropic.APIStatusError (status directly on
+        # e.status_code). Catching only httpx let anthropic 401/404s fall into
+        # the generic degrade — an auth outage became an empty, plausible
+        # report instead of an abort.
+        status = getattr(e, "status_code", None) or getattr(
+            getattr(e, "response", None), "status_code", None
+        )
+        if status in (401, 404):
+            raise
         on_status(f"[{label}] degraded ({type(e).__name__}: {str(e)[:60]}) — continuing with empty result")
         return fallback
 
 
 def _agent(name: str, prompt: str, contract, role: str, on_status: StatusFn,
-           trace: Trace | None = None) -> Agent:
-    return Agent(name, prompt, contract, ROLE_TOOLS.get(role, {}), on_status, trace)
+           trace: Trace | None = None, max_steps: int | None = None) -> Agent:
+    return Agent(name, prompt, contract, ROLE_TOOLS.get(role, {}), on_status, trace,
+                 max_steps=max_steps)
 
 
 async def run_pipeline(
@@ -94,7 +110,13 @@ async def run_pipeline(
         acquired_ctx: list[dict] = []
         core_findings, contradictions = await asyncio.gather(
             _degrade(
-                _agent("Researcher:core", RESEARCHER, Findings, "researcher", on_status, trace).run(
+                _agent(
+                    "Researcher:core", RESEARCHER, Findings, "researcher", on_status, trace,
+                    # One agent covers ~10 diligence components here (deep mode
+                    # fans out one researcher per component instead) — the
+                    # module default of 8 steps truncated it mid-coverage.
+                    max_steps=int(os.getenv("AGENT_RESEARCH_STEPS", "12")),
+                ).run(
                     "Research this project against every diligence component "
                     "(state/federal law, permitting, zoning, ecology, community, financials, "
                     "interconnection, grid, demand, resource/supply chain) using the knowledge "
@@ -116,6 +138,24 @@ async def run_pipeline(
             ),
         )
         findings = [core_findings]
+        if contradictions.needs_more_research:
+            # The CrossExaminer ran concurrently with findings=[] and the
+            # follow-up fan-out only exists in deep mode — without this its
+            # needs_more_research vanished silently. Fast lane can't fan out:
+            # the bridge burst budget is 100 reqs/5min (see .env) and a
+            # researcher per question would spend it. Record the questions as
+            # coverage gaps instead so they surface in the report's
+            # missing_info.
+            contradictions.coverage_gaps.extend(
+                r.question for r in contradictions.needs_more_research
+            )
+            trace.event(
+                "phase",
+                f"fast lane: {len(contradictions.needs_more_research)} follow-up "
+                "question(s) recorded as coverage gaps — no follow-up fan-out "
+                "in fast lane (bridge burst budget)",
+                phase="cross_examine",
+            )
     else:
         trace.event("phase", "auditing package completeness", phase="gap")
         # 2b. Gap analysis: what does a full diligence package need that the docs lack?

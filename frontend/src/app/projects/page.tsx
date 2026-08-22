@@ -15,10 +15,10 @@ export default function ProjectsPage() {
       {/* head-row */}
       <div className="mb-5 flex flex-wrap items-start justify-between gap-2.5">
         <div>
-          <div className="mb-1 text-[22px] font-semibold text-ink">
+          <div className="mb-1 text-2xl font-semibold text-ink">
             Current projects
           </div>
-          <div className="flex items-center gap-2 text-[13.5px] text-muted">
+          <div className="flex items-center gap-2 text-[15px] text-muted">
             <span className="relative flex h-[7px] w-[7px] flex-none">
               <span
                 className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-60"

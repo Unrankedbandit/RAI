@@ -24,7 +24,7 @@ export function Chip({
         active
           ? tone === "brand"
             ? "bg-brand text-white"
-            : "bg-ink text-white"
+            : "bg-oxford text-white"
           : "bg-surface-2 text-ink hover:bg-vista-soft",
         className,
       )}

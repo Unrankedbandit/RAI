@@ -31,10 +31,10 @@ function MetaRow({
 }) {
   return (
     <div className="flex items-center justify-between py-2.5">
-      <span className="text-[12px] text-muted">{label}</span>
+      <span className="text-[12.5px] text-muted">{label}</span>
       <span
         className={clsx(
-          "text-[12px]",
+          "text-[12.5px]",
           mono && "font-jetbrains",
           faint ? "text-faint" : "text-ink",
         )}
@@ -47,7 +47,7 @@ function MetaRow({
 
 export function ScoreSheet({ parcel }: { parcel: Parcel | null }) {
   return (
-    <aside className="flex w-[360px] flex-none flex-col rounded-[11px] border border-hairline bg-white shadow-card">
+    <aside className="flex w-[380px] flex-none flex-col rounded-[11px] border border-hairline bg-canvas shadow-card">
       {!parcel ? (
         /* empty state */
         <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
@@ -57,8 +57,8 @@ export function ScoreSheet({ parcel }: { parcel: Parcel | null }) {
               <path d="M3 6.5 10 10l7-3.5M10 10v7" strokeLinejoin="round" />
             </svg>
           </div>
-          <p className="text-[13px] font-medium text-ink">Select a parcel</p>
-          <p className="mt-1 text-[12px] leading-relaxed text-muted">
+          <p className="text-sm font-medium text-ink">Select a parcel</p>
+          <p className="mt-1 text-[12.5px] leading-relaxed text-muted">
             Every parcel is scored 0–100 for solar-development probability.
             Red is no-go, green is go — click any parcel for the breakdown.
           </p>
@@ -82,21 +82,21 @@ export function ScoreSheet({ parcel }: { parcel: Parcel | null }) {
                   {parcel.score}
                 </span>
               </span>
-              <span className="text-[11px] font-medium uppercase tracking-wide text-muted">
+              <span className="text-[12.5px] font-medium uppercase tracking-wide text-muted">
                 {scoreVerdict(parcel.score)}
               </span>
             </div>
             <h2 className="mt-3 text-[15px] font-semibold leading-snug text-ink">
               {parcel.address}
             </h2>
-            <p className="mt-0.5 text-[12px] text-muted">
+            <p className="mt-0.5 text-[12.5px] text-muted">
               <span className="font-jetbrains">{parcel.acres}</span> ac ·{" "}
               {parcel.county} County
             </p>
 
             {/* why this score */}
             <div className="mt-5">
-              <h3 className="text-[11px] font-semibold uppercase tracking-wide text-muted">
+              <h3 className="text-[12.5px] font-semibold uppercase tracking-wide text-muted">
                 Why this score
               </h3>
               <div className="mt-2.5 space-y-2.5">
@@ -104,7 +104,7 @@ export function ScoreSheet({ parcel }: { parcel: Parcel | null }) {
                   const pct = Math.round(parcel.drivers[key] * 100);
                   return (
                     <div key={key} className="flex items-center gap-2.5">
-                      <span className="w-28 flex-none text-[12px] text-muted">
+                      <span className="w-28 flex-none text-[12.5px] text-muted">
                         {label}
                       </span>
                       <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-vista-soft">
@@ -113,7 +113,7 @@ export function ScoreSheet({ parcel }: { parcel: Parcel | null }) {
                           style={{ width: `${pct}%` }}
                         />
                       </div>
-                      <span className="w-8 flex-none text-right font-jetbrains text-[12px] text-ink">
+                      <span className="w-9 flex-none text-right font-jetbrains text-[12.5px] text-ink">
                         {pct}
                       </span>
                     </div>
@@ -135,10 +135,10 @@ export function ScoreSheet({ parcel }: { parcel: Parcel | null }) {
 
             {/* vintage + disclaimer */}
             <div className="mt-4">
-              <div className="font-jetbrains text-[11px] text-faint">
+              <div className="font-jetbrains text-[12.5px] text-faint">
                 Score as of {parcel.scoredAt}
               </div>
-              <p className="mt-0.5 text-[11px] text-faint">
+              <p className="mt-0.5 text-[12.5px] text-faint">
                 Probabilistic estimate — not an appraisal.
               </p>
             </div>
@@ -148,11 +148,11 @@ export function ScoreSheet({ parcel }: { parcel: Parcel | null }) {
           <div className="flex-none border-t border-hairline p-4">
             <Link
               href={`/scanning?from=discover&apn=${encodeURIComponent(parcel.apn)}&score=${parcel.score}`}
-              className="block w-full rounded-full bg-oxford py-3 text-center text-[13px] font-semibold text-white transition-opacity hover:opacity-90"
+              className="block w-full rounded-full bg-oxford py-3 text-center text-sm font-semibold text-white transition-opacity hover:opacity-90"
             >
               Run full due diligence →
             </Link>
-            <p className="mt-2 text-center text-[10.5px] text-faint">
+            <p className="mt-2 text-center text-[12.5px] text-faint">
               Creates the project with this parcel as its first evidence item.
             </p>
           </div>

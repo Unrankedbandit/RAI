@@ -71,7 +71,7 @@ export function StatusDonut({
         {segments.map((seg) => (
           <li
             key={seg.label}
-            className="flex items-center gap-2 text-[11.5px] text-muted"
+            className="flex items-center gap-2 text-[12.5px] text-muted"
           >
             <span
               aria-hidden

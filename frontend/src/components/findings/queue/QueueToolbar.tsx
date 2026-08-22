@@ -32,7 +32,7 @@ export function QueueToolbar({
         onChange={(e) => onQueryChange(e.target.value)}
         placeholder="Search title, key, workstream, project…"
         aria-label="Search findings"
-        className="w-[240px] rounded-full bg-white px-3.5 py-1.5 text-[13px] text-ink ring-1 ring-hairline placeholder:text-faint focus:outline-none focus:ring-oxford"
+        className="w-[240px] rounded-full bg-canvas px-3.5 py-1.5 text-sm text-ink ring-1 ring-hairline placeholder:text-faint focus:outline-none focus:ring-oxford"
       />
       {FILTERS.map((f) => (
         <Chip
@@ -43,7 +43,7 @@ export function QueueToolbar({
           {f.label}
         </Chip>
       ))}
-      <span className="ml-auto text-[11px] text-faint">
+      <span className="ml-auto text-[12.5px] text-faint">
         {resultCount} {resultCount === 1 ? "finding" : "findings"}
       </span>
     </div>

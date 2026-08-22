@@ -71,7 +71,7 @@ export function DiscoverMap({
         </defs>
 
         {/* street grid — hairlines on the recessed surface */}
-        <g stroke="#ECEEF3" strokeWidth="1">
+        <g stroke="var(--color-hairline)" strokeWidth="1">
           {Array.from({ length: 19 }, (_, i) => (i + 1) * 50).map((v) => (
             <line key={`v${v}`} x1={v} y1={0} x2={v} y2={1000} />
           ))}
@@ -95,7 +95,7 @@ export function DiscoverMap({
                 d={p.path}
                 fill={scoring ? scoreColor(p.score) : NO_DATA_COLOR}
                 fillOpacity={scoring ? 0.85 : 0.7}
-                stroke={selected ? "#ffffff" : "#5b5a72"}
+                stroke={selected ? "#ffffff" : "var(--color-muted)"}
                 strokeOpacity={selected ? 1 : 0.35}
                 strokeWidth={selected ? 14 : 2}
                 strokeLinejoin="round"
@@ -132,7 +132,7 @@ export function DiscoverMap({
       {!scoring && (
         <div
           className={clsx(
-            "absolute left-1/2 top-4 -translate-x-1/2 rounded-full px-3 py-1 text-[11px] font-medium",
+            "absolute left-1/2 top-4 -translate-x-1/2 rounded-full px-3 py-1 text-[12.5px] font-medium",
             PREVIEW_LAYERS[activeLayer].chip,
           )}
         >

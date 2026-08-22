@@ -32,7 +32,7 @@ export function MapTab() {
                 key={t.id}
                 type="button"
                 onClick={() => flipToggle(t.id)}
-                className={`cursor-pointer rounded-full border px-[13px] py-[7px] text-[11.5px] ${
+                className={`cursor-pointer rounded-full border px-[13px] py-[7px] text-[12.5px] ${
                   t.on
                     ? "border-watch-soft bg-watch-soft text-watch-ink"
                     : "border-hairline bg-canvas text-muted"
@@ -45,19 +45,19 @@ export function MapTab() {
 
           {/* Parcel size */}
           <div className="mb-4 rounded-[1px] border border-hairline p-[10px_12px]">
-            <div className="mb-[3px] text-[10.5px] text-faint">Parcel size</div>
+            <div className="mb-[3px] text-[12.5px] text-faint">Parcel size</div>
             <div className="text-[16px] font-semibold text-ink">{map.parcelSize}</div>
           </div>
 
           {/* Distance & logistics */}
-          <div className="mb-[9px] text-[11px] font-semibold text-faint">
+          <div className="mb-[9px] text-[12.5px] font-semibold text-faint">
             Distance &amp; logistics
           </div>
           <div className="mb-4 rounded-[1px] border border-hairline px-3">
             {map.distances.map((d) => (
               <div
                 key={d.label}
-                className="flex justify-between border-t border-hairline py-[9px] text-[12px] text-muted first:border-t-0"
+                className="flex justify-between border-t border-hairline py-[9px] text-[12.5px] text-muted first:border-t-0"
               >
                 <span>{d.label}</span>
                 <span className="font-medium text-ink">{d.value}</span>
@@ -66,42 +66,42 @@ export function MapTab() {
           </div>
 
           {/* Selected zone */}
-          <div className="mb-[9px] text-[11px] font-semibold text-faint">Selected zone</div>
+          <div className="mb-[9px] text-[12.5px] font-semibold text-faint">Selected zone</div>
           <div className="mb-4 min-h-[56px] rounded-[1px] border border-hairline p-[12px_14px]">
             {selectedZone ? (
               <>
-                <div className="mb-[5px] text-[12.5px] font-semibold text-ink">
+                <div className="mb-[5px] text-sm font-semibold text-ink">
                   {selectedZone.title}
                 </div>
-                <div className="mb-2 text-[12px] leading-[1.55] text-muted">
+                <div className="mb-2 text-[12.5px] leading-[1.55] text-muted">
                   {selectedZone.description}
                 </div>
                 <a
                   href="#"
-                  className="text-[11px] text-muted underline underline-offset-2 hover:text-ink"
+                  className="text-[12.5px] text-muted underline underline-offset-2 hover:text-ink"
                 >
                   View source: {selectedZone.source}
                 </a>
               </>
             ) : (
-              <div className="text-[12px] text-faint">
+              <div className="text-[12.5px] text-faint">
                 Click a shaded zone on the map for details.
               </div>
             )}
           </div>
 
           {/* Legend */}
-          <div className="mb-[9px] text-[11px] font-semibold text-faint">Legend</div>
+          <div className="mb-[9px] text-[12.5px] font-semibold text-faint">Legend</div>
           <div className="flex flex-wrap gap-[18px]">
-            <div className="flex items-center gap-[7px] text-[11.5px] text-muted">
+            <div className="flex items-center gap-[7px] text-[12.5px] text-muted">
               <span className="h-[9px] w-[9px] flex-none rounded-[3px] bg-strong" />
               Suitable for development
             </div>
-            <div className="flex items-center gap-[7px] text-[11.5px] text-muted">
+            <div className="flex items-center gap-[7px] text-[12.5px] text-muted">
               <span className="h-[9px] w-[9px] flex-none rounded-[3px] bg-risk" />
               Restricted — requires review
             </div>
-            <div className="flex items-center gap-[7px] text-[11.5px] text-muted">
+            <div className="flex items-center gap-[7px] text-[12.5px] text-muted">
               <span className="h-[9px] w-[9px] flex-none rounded-[3px] bg-ink" />
               Interconnection point
             </div>
@@ -116,7 +116,7 @@ export function MapTab() {
               className="absolute inset-0 opacity-70"
               style={{
                 backgroundImage:
-                  "linear-gradient(to right,#ECEEF3 1px,transparent 1px),linear-gradient(to bottom,#ECEEF3 1px,transparent 1px)",
+                  "linear-gradient(to right,var(--color-hairline) 1px,transparent 1px),linear-gradient(to bottom,var(--color-hairline) 1px,transparent 1px)",
                 backgroundSize: "32px 32px",
               }}
             />
@@ -146,7 +146,7 @@ export function MapTab() {
 
             {/* Site pin */}
             <div
-              className="absolute h-[12px] w-[12px] rounded-full border-2 border-white bg-ink"
+              className="absolute h-[12px] w-[12px] rounded-full border-2 border-canvas bg-ink"
               style={{
                 left: `${map.pin.left}%`,
                 top: `${map.pin.top}%`,
@@ -154,14 +154,14 @@ export function MapTab() {
               }}
             />
             <div
-              className="absolute whitespace-nowrap rounded-full border border-hairline bg-white px-[7px] py-[2px] text-[10.5px] font-semibold text-ink"
+              className="absolute whitespace-nowrap rounded-full border border-hairline bg-canvas px-[9px] py-[3px] text-[12.5px] font-semibold text-ink"
               style={{ left: `${map.pin.left + 4}%`, top: `${map.pin.top - 4}%` }}
             >
               {map.pin.label}
             </div>
 
             {/* Placeholder note */}
-            <div className="absolute bottom-[10px] left-[10px] rounded-full bg-white/90 px-[9px] py-1 text-[10.5px] text-faint">
+            <div className="absolute bottom-[10px] left-[10px] rounded-full bg-canvas/90 px-[9px] py-1 text-[12.5px] text-faint">
               Placeholder — layers not wired to real GIS data yet
             </div>
           </div>

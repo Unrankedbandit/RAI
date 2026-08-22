@@ -71,6 +71,7 @@ async def uploads(files: list[UploadFile] = File(...)):
 
 @app.post("/api/projects/analyze")
 async def analyze(req: AnalyzeRequest):
+    from .agents.base import PROVIDER
     job_id = uuid.uuid4().hex[:12]
     queue: asyncio.Queue = asyncio.Queue()
     JOB_QUEUES[job_id] = queue
@@ -95,6 +96,18 @@ async def analyze(req: AnalyzeRequest):
     )
     trace.event("job.created", f"job {job_id} queued")
     reporter.start(req.name, req.location, req.docs)
+
+    # Missing credential: keep the analyze→jobId contract (the E2E harness and
+    # CI depend on it) and surface the cause as the terminal __ERROR__ frame —
+    # an HTTP error here breaks the live-feedback pipe the demo runs on.
+    _missing = (PROVIDER == "openai" and not os.getenv("LLM_API_KEY")) or (
+        PROVIDER != "openai" and not os.getenv("ANTHROPIC_API_KEY"))
+    if _missing:
+        _which = "LLM_API_KEY" if PROVIDER == "openai" else "ANTHROPIC_API_KEY"
+        _msg = f"{_which} not configured — set it in agent_backend/.env (check /api/health)"
+        trace.event("job.error", _msg, level="error")
+        queue.put_nowait(f"__ERROR__ {_msg}")
+        return {"jobId": job_id}
 
     async def work():
         def status(msg: str):
@@ -208,7 +221,15 @@ async def stream(job_id: str):
 
 @app.get("/api/reports/{job_id}")
 async def get_report(job_id: str):
-    return json.loads((STORE / f"{job_id}.json").read_text(encoding="utf-8"))
+    path = STORE / f"{job_id}.json"
+    if not path.exists():
+        # A missing job report means the run failed before persisting — say so
+        # instead of crashing with a 500 FileNotFoundError.
+        raise HTTPException(
+            status_code=404,
+            detail=f"no report for job {job_id} — the run may have failed; check /api/jobs/{job_id}/trace",
+        )
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 @app.post("/api/reports/{report_id}/ask")
@@ -266,10 +287,10 @@ async def get_answer(ask_id: str):
 @app.get("/api/projects")
 async def portfolio():
     """Portfolio dashboard: every completed report, worst first."""
-    reports = [Report.model_validate_json(p.read_text(encoding="utf-8")) for p in STORE.glob("*.json")]
-    reports.sort(key=lambda r: r.readiness)
+    pairs = [(p.stem, Report.model_validate_json(p.read_text(encoding="utf-8"))) for p in STORE.glob("*.json")]
+    pairs.sort(key=lambda t: t[1].readiness)
     return [
-        {"project": r.project, "location": r.location, "readiness": r.readiness,
+        {"id": pid, "project": r.project, "location": r.location, "readiness": r.readiness,
          "decision": r.decision, "dimensions": [d.model_dump() for d in r.dimensions]}
-        for r in reports
+        for pid, r in pairs
     ]

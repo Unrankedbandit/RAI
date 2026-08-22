@@ -235,7 +235,7 @@ function PriorityCard({ context }: { context: AskLauncherContext }) {
 
   return (
     <div className="mb-2 border-b border-hairline pb-3">
-      <div className="mb-[5px] text-[10.5px] uppercase tracking-wide text-faint">
+      <div className="mb-[5px] text-[12.5px] uppercase tracking-wide text-faint">
         Suggested priority
       </div>
       <div className="text-[12px] leading-[1.5] text-muted">{body}</div>
@@ -335,12 +335,12 @@ export function AskLauncher({ context }: { context: AskLauncherContext }) {
         <div
           role="dialog"
           aria-label="Ask RAI"
-          className="absolute right-0 top-[calc(100%+6px)] z-50 w-[320px] rounded-[11px] border border-hairline bg-white shadow-pop"
+          className="absolute right-0 top-[calc(100%+6px)] z-50 w-[320px] rounded-[11px] border border-hairline bg-canvas shadow-pop"
         >
           {/* Header */}
           <div className="border-b border-hairline px-[14px] py-3">
             <div className="text-[12px] font-semibold text-ink">Ask RAI</div>
-            <div className="mt-[2px] text-[10.5px] text-faint">
+            <div className="mt-[2px] text-[12.5px] text-faint">
               {SCOPE_SUB[context.scope]}
             </div>
           </div>
@@ -391,7 +391,7 @@ export function AskLauncher({ context }: { context: AskLauncherContext }) {
                     key={q.question}
                     type="button"
                     onClick={() => ask(q.question)}
-                    className="cursor-pointer rounded-full border border-hairline bg-surface-2 px-[10px] py-[6px] text-[10.5px] text-muted hover:border-oxford hover:text-ink"
+                    className="cursor-pointer rounded-full border border-hairline bg-surface-2 px-[10px] py-[6px] text-[12.5px] text-muted hover:border-oxford hover:text-ink"
                   >
                     {q.question}
                   </button>
@@ -415,7 +415,7 @@ export function AskLauncher({ context }: { context: AskLauncherContext }) {
                 type="button"
                 aria-label="Send"
                 onClick={submit}
-                className="inline-flex h-6 w-6 flex-none items-center justify-center rounded-full bg-oxford text-[11px] text-white hover:opacity-90"
+                className="inline-flex h-6 w-6 flex-none items-center justify-center rounded-full bg-oxford text-[12.5px] text-white hover:opacity-90"
               >
                 →
               </button>

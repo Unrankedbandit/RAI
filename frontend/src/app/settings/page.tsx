@@ -41,7 +41,7 @@ function Switch({
         />
         <span
           className={clsx(
-            "absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow-card transition-transform",
+            "absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-canvas shadow-card transition-transform",
             checked && "translate-x-4",
           )}
         />
@@ -95,7 +95,7 @@ export default function SettingsPage() {
               type="text"
               value={workspace}
               onChange={(e) => setWorkspace(e.target.value)}
-              className="mt-2 w-full rounded-[5px] border border-hairline bg-white px-3 py-2 text-sm text-ink placeholder:text-faint"
+              className="mt-2 w-full rounded-[5px] border border-hairline bg-canvas px-3 py-2 text-sm text-ink placeholder:text-faint"
               placeholder="Workspace name"
             />
           </div>
@@ -154,7 +154,7 @@ export default function SettingsPage() {
                 max={100}
                 value={clearedAt}
                 onChange={(e) => setClearedAt(Number(e.target.value))}
-                className="mt-2 w-full rounded-[5px] border border-hairline bg-white px-3 py-2 text-sm text-ink"
+                className="mt-2 w-full rounded-[5px] border border-hairline bg-canvas px-3 py-2 text-sm text-ink"
               />
             </div>
             <div>
@@ -172,7 +172,7 @@ export default function SettingsPage() {
                 max={100}
                 value={watchAt}
                 onChange={(e) => setWatchAt(Number(e.target.value))}
-                className="mt-2 w-full rounded-[5px] border border-hairline bg-white px-3 py-2 text-sm text-ink"
+                className="mt-2 w-full rounded-[5px] border border-hairline bg-canvas px-3 py-2 text-sm text-ink"
               />
             </div>
           </div>

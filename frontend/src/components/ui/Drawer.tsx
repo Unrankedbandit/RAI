@@ -42,7 +42,7 @@ export function Drawer({
             onClick={onClose}
           />
           <motion.aside
-            className="fixed right-0 top-0 z-50 flex h-full max-w-[92vw] flex-col bg-white shadow-pop"
+            className="fixed right-0 top-0 z-50 flex h-full max-w-[92vw] flex-col bg-canvas shadow-pop"
             style={{ width }}
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
