@@ -140,6 +140,15 @@ the whole run afterwards. "The agent is slow" and "Daytona took 8s to
 provision" are meant to be distinguishable. Anything shaped like a credential is
 masked at the sink, since traces get pasted into issues and shown in demos.
 
+### Control plane (optional Port integration)
+
+With `PORT_CLIENT_ID`/`PORT_CLIENT_SECRET` set, every run is mirrored into a
+[Port](https://port.io) catalog as it happens: one `factory_run` entity per job
+(updated at each phase boundary), one `factory_agent_run` per agent, findings
+as `factory_finding` entities — and each finished run lands in
+`AWAITING_REVIEW` so a human approves the result in Port. Unset, it's a no-op.
+Setup, blueprint JSON, and the operator walkthrough: **[docs/port-factory.md](docs/port-factory.md)**.
+
 ### Frontend contract
 
 The dashboard talks to the backend over plain HTTP plus one SSE stream:
