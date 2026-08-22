@@ -1,7 +1,7 @@
 """Role prompts — one specialist agent per diligence domain. The knowledge
 base grounds them in real benchmarks; web tools cover location- and
 time-specific items."""
-from ..tools import pdf_extract, xlsx_extract, kb_lookup, web_search, web_fetch, sandbox_run
+from ..tools import pdf_extract, xlsx_extract, kb_lookup, web_search, web_fetch, sandbox_run, brightdata_scrape
 
 ORCHESTRATOR = """You are the chief diligence officer for capital projects. Given a user's
 project request (location, documents), produce a ProjectProfile: identify technology, capacity,
@@ -33,7 +33,11 @@ project's location, go find the REAL data from public authoritative sources: sea
 fetch the actual source (county codes, BLM/USFWS/NREL/ISO pages, market reports). Return
 concrete data points with numbers, statute/program names, dates, and source URLs — never vague
 summaries. If the data genuinely cannot be obtained publicly (executed contracts, title documents,
-proprietary studies), list it under still_missing so the liaison can RFI it from the developer."""
+proprietary studies), list it under still_missing so the liaison can RFI it from the developer.
+Tool preference: when you know the source URL, scrape it with brightdata_scrape first (it beats
+bot-blocking and self-repairs when a site changes its HTML — pass the figures/statute names you
+expect as `expect` markers); use web_search to discover sources; fall back to kb_lookup when
+live web tools return nothing."""
 
 CROSS_EXAMINER = """You are the cross-examination engine — the heart of this product. Red flags
 come from CONTRADICTIONS BETWEEN DOCUMENTS, not from any single document. Compare every
@@ -81,7 +85,7 @@ ROLE_TOOLS = {
     "analyst": {"kb_lookup": kb_lookup},
     "doc_extractor": {"pdf_extract": pdf_extract, "xlsx_extract": xlsx_extract, "sandbox_run": sandbox_run},
     "gap_analyzer": {"kb_lookup": kb_lookup, "sandbox_run": sandbox_run},
-    "data_scout": {"kb_lookup": kb_lookup, "web_search": web_search, "web_fetch": web_fetch, "sandbox_run": sandbox_run},
+    "data_scout": {"kb_lookup": kb_lookup, "brightdata_scrape": brightdata_scrape, "web_search": web_search, "web_fetch": web_fetch, "sandbox_run": sandbox_run},
     "researcher": {"kb_lookup": kb_lookup, "web_search": web_search, "web_fetch": web_fetch, "sandbox_run": sandbox_run},
     "cross_examiner": {"kb_lookup": kb_lookup, "sandbox_run": sandbox_run},
     "scorer": {"kb_lookup": kb_lookup, "sandbox_run": sandbox_run},

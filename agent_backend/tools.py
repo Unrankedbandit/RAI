@@ -8,6 +8,7 @@ route untrusted uploads through `sandbox_run` before trusting their contents.
 """
 from __future__ import annotations
 
+import json
 import os
 import re
 from pathlib import Path
@@ -77,6 +78,114 @@ def web_fetch(url: str) -> str:
     return re.sub(r"\s+", " ", text)[:8000]
 
 
+# --- Bright Data Web Unlocker -------------------------------------------------
+# POST https://api.brightdata.com/request — Bearer token + zone, returns page
+# content (data_format=markdown). The repair path escalates to render="true"
+# when expected markers vanish, i.e. the target site changed its HTML.
+# Note: Bright Data's AI `extract` tool exists only on their MCP server (it
+# samples the MCP client's LLM) — no standalone AI-extract REST endpoint is
+# documented, so repair re-fetches with rendering instead of guessing one.
+
+BRIGHTDATA_ENDPOINT = "https://api.brightdata.com/request"
+
+
+def _bd_unlock(url: str, *, render: bool, timeout: float) -> str:
+    """One Web Unlocker call. With format=raw the body comes back as plain
+    text; if the documented JSON envelope ({status_code, headers, body}) is
+    what comes back instead, unwrap it."""
+    import httpx
+    payload = {
+        "zone": os.getenv("BRIGHTDATA_ZONE", "web_unlocker1"),
+        "url": url,
+        "format": "raw",
+        "data_format": "markdown",
+    }
+    if render:
+        payload["render"] = "true"
+    r = httpx.post(
+        BRIGHTDATA_ENDPOINT,
+        headers={
+            "Authorization": f"Bearer {os.environ['BRIGHTDATA_API_TOKEN']}",
+            "Content-Type": "application/json",
+        },
+        json=payload,
+        timeout=timeout,
+    )
+    r.raise_for_status()
+    text = r.text
+    try:
+        envelope = json.loads(text)
+    except ValueError:
+        return text
+    if isinstance(envelope, dict) and isinstance(envelope.get("body"), str):
+        return envelope["body"]
+    return text
+
+
+def _missing_markers(content: str, markers: list[str]) -> list[str]:
+    low = content.lower()
+    return [m for m in markers if m.lower() not in low]
+
+
+def brightdata_scrape(url: str, expect: str = "") -> str:
+    """Scrape a URL through Bright Data Web Unlocker — bot-detection and CAPTCHA
+    proof — and return clean markdown. Validates the comma-separated `expect`
+    markers the caller says the page must contain (figures, statute names);
+    when they vanish the tool assumes the site's HTML changed and self-repairs
+    by re-fetching with JS rendering. Needs BRIGHTDATA_API_TOKEN; without it
+    returns empty so the agent falls back to web_search/kb_lookup."""
+    from .obs import current_trace
+    t = current_trace()
+    if not os.getenv("BRIGHTDATA_API_TOKEN", ""):
+        t.event("scraper.skipped",
+                "BRIGHTDATA_API_TOKEN not set — returning empty; agent falls back "
+                "to web_search/kb_lookup", url=url)
+        return ""
+    timeout = float(os.getenv("BRIGHTDATA_TIMEOUT_S", "60"))
+    markers = [m.strip() for m in expect.split(",") if m.strip()]
+
+    content = ""
+    try:
+        with t.span("scraper.fetch", f"unlock {url}", url=url) as sp:
+            content = _bd_unlock(url, render=False, timeout=timeout)
+            sp["chars"] = len(content)
+    except Exception as exc:
+        t.error("scraper.failed", f"unlock request failed — {type(exc).__name__}: {exc}",
+                url=url, render=False)
+
+    missing = _missing_markers(content, markers)
+    if content.strip() and not missing:
+        return content
+    reason = ("empty response" if not content.strip()
+              else f"expected markers absent: {', '.join(missing)}")
+    t.warn("scraper.repair",
+           f"{url}: {reason} — page structure may have changed; "
+           "re-fetching with JS rendering",
+           url=url, reason=reason, markers=markers)
+
+    try:
+        with t.span("scraper.fetch", f"repair render {url}", url=url, render=True) as sp:
+            repaired = _bd_unlock(url, render=True, timeout=timeout)
+            sp["chars"] = len(repaired)
+    except Exception as exc:
+        t.error("scraper.failed", f"repair fetch failed — {type(exc).__name__}: {exc}",
+                url=url, render=True, reason=reason)
+        return ""
+    if not repaired.strip():
+        t.error("scraper.failed", "repair fetch returned empty — giving up",
+                url=url, render=True, reason=reason)
+        return ""
+    still = _missing_markers(repaired, markers)
+    if still:
+        # The site really did change: the old markers, not the pipeline, are
+        # stale. Return the rendered markdown and say which markers went away
+        # so the agent re-derives expectations from the live page.
+        t.event("scraper.repaired",
+                f"rendered fetch succeeded; markers still absent (stale): {', '.join(still)}",
+                url=url, stillMissing=still, chars=len(repaired))
+    return repaired
+
+
 def sandbox_run(code: str) -> str:
     """Execute untrusted generated code in an isolated Daytona sandbox
     (parsing, reconciliation math, scoring) — never on the host.
@@ -97,4 +206,5 @@ xlsx_extract.schema = {"type": "object", "properties": {"filename": {"type": "st
 kb_lookup.schema = {"type": "object", "properties": {"query": {"type": "string", "description": "Keywords to search the due-diligence knowledge base for, e.g. transformer lead time or zoning prohibition"}, "max_hits": {"type": "integer", "description": "Max passages to return (default 5)"}}, "required": ["query"]}
 web_search.schema = {"type": "object", "properties": {"query": {"type": "string", "description": "Web search query for current or location-specific regulatory and market data"}}, "required": ["query"]}
 web_fetch.schema = {"type": "object", "properties": {"url": {"type": "string", "description": "Full https URL of the source page to read"}}, "required": ["url"]}
+brightdata_scrape.schema = {"type": "object", "properties": {"url": {"type": "string", "description": "Full https URL of the page to scrape through Bright Data Web Unlocker"}, "expect": {"type": "string", "description": "Comma-separated markers the page must contain (figures, statute/program names). When they vanish, the tool assumes the site's HTML changed and self-repairs with a JS-rendered fetch."}}, "required": ["url"]}
 sandbox_run.schema = {"type": "object", "properties": {"code": {"type": "string", "description": "Python code to execute in the isolated sandbox"}}, "required": ["code"]}
