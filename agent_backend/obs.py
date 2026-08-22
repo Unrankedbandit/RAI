@@ -24,6 +24,8 @@ from contextvars import ContextVar
 from dataclasses import dataclass, field
 from typing import Any, Callable, Iterator
 
+from . import telemetry  # SigNoz/OTel bridge; no-op unless enabled there
+
 # ── configuration ────────────────────────────────────────────────────────────
 
 TRACE_LEVEL = os.getenv("TRACE_LEVEL", "info").lower()  # debug | info | warn
@@ -184,6 +186,7 @@ class Trace:
                 self._sink(e.to_json())
             except Exception:
                 pass  # a broken sink must never take the pipeline down
+        self._otel_event(e)
         return e
 
     def warn(self, kind: str, msg: str, **data: Any) -> Event:
@@ -191,6 +194,129 @@ class Trace:
 
     def error(self, kind: str, msg: str, **data: Any) -> Event:
         return self.event(kind, msg, level="error", **data)
+
+    # -- OTel/SigNoz bridge ---------------------------------------------------
+    #
+    # One OTel trace per job: a lazily-created root span `rai.job`, every
+    # `span()` block a real child span, every bare event a span event on the
+    # innermost open span. Parenting prefers the ambient OTel context (set by
+    # FastAPI auto-instrumentation in the request handler, or by `use_span`
+    # here), so an analyze run shows up under its POST span in SigNoz; the
+    # root span is the fallback for background tasks. All of this is inert
+    # unless telemetry.init_telemetry() succeeded, and every bridge call is
+    # guarded — export failures must never break a job.
+
+    def _otel_state(self) -> dict:
+        """Bridge state lives on the sequence owner so bind() views share it.
+        (Stored under `_otel_store` — a key named `_otel_state` would shadow
+        this very method on the instance and explode on the second call.)"""
+        owner = self.__dict__.get("_seq_owner", self)
+        st = owner.__dict__.get("_otel_store")
+        if st is None:
+            st = owner.__dict__["_otel_store"] = {"root": None, "stack": [], "ended": False}
+        return st
+
+    def _otel_root(self):
+        st = self._otel_state()
+        if st["root"] is None and not st["ended"]:
+            tracer = telemetry.get_tracer()
+            # No explicit context: parents to the ambient span if one exists
+            # (e.g. the POST /analyze request), else becomes a trace root.
+            st["root"] = tracer.start_span(
+                "rai.job",
+                attributes={"rai.job_id": self.job_id},
+            )
+        return st["root"]
+
+    def _otel_event(self, e: Event) -> None:
+        if not telemetry.enabled():
+            return
+        try:
+            from opentelemetry.trace import StatusCode
+            st = self._otel_state()
+            target = st["stack"][-1] if st["stack"] else self._otel_root()
+            if target is None:
+                return
+            attrs = {
+                "rai.level": e.level,
+                "rai.msg": e.msg[:500],
+            }
+            if e.phase:
+                attrs["rai.phase"] = e.phase
+            if e.agent:
+                attrs["rai.agent"] = e.agent
+            if e.duration_ms is not None:
+                attrs["rai.duration_ms"] = e.duration_ms
+            attrs.update(telemetry.sanitize_attrs(e.data))
+            target.add_event(e.kind, attributes=attrs)
+            if e.level == "error":
+                target.set_status(StatusCode.ERROR, description=e.msg[:200])
+            if e.kind in ("job.done", "job.failed"):
+                self.end()
+        except Exception:
+            pass  # telemetry is best-effort, never job-critical
+
+    def _otel_span_start(self, kind: str, msg: str, data: dict):
+        if not telemetry.enabled():
+            return None
+        try:
+            from opentelemetry import trace as otel_trace
+            tracer = telemetry.get_tracer()
+            ambient = otel_trace.get_current_span()
+            if ambient is not None and ambient.get_span_context().is_valid:
+                ot_span = tracer.start_span(kind)  # parents to ambient
+            else:
+                ot_span = tracer.start_span(
+                    kind, context=otel_trace.set_span_in_context(self._otel_root()))
+            attrs = {
+                "rai.job_id": self.job_id,
+                "rai.kind": kind,
+                "rai.msg": redact(str(msg))[:500],
+            }
+            if self._phase:
+                attrs["rai.phase"] = self._phase
+            if self._agent:
+                attrs["rai.agent"] = self._agent
+            attrs.update(telemetry.sanitize_attrs(data))
+            ot_span.set_attributes(attrs)
+            cm = otel_trace.use_span(ot_span, end_on_exit=False)
+            cm.__enter__()
+            self._otel_state()["stack"].append((ot_span, cm))
+            return ot_span
+        except Exception:
+            return None
+
+    def _otel_span_finish(self, ot_span, exc: Exception | None, data: dict) -> None:
+        if ot_span is None:
+            return
+        try:
+            from opentelemetry.trace import StatusCode
+            if exc is not None:
+                ot_span.record_exception(exc)
+                ot_span.set_status(StatusCode.ERROR, description=str(exc)[:200])
+            else:
+                ot_span.set_attributes(telemetry.sanitize_attrs(data))
+            st = self._otel_state()
+            for i in range(len(st["stack"]) - 1, -1, -1):
+                if st["stack"][i][0] is ot_span:
+                    sp, cm = st["stack"].pop(i)
+                    cm.__exit__(None, None, None)
+                    sp.end()
+                    break
+        except Exception:
+            pass
+
+    def end(self) -> None:
+        """End the job's root OTel span. Idempotent; safe without telemetry."""
+        if not telemetry.enabled():
+            return
+        try:
+            st = self._otel_state()
+            if st["root"] is not None and not st["ended"]:
+                st["ended"] = True
+                st["root"].end()
+        except Exception:
+            pass
 
     # -- timing -------------------------------------------------------------
 
@@ -201,16 +327,19 @@ class Trace:
         (token counts, result size) without a second call."""
         start = time.monotonic()
         self.event(f"{kind}.start", msg, level="debug", **data)
+        ot_span = self._otel_span_start(kind, msg, data)
         extra: dict[str, Any] = {}
         try:
             yield extra
         except Exception as exc:
+            self._otel_span_finish(ot_span, exc, {})
             self.event(
                 f"{kind}.error", f"{msg} — {type(exc).__name__}: {exc}", level="error",
                 duration_ms=int((time.monotonic() - start) * 1000), **{**data, **extra},
             )
             raise
         else:
+            self._otel_span_finish(ot_span, None, extra)
             self.event(
                 f"{kind}.done", msg,
                 duration_ms=int((time.monotonic() - start) * 1000), **{**data, **extra},

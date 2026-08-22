@@ -140,6 +140,14 @@ the whole run afterwards. "The agent is slow" and "Daytona took 8s to
 provision" are meant to be distinguishable. Anything shaped like a credential is
 masked at the sink, since traces get pasted into issues and shown in demos.
 
+**SigNoz export.** Set `SIGNOZ_INGESTION_KEY` (+ `SIGNOZ_REGION`) for SigNoz
+Cloud, or `OTEL_EXPORTER_OTLP_ENDPOINT` for a self-hosted collector, and every
+span above also exports as OpenTelemetry (`telemetry.py`): one trace per job,
+rooted at the HTTP request that started it, with token counts, durations, and
+failure/repair events as span attributes. FastAPI and httpx are
+auto-instrumented on top. Unset, the backend is byte-for-byte as before.
+`TELEMETRY_CONSOLE=1` prints spans to stdout for debugging without a backend.
+
 ### Control plane (optional Port integration)
 
 With `PORT_CLIENT_ID`/`PORT_CLIENT_SECRET` set, every run is mirrored into a
@@ -179,7 +187,7 @@ unreachable the UI degrades to mock data rather than crashing.
 | Agent models | Anthropic SDK (Claude Opus 5), or any OpenAI-compatible endpoint |
 | Code execution | Daytona ephemeral sandboxes |
 | Document parsing | pypdf · openpyxl |
-| Web research | Tavily (optional — falls back to the local knowledge base) |
+| Web research | Tavily search + Bright Data Web Unlocker scraping (both optional — fall back to the local knowledge base; see `CLAUDE.md`) |
 | Streaming | Server-Sent Events |
 | CI | GitHub Actions |
 
