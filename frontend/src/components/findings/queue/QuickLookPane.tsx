@@ -13,7 +13,7 @@ type QuickLookPaneProps = {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mb-[6px] text-[10.5px] font-medium uppercase tracking-wide text-faint">
+    <div className="mb-[6px] text-[12.5px] font-medium uppercase tracking-wide text-faint">
       {children}
     </div>
   );
@@ -31,9 +31,9 @@ export function QuickLookPane({
 }: QuickLookPaneProps) {
   if (!finding) {
     return (
-      <div className="sticky top-[22px] rounded-[11px] border border-hairline bg-white p-5 shadow-card">
-        <div className="text-[13px] font-medium text-ink">Select a finding</div>
-        <p className="mt-1 text-[11.5px] leading-[1.5] text-faint">
+      <div className="sticky top-[22px] rounded-[11px] border border-hairline bg-canvas p-5 shadow-card">
+        <div className="text-sm font-medium text-ink">Select a finding</div>
+        <p className="mt-1 text-[12.5px] leading-[1.5] text-faint">
           Click a row in the queue to preview it here.
         </p>
       </div>
@@ -41,14 +41,14 @@ export function QuickLookPane({
   }
 
   return (
-    <div className="sticky top-[22px] rounded-[11px] border border-hairline bg-white p-5 shadow-card">
+    <div className="sticky top-[22px] rounded-[11px] border border-hairline bg-canvas p-5 shadow-card">
       {/* Key + status + severity */}
       <div className="flex items-center gap-2">
-        <span className="font-jetbrains text-[11px] text-faint">
+        <span className="font-jetbrains text-[12.5px] text-faint">
           {finding.id}
         </span>
         <StatusLozenge status={finding.status} />
-        <span className="ml-auto flex items-center gap-1.5 text-[10.5px] text-muted">
+        <span className="ml-auto flex items-center gap-1.5 text-[12.5px] text-muted">
           <SeverityFlag severity={finding.severity} />
           {finding.severity}
         </span>
@@ -60,7 +60,7 @@ export function QuickLookPane({
       </div>
 
       {/* Meta row: project / owner / updated */}
-      <div className="mt-2 flex items-center gap-2 text-[11px] text-faint">
+      <div className="mt-2 flex items-center gap-2 text-[12.5px] text-faint">
         <span className="truncate">{projectName ?? finding.projectId}</span>
         <span aria-hidden="true">·</span>
         <OwnerAvatars initials={finding.ownerInitials} />
@@ -73,21 +73,21 @@ export function QuickLookPane({
         <div className="mt-4 rounded-[7px] bg-surface-2 px-[14px] py-3">
           <div className="flex items-center gap-2.5">
             <div className="min-w-0 flex-1">
-              <div className="font-jetbrains text-[13px] font-semibold text-ink">
+              <div className="font-jetbrains text-sm font-semibold text-ink">
                 {finding.evidence.left.value}
               </div>
-              <div className="mt-[3px] text-[10.5px] leading-[1.4] text-faint">
+              <div className="mt-[3px] text-[12.5px] leading-[1.4] text-faint">
                 {finding.evidence.left.source}
               </div>
             </div>
-            <span className="shrink-0 rounded-full bg-brand-soft px-2.5 py-1 text-[10px] font-medium text-risk-ink">
+            <span className="shrink-0 rounded-full bg-brand-soft px-2.5 py-1 text-xs font-medium text-risk-ink">
               conflicts with
             </span>
             <div className="min-w-0 flex-1 text-right">
-              <div className="font-jetbrains text-[13px] font-semibold text-ink">
+              <div className="font-jetbrains text-sm font-semibold text-ink">
                 {finding.evidence.right.value}
               </div>
-              <div className="mt-[3px] text-[10.5px] leading-[1.4] text-faint">
+              <div className="mt-[3px] text-[12.5px] leading-[1.4] text-faint">
                 {finding.evidence.right.source}
               </div>
             </div>
@@ -98,7 +98,7 @@ export function QuickLookPane({
       {/* Resolution — the primary text block (dark ink) */}
       <div className="mt-[18px]">
         <SectionLabel>Resolution</SectionLabel>
-        <p className="text-[13px] leading-[1.55] text-ink">
+        <p className="text-sm leading-[1.55] text-ink">
           {finding.recommendedAction}
         </p>
       </div>
@@ -106,7 +106,7 @@ export function QuickLookPane({
       {/* Why it matters */}
       <div className="mt-4">
         <SectionLabel>Why it matters</SectionLabel>
-        <p className="text-[12.5px] leading-[1.55] text-muted">
+        <p className="text-sm leading-[1.55] text-muted">
           {finding.whyItMatters}
         </p>
       </div>
@@ -128,7 +128,7 @@ export function QuickLookPane({
 
       <Link
         href={`/findings/${finding.id}`}
-        className="mt-[14px] inline-block text-[12.5px] font-medium text-ink underline underline-offset-2 hover:text-oxford"
+        className="mt-[14px] inline-block text-sm font-medium text-ink underline underline-offset-2 hover:text-oxford"
       >
         Open full finding →
       </Link>

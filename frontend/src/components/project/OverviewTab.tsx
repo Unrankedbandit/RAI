@@ -25,13 +25,13 @@ export function OverviewTab() {
         <ScoreRing score={project.activationScore} band={project.band} />
         <div>
           <div
-            className="mb-[5px] text-[13px] font-semibold"
+            className="mb-[5px] text-sm font-semibold"
             style={{ color: bandColorVar[project.band] }}
           >
             {scoreBandLabel}
           </div>
-          <div className="mb-2 text-[12px] leading-[1.5] text-muted">{scoreNote}</div>
-          <span className="inline-block rounded-full bg-surface-2 px-2.5 py-1 text-[10.5px] text-faint">
+          <div className="mb-2 text-[12.5px] leading-[1.5] text-muted">{scoreNote}</div>
+          <span className="inline-block rounded-full bg-surface-2 px-2.5 py-1 text-[12.5px] text-faint">
             {ITC_DEADLINE_LABEL}
           </span>
         </div>
@@ -48,7 +48,7 @@ export function OverviewTab() {
               i === selected ? "bg-select" : "bg-canvas"
             }`}
           >
-            <div className="mb-1.5 flex items-center justify-between text-[11.5px]">
+            <div className="mb-1.5 flex items-center justify-between text-[12.5px]">
               <span className="font-semibold text-ink">{p.name}</span>
               <span style={{ color: bandColorVar[p.band] }}>{p.score}</span>
             </div>
@@ -60,7 +60,7 @@ export function OverviewTab() {
                 transition={{ duration: 0.6, ease: "easeOut" }}
               />
             </div>
-            <div className={`text-[10px] ${p.unlocked ? "text-strong" : "text-faint"}`}>
+            <div className={`text-xs ${p.unlocked ? "text-strong" : "text-faint"}`}>
               {p.statusText}
             </div>
           </button>

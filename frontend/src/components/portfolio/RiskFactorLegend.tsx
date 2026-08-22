@@ -28,7 +28,7 @@ export function RiskFactorLegend({
 }) {
   return (
     <div className="mt-3.5">
-      <div className="mb-2.5 text-[11px] font-medium text-faint">
+      <div className="mb-2.5 text-[12.5px] font-medium text-faint">
         Risk factors evaluated
       </div>
       <div className="grid grid-cols-2 gap-x-3.5 gap-y-2">
@@ -40,8 +40,8 @@ export function RiskFactorLegend({
               aria-hidden
             />
             <div>
-              <div className="text-[11.5px] font-medium text-ink">{f.name}</div>
-              <div className="text-[10px] text-faint">{CATEGORY_SUB[f.name]}</div>
+              <div className="text-[12.5px] font-medium text-ink">{f.name}</div>
+              <div className="text-xs text-faint">{CATEGORY_SUB[f.name]}</div>
             </div>
           </div>
         ))}

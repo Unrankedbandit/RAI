@@ -136,10 +136,10 @@ export default function FindingsPage() {
   return (
     <PortfolioShell>
       <div className="flex items-center gap-2">
-        <div className="text-[22px] font-semibold text-ink">Findings</div>
+        <div className="text-2xl font-semibold text-ink">Findings</div>
         <AskLauncher context={{ scope: "queue" }} />
       </div>
-      <p className="mt-1 mb-[22px] text-[13.5px] text-muted">
+      <p className="mt-1 mb-[22px] text-[15px] text-muted">
         Every contradiction and gap across the portfolio, in one queue.
       </p>
 
@@ -156,7 +156,7 @@ export default function FindingsPage() {
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1 space-y-3">
           {lanes.length === 0 ? (
-            <div className="rounded-[11px] border border-hairline bg-white px-5 py-[18px] text-[13px] text-faint shadow-card">
+            <div className="rounded-[11px] border border-hairline bg-canvas px-5 py-[18px] text-sm text-faint shadow-card">
               No findings match the current filters.
             </div>
           ) : (

@@ -59,13 +59,18 @@ def web_search(query: str) -> str:
     """Search the web for current, location-specific regulatory/market data."""
     key = os.getenv("TAVILY_API_KEY", "")
     if not key:
-        return kb_lookup(query)  # demo-resilient fallback: answer from KB
+        # Offline mode: these are knowledge-base passages, NOT web results —
+        # they carry no URLs. Say so plainly, or scouts invent citations for
+        # text that never came from the web.
+        return "WEB SEARCH UNAVAILABLE (no TAVILY_API_KEY) — knowledge-base fallback, do not cite URLs from this:\n" + kb_lookup(query)
     import httpx
     r = httpx.post(
         "https://api.tavily.com/search",
         json={"api_key": key, "query": query, "max_results": 5},
         timeout=30,
     )
+    if r.status_code >= 400:
+        return f"WEB SEARCH FAILED: HTTP {r.status_code} — fall back to kb_lookup."
     results = r.json().get("results", [])
     return "\n".join(f"- {x['title']}: {x['url']}\n  {x.get('content','')[:400]}" for x in results)
 
@@ -74,6 +79,10 @@ def web_fetch(url: str) -> str:
     """Fetch and read a specific source document or regulation page."""
     import httpx
     r = httpx.get(url, timeout=30, follow_redirects=True)
+    if r.status_code >= 400:
+        # A 404 page stripped of tags reads like real content — the scout
+        # can't tell a dead link from a source. State the failure explicitly.
+        return f"FETCH FAILED: HTTP {r.status_code} for {url} — do not cite this URL; try another source or kb_lookup."
     text = re.sub(r"<[^>]+>", " ", r.text)
     return re.sub(r"\s+", " ", text)[:8000]
 

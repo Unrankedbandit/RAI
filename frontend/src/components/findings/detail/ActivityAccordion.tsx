@@ -20,7 +20,7 @@ export function ActivityAccordion({ activity }: { activity: FindingActivity[] })
         aria-expanded={open}
         className="flex w-full items-center justify-between px-5 py-4 text-left"
       >
-        <span className="text-[12.5px] font-semibold text-ink">
+        <span className="text-sm font-semibold text-ink">
           Activity — {activity.length} {activity.length === 1 ? "event" : "events"}
         </span>
         <svg
@@ -49,16 +49,16 @@ export function ActivityAccordion({ activity }: { activity: FindingActivity[] })
             >
               <span
                 className={clsx(
-                  "w-8 flex-none font-jetbrains text-[11px] text-ink",
+                  "w-9 flex-none font-jetbrains text-[12.5px] text-ink",
                   event.actor === "RAI" && "font-bold",
                 )}
               >
                 {event.actor}
               </span>
-              <span className="min-w-0 flex-1 text-[12.5px] text-muted">
+              <span className="min-w-0 flex-1 text-sm text-muted">
                 {event.text}
               </span>
-              <span className="flex-none text-right text-[11px] text-faint">
+              <span className="flex-none text-right text-[12.5px] text-faint">
                 {event.timestamp}
               </span>
             </div>

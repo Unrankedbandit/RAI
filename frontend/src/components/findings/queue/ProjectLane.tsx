@@ -22,11 +22,11 @@ export function ProjectLane({
   onSelect,
 }: ProjectLaneProps) {
   return (
-    <section className="overflow-hidden rounded-[11px] border border-hairline bg-white shadow-card">
+    <section className="overflow-hidden rounded-[11px] border border-hairline bg-canvas shadow-card">
       <header className="flex items-baseline gap-2.5 border-b border-hairline px-5 py-[14px]">
-        <span className="text-[13px] font-semibold text-ink">{projectName}</span>
-        <span className="text-[11px] text-muted">{bandLabel}</span>
-        <span className="ml-auto text-[11px] text-faint">
+        <span className="text-sm font-semibold text-ink">{projectName}</span>
+        <span className="text-[12.5px] text-muted">{bandLabel}</span>
+        <span className="ml-auto text-[12.5px] text-faint">
           {openCount} open
         </span>
       </header>

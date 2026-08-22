@@ -69,10 +69,10 @@ export function NewProjectDropbox() {
           <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" />
         </svg>
         <div>
-          <div className="mb-[3px] text-[13.5px] font-semibold text-ink">
+          <div className="mb-[3px] text-[15px] font-semibold text-ink">
             Start a new project
           </div>
-          <div className="text-[11.5px] text-faint">
+          <div className="text-[12.5px] text-faint">
             Drag in one or multiple documents to begin analysis
           </div>
         </div>
@@ -80,7 +80,7 @@ export function NewProjectDropbox() {
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        className="rounded-full border border-hairline bg-canvas px-4 py-2 text-[12.5px] font-medium text-muted hover:text-ink"
+        className="rounded-full border border-hairline bg-canvas px-4 py-2 text-sm font-medium text-muted hover:text-ink"
       >
         Browse files
       </button>

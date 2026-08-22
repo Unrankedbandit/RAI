@@ -99,7 +99,7 @@ export function DropZone() {
           ? `${picked.length} file${picked.length === 1 ? "" : "s"} selected — starting the scan…`
           : "PDF, DOCX, and XLSX supported — upload one or several at once"}
       </p>
-      <span className="mt-[14px] inline-flex items-center rounded-full border border-hairline bg-white px-4 py-2 text-[12.5px] font-medium text-muted transition-colors hover:text-ink">
+      <span className="mt-[14px] inline-flex items-center rounded-full border border-hairline bg-canvas px-4 py-2 text-sm font-medium text-muted transition-colors hover:text-ink">
         Browse files
       </span>
     </div>

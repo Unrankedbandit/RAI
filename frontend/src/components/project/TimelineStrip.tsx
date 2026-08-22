@@ -20,12 +20,12 @@ export function TimelineStrip() {
   const deadlines = timeline.filter((e) => e.kind === "deadline");
 
   return (
-    <div className="relative mb-[18px] overflow-visible rounded-[5px] border border-hairline bg-canvas px-5 pb-5 pt-3.5 shadow-card">
-      <div className="mb-4 text-[11px] font-medium text-faint">
+    <div className="relative mb-[18px] overflow-visible rounded-[5px] border border-hairline bg-canvas px-6 pb-6 pt-4 shadow-card">
+      <div className="mb-5 text-[12.5px] font-medium text-faint">
         Critical path to activation — hover a point for details
       </div>
-      <div className="relative mx-[10px] h-[34px] overflow-visible">
-        <div className="absolute inset-x-0 top-[5px] h-[2px] bg-hairline" />
+      <div className="relative mx-4 h-[42px] overflow-visible">
+        <div className="absolute inset-x-0 top-[6px] h-[2px] bg-hairline" />
 
         {milestones.map((event) => (
           <MilestoneItem
@@ -69,7 +69,7 @@ function MilestoneItem({
     >
       <div
         className={clsx(
-          "mx-auto h-[11px] w-[11px] rounded-full border-2 border-white transition-[transform,box-shadow] duration-150",
+          "mx-auto h-[13px] w-[13px] rounded-full border-2 border-canvas transition-[transform,box-shadow] duration-150",
           active
             ? "scale-[1.35] shadow-[0_0_0_3px_rgba(255,132,0,0.22)]"
             : "shadow-[0_0_0_1px_var(--color-hairline)] group-hover/tl:scale-[1.35] group-hover/tl:shadow-[0_0_0_3px_rgba(255,132,0,0.22)]",
@@ -78,7 +78,7 @@ function MilestoneItem({
       />
       <div
         className={clsx(
-          "mt-[9px] whitespace-nowrap text-[10px] transition-colors duration-150",
+          "mt-[10px] whitespace-nowrap text-xs transition-colors duration-150",
           active ? "font-semibold text-risk" : "text-muted",
         )}
       >
@@ -95,7 +95,7 @@ function DeadlineMarker({ event }: { event: TimelineEvent }) {
       className="group/tl absolute top-[-3px] bottom-[-3px] z-[2] w-[2px] cursor-pointer bg-risk hover:z-40"
       style={{ left: `${event.position}%` }}
     >
-      <div className="absolute top-[-18px] -translate-x-[75%] whitespace-nowrap text-[10px] font-semibold text-risk">
+      <div className="absolute top-[-20px] -translate-x-[75%] whitespace-nowrap text-xs font-semibold text-risk">
         Deadline
       </div>
       <Tooltip event={event} placement="below" />
@@ -113,19 +113,19 @@ function Tooltip({
   return (
     <div
       className={clsx(
-        "pointer-events-none absolute left-1/2 z-50 w-[190px] -translate-x-1/2 translate-y-1 rounded-[3px] bg-oxford px-[13px] py-[11px] text-left text-[11px] leading-[1.5] text-white opacity-0 shadow-[0_10px_24px_rgba(11,8,41,0.22)] transition-[opacity,transform] duration-150 group-hover/tl:pointer-events-auto group-hover/tl:translate-y-0 group-hover/tl:opacity-100",
-        placement === "above" ? "bottom-6" : "top-[14px]",
+        "pointer-events-none absolute left-1/2 z-50 w-[230px] -translate-x-1/2 translate-y-1 rounded-[3px] bg-oxford px-[14px] py-3 text-left text-[12.5px] leading-[1.5] text-white opacity-0 shadow-[0_10px_24px_rgba(11,8,41,0.22)] transition-[opacity,transform] duration-150 group-hover/tl:pointer-events-auto group-hover/tl:translate-y-0 group-hover/tl:opacity-100",
+        placement === "above" ? "bottom-7" : "top-[16px]",
       )}
     >
       <div className="mb-[2px] font-semibold">{event.label}</div>
       {event.dateDisplay && (
-        <div className="mb-[6px] text-[10px] text-vista">
+        <div className="mb-[6px] text-xs text-vista">
           {event.dateDisplay}
         </div>
       )}
       {event.description}
       {event.conflictNote && (
-        <div className="mt-[6px] border-t border-white/15 pt-[6px] text-[10.5px] font-medium text-[#FFD9A8]">
+        <div className="mt-[6px] border-t border-white/15 pt-[6px] text-[12.5px] font-medium text-[#FFD9A8]">
           {event.conflictNote}
         </div>
       )}

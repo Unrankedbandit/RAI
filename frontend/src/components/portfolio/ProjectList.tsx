@@ -27,10 +27,10 @@ export function ProjectList({ projects }: { projects: Project[] }) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: "easeOut", delay: 0.24 }}
-      className="flex-[1.3_1_420px] rounded-[11px] border border-hairline bg-white py-1 shadow-card"
+      className="flex-[1.3_1_420px] rounded-[11px] border border-hairline bg-canvas py-1 shadow-card"
     >
       <div className="flex items-center justify-between px-[18px] pb-2.5 pt-3.5">
-        <span className="text-[13px] font-semibold text-ink">Projects</span>
+        <span className="text-sm font-semibold text-ink">Projects</span>
         <div className="relative">
           <span className="pointer-events-none absolute left-[9px] top-1/2 -translate-y-1/2 text-faint">
             <svg
@@ -52,7 +52,7 @@ export function ProjectList({ projects }: { projects: Project[] }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search..."
-            className="w-[150px] rounded-full bg-surface-2 py-[7px] pl-7 pr-[13px] text-[11.5px] text-muted placeholder:text-faint focus:outline-none"
+            className="w-[160px] rounded-full bg-surface-2 py-[7px] pl-7 pr-[13px] text-[12.5px] text-muted placeholder:text-faint focus:outline-none"
           />
         </div>
       </div>
@@ -64,7 +64,7 @@ export function ProjectList({ projects }: { projects: Project[] }) {
           ))}
         </div>
       ) : (
-        <div className="border-t border-hairline px-[18px] py-8 text-center text-[11px] text-faint">
+        <div className="border-t border-hairline px-[18px] py-8 text-center text-[12.5px] text-faint">
           No projects match
         </div>
       )}
@@ -81,15 +81,15 @@ function ProjectRow({ project }: { project: Project }) {
       className="group flex cursor-pointer items-center gap-3 px-[18px] py-[13px] transition-colors hover:bg-surface-2"
     >
       <div className="min-w-0 flex-1">
-        <div className="text-[13px] font-semibold text-ink">{project.name}</div>
-        <div className="mt-px truncate text-[11px] text-faint">
+        <div className="text-sm font-semibold text-ink">{project.name}</div>
+        <div className="mt-px truncate text-[12.5px] text-faint">
           {project.tech ?? "Solar"} · {project.capacityMW} MW · {project.location}
         </div>
       </div>
 
       <div className="w-[110px] flex-none">
         <ScoreBar value={score} band={band} height={5} className="mb-[5px]" />
-        <div className="flex justify-between text-[10px] text-faint">
+        <div className="flex justify-between text-xs text-faint">
           <span className="font-semibold text-ink">{score}</span>
           <span>/ 100</span>
         </div>
@@ -102,7 +102,7 @@ function ProjectRow({ project }: { project: Project }) {
         className="w-[112px] flex-none justify-center"
       />
 
-      <span className="w-4 flex-none text-center text-[11px] text-faint transition-transform duration-200 group-hover:translate-x-0.5">
+      <span className="w-4 flex-none text-center text-[12.5px] text-faint transition-transform duration-200 group-hover:translate-x-0.5">
         →
       </span>
     </Link>

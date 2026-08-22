@@ -54,7 +54,7 @@ export function ProjectIntel({ project }: { project: Project }) {
     <section className="mt-2 border-t border-hairline pt-2">
       <div className="flex items-center gap-1.5">
         <span className="h-[6px] w-[6px] flex-none rounded-full bg-brand" />
-        <span className="text-[10px] uppercase tracking-wide text-faint">
+        <span className="text-xs uppercase tracking-wide text-faint">
           Live intel
         </span>
       </div>
@@ -68,11 +68,11 @@ export function ProjectIntel({ project }: { project: Project }) {
             rel="noreferrer"
             className="group block py-1.5"
           >
-            <div className="line-clamp-2 text-[11px] font-medium text-ink transition-colors group-hover:text-brand">
+            <div className="line-clamp-2 text-[12.5px] font-medium text-ink transition-colors group-hover:text-brand">
               {item.title}
             </div>
             {item.snippet && (
-              <div className="mt-0.5 line-clamp-2 text-[10px] text-faint">
+              <div className="mt-0.5 line-clamp-2 text-xs text-faint">
                 {item.snippet}
               </div>
             )}
@@ -80,7 +80,7 @@ export function ProjectIntel({ project }: { project: Project }) {
         ))}
       </div>
 
-      <div className="mt-1 text-[9px] text-faint/70">via Bright Data</div>
+      <div className="mt-1 text-xs text-faint/70">via Bright Data</div>
     </section>
   );
 }

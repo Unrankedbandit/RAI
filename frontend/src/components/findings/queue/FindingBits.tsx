@@ -10,7 +10,7 @@ export function StatusLozenge({ status }: { status: FindingStatus }) {
   return (
     <span
       className={clsx(
-        "inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-[10.5px] font-medium",
+        "inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-[12.5px] font-medium",
         statusToLozengeClass[status],
       )}
     >
@@ -47,7 +47,7 @@ export function SeverityFlag({
  */
 export function OwnerAvatars({ initials }: { initials: string[] }) {
   if (initials.length === 0) {
-    return <span className="text-[11px] text-faint">Unassigned</span>;
+    return <span className="text-[12.5px] text-faint">Unassigned</span>;
   }
   return (
     <span className="flex items-center">
@@ -55,7 +55,7 @@ export function OwnerAvatars({ initials }: { initials: string[] }) {
         <span
           key={`${ini}-${i}`}
           className={clsx(
-            "flex h-7 w-7 items-center justify-center rounded-full bg-surface-2 text-[11px] font-semibold text-ink ring-1 ring-hairline",
+            "flex h-7 w-7 items-center justify-center rounded-full bg-surface-2 text-[12.5px] font-semibold text-ink ring-1 ring-hairline",
             i > 0 && "-ml-2",
           )}
         >

@@ -16,7 +16,7 @@ export function ScoreRing({ score, band }: { score: number; band: RiskBand }) {
   const offset = CIRC * (1 - Math.min(Math.max(score, 0), 100) / 100);
   return (
     <svg width="80" height="80" viewBox="0 0 90 90" className="flex-none">
-      <circle cx="45" cy="45" r={R} fill="none" stroke="#EFEDF5" strokeWidth="8" />
+      <circle cx="45" cy="45" r={R} fill="none" stroke="var(--color-hairline)" strokeWidth="8" />
       <motion.circle
         cx="45"
         cy="45"
@@ -38,7 +38,7 @@ export function ScoreRing({ score, band }: { score: number; band: RiskBand }) {
         fontFamily="var(--font-poppins), Poppins, sans-serif"
         fontSize="21"
         fontWeight="600"
-        fill="#0B0829"
+        fill="var(--color-ink)"
       >
         {score}
       </text>

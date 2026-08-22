@@ -30,7 +30,7 @@ function namesFor(projects: Project[], status: Project["status"]): string {
  * 1px lift. Motion (fade/slide-up) is layered on via framer-motion.
  */
 const cardChrome =
-  "rounded-[5px] border border-hairline bg-white px-4 py-[14px] shadow-card transition hover:-translate-y-px hover:border-[#e4e1ee]";
+  "rounded-[5px] border border-hairline bg-canvas px-4 py-[14px] shadow-card transition hover:-translate-y-px hover:border-hairline";
 
 /**
  * Portfolio stat row: a portfolio-activation ring card followed by three
@@ -146,10 +146,10 @@ function RingCard({
         </text>
       </svg>
       <div className="min-w-0">
-        <div className="mb-1.5 text-[10px] font-medium uppercase tracking-wide text-faint">
+        <div className="mb-1.5 text-xs font-medium uppercase tracking-wide text-faint">
           Portfolio activation
         </div>
-        <div className="text-[11px] text-muted">
+        <div className="text-[12.5px] text-muted">
           Average across {count} projects
         </div>
       </div>
@@ -177,7 +177,7 @@ function CountCard({
       transition={{ duration: 0.35, ease: "easeOut", delay: index * 0.06 }}
       className={cardChrome}
     >
-      <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wide text-faint">
+      <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-faint">
         <span
           className="inline-block h-[7px] w-[7px] flex-none rounded-full"
           style={{ backgroundColor: bandColorVar[band] }}
@@ -185,12 +185,12 @@ function CountCard({
         {label}
       </div>
       <div
-        className={`text-[22px] font-semibold leading-none ${bandTextClass[band]}`}
+        className={`text-2xl font-semibold leading-none ${bandTextClass[band]}`}
       >
         {value}
       </div>
       <div
-        className="mt-[3px] truncate text-[11px] text-muted"
+        className="mt-[3px] truncate text-[12.5px] text-muted"
         title={sub || undefined}
       >
         {sub || "—"}

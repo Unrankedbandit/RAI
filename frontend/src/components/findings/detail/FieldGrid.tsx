@@ -12,10 +12,10 @@ function Field({
 }) {
   return (
     <div>
-      <div className="text-[11px] font-medium uppercase tracking-wide text-faint">
+      <div className="text-[12.5px] font-medium uppercase tracking-wide text-faint">
         {label}
       </div>
-      <div className="mt-1 text-[13px] text-ink">{children}</div>
+      <div className="mt-1 text-sm text-ink">{children}</div>
     </div>
   );
 }
@@ -48,7 +48,7 @@ export function FieldGrid({ finding }: { finding: Finding }) {
           <Field label="Status">
             <span
               className={clsx(
-                "inline-flex items-center rounded-full px-2.5 py-0.5 text-[11.5px] font-medium",
+                 "inline-flex items-center rounded-full px-2.5 py-0.5 text-[12.5px] font-medium",
                 statusToLozengeClass[finding.status],
               )}
             >
@@ -61,7 +61,7 @@ export function FieldGrid({ finding }: { finding: Finding }) {
                 {finding.ownerInitials.map((initials) => (
                   <span
                     key={initials}
-                    className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-surface-2 font-jetbrains text-[10.5px] font-medium text-muted ring-1 ring-hairline"
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-surface-2 font-jetbrains text-[12.5px] font-medium text-muted ring-1 ring-hairline"
                   >
                     {initials}
                   </span>
@@ -72,7 +72,7 @@ export function FieldGrid({ finding }: { finding: Finding }) {
             )}
           </Field>
           <Field label="Detected">
-            <span className="font-jetbrains text-[12px]">
+            <span className="font-jetbrains text-[12.5px]">
               {finding.detectedAt}
               <span className="text-faint"> · {finding.updatedAt}</span>
             </span>

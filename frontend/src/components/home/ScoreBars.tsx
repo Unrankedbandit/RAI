@@ -26,7 +26,7 @@ export function ScoreBars({ rows }: { rows: ScoreBarRow[] }) {
             key={row.name}
             className="flex h-full flex-1 flex-col items-center justify-end gap-2"
           >
-            <div className="text-[10.5px] font-medium text-muted tabular-nums">
+            <div className="text-[12.5px] font-medium text-muted tabular-nums">
               {row.score}
             </div>
             <motion.div
@@ -36,7 +36,7 @@ export function ScoreBars({ rows }: { rows: ScoreBarRow[] }) {
               animate={{ height: `${pct}%` }}
               transition={{ duration: 0.8, ease: "easeOut" }}
             />
-            <div className="text-[10.5px] text-faint">{row.name}</div>
+            <div className="text-[12.5px] text-faint">{row.name}</div>
           </div>
         );
       })}

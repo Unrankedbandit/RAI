@@ -16,12 +16,12 @@ export function DocumentsTab() {
       {documents.map((doc, i) => (
         <div
           key={doc.id}
-          className={`flex items-center justify-between py-3 text-[13px] ${
+          className={`flex items-center justify-between py-3 text-sm ${
             i === 0 ? "" : "border-t border-hairline"
           }`}
         >
           <span className="font-medium text-ink">{doc.title}</span>
-          <span className="text-[11.5px] text-faint">{doc.size}</span>
+          <span className="text-[12.5px] text-faint">{doc.size}</span>
         </div>
       ))}
     </div>
