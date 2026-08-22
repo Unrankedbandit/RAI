@@ -10,8 +10,7 @@
 3. **Cross-examination is the product.** Red flags come from *contradictions between documents* ($186M CAPEX vs $199–211M materials; 200 vs 150 MW contracted; grading before environmental review), not from any single doc. A dedicated agent reconciles all extracted facts.
 4. **Research is grounded by a knowledge base, refreshed by live search.** The compiled component research (`research/solar-alpha-component-research.md`) is baked in as static rubric context; agents use web search for location-specific/time-sensitive items (zoning of the actual parcels, current queue status, pending listings).
 5. **Liaison artifacts are first-class outputs.** The system doesn't just find flags — it drafts the work product to resolve them: RFIs to the developer, agency consultation checklists, offtake verification requests, conditions-precedent lists.
-6. **Untrusted code/docs run in a sandbox.** Document parsing, extraction scripts, and any generated analysis execute in a Daytona sandbox, never on the host (also the demo talking point).
-7. **Demo-resilient.** Every agent has a deterministic fallback path (cached knowledge base + heuristics) so the demo works with no search API and degraded LLM access.
+6. **Demo-resilient.** Every agent has a deterministic fallback path (cached knowledge base + heuristics) so the demo works with no search API and degraded LLM access.
 
 ## 2. System Diagram
 
@@ -32,10 +31,10 @@ USER: location + docs (PDFs/XLSX)
 │ • extract structured │         │ • StateLaw  • FederalLaw      │
 │   facts per component│         │ • Permitting/Zoning           │
 │   schema + citations │         │ • Ecology/EPA • Community     │
-│ • runs in Daytona    │         │ • Financials • Interconnection│
-│   sandbox            │         │ • GridIntegration • Demand    │
+│ • runs in-process on │         │ • Financials • Interconnection│
+│   the backend host   │         │ • GridIntegration • Demand    │
 └──────────┬───────────┘         │ • Resource/SupplyChain        │
-           │                     │ tools: web search/fetch + KB  │
+           │                     │ tools: Bright Data search + KB│
            │                     └───────────────┬───────────────┘
            │  facts                             │ findings+benchmarks
            ▼                                    ▼
@@ -73,7 +72,7 @@ while steps < MAX_STEPS:
     response = llm(messages, tools=TOOLS, response_schema=agent.contract)
     if response.has_tool_calls:
         for call in response.tool_calls:
-            result = execute_tool(call)      # web_search, fetch, extract, kb_lookup, sandbox_run
+            result = execute_tool(call)      # web_search, fetch, extract, kb_lookup
             messages.append(tool_result(call.id, result))
     else:
         return agent.contract.validate(response.json())
@@ -106,11 +105,10 @@ raise AgentDidNotConverge()  # → fallback path
 
 | Tool | Implementation | Notes |
 |---|---|---|
-| `pdf_extract` / `xlsx_extract` | pypdf / openpyxl | runs inside **Daytona sandbox**; returns text + page markers |
-| `web_search` | Tavily / SerpAPI / DuckDuckGo fallback | rate-limited, 5 results/query |
+| `pdf_extract` / `xlsx_extract` | pypdf / openpyxl | runs in-process on the host; returns text + page markers |
+| `web_search` | Google results page via Bright Data Web Unlocker | falls back to `kb_lookup` when no token, 5 results/query |
 | `web_fetch` | httpx + readability | strips boilerplate, truncates to 8k tokens |
 | `kb_lookup` | embedding search over `research/*.md` (or keyword grep for hackathon) | grounds agents in compiled benchmarks |
-| `sandbox_run` | Daytona SDK (`daytona.sandboxes.create`, `process.code_run`) | executes generated extraction/analysis code; the "safe execution of AI-generated code" story |
 | `report_write` | persists Report JSON to SQLite | dashboard reads via GET |
 
 ## 6. API Surface
@@ -147,12 +145,13 @@ GET  /api/projects/:id             full Red Flag report JSON
 }
 ```
 
-## 8. Forge / Daytona Mapping (judging criteria)
+## 8. Integration Mapping (today's third parties)
 
-- **Forge** generates: FastAPI service scaffold, agent base class, prompts from this doc's role table, Next.js dashboard reading the Report JSON.
-- **Daytona**: the entire service runs in a sandbox; `sandbox_run` tool = nested sandbox for untrusted doc/code execution; agents' web egress controlled; snapshot = reproducible demo. Demo line: *"Every agent you see researching — the ecology agent, the finance agent — is executing inside isolated Daytona sandboxes."*
+- **Bright Data** = the web research/scraping tool layer: `web_search` pulls a Google results page through Web Unlocker, `brightdata_scrape` fetches known source URLs as markdown; both ride `BRIGHTDATA_API_TOKEN` and degrade to the knowledge base without it.
+- **SigNoz** = the observability sink: every phase, LLM call, and tool call exports as OpenTelemetry spans (`telemetry.py`), one trace per job.
+- **Port** = the factory control plane: runs, agent executions, and findings mirror into a Port catalog as they happen and land in `AWAITING_REVIEW` for human sign-off (`port_client.py`; see `docs/port-factory.md`).
 
 ## 9. Demo-Resilience Fallbacks
 1. No search API → `web_search` returns KB-cached excerpts; agents cite knowledge base.
 2. LLM degradation → deterministic heuristic scorer (regex the extracted facts for known benchmark violations from the KB).
-3. Pre-computed Report JSON for Solar Alpha cached in repo — the "restore from Daytona snapshot" moment if live run fails.
+3. Pre-computed Report JSON for Solar Alpha cached in repo — the instant-replay fallback if the live run fails.

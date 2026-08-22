@@ -36,7 +36,7 @@ whitelisted for the `data_scout` role (`agent_backend/agents/roles.py`).
 
 ### Fallback chain (data_scout)
 1. `brightdata_scrape` — known source URL, token set
-2. `web_search` (Tavily) — source discovery
+2. `web_search` (Bright Data) — source discovery
 3. `kb_lookup` — offline knowledge base, final fallback
 
 With no token, `brightdata_scrape` emits `scraper.skipped`, returns `""`, and

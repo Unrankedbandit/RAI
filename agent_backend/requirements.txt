@@ -5,8 +5,6 @@ pydantic
 pypdf
 openpyxl
 anthropic
-# optional: daytona  (nested sandbox execution — set DAYTONA_API_KEY)
-# optional: tavily is called over plain httpx; set TAVILY_API_KEY to enable live web_search
 python-multipart
 # SigNoz observability — spans export only when SIGNOZ_INGESTION_KEY or
 # OTEL_EXPORTER_OTLP_ENDPOINT is set (agent_backend/telemetry.py)

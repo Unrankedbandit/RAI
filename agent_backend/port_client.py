@@ -1,5 +1,5 @@
 """Port (port.io) control-plane client — OPTIONAL integration, same pattern as
-Tavily/Daytona: when PORT_CLIENT_ID/PORT_CLIENT_SECRET are unset every method
+Bright Data: when PORT_CLIENT_ID/PORT_CLIENT_SECRET are unset every method
 is a no-op (one debug line at import) and the pipeline runs end-to-end without
 Port ever being contacted.
 
