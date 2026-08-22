@@ -1,0 +1,192 @@
+{
+  "project": "Parcel 13401900020000 — ? ac",
+  "location": "Sacramento County, CA",
+  "readiness": 11.35,
+  "decision": "Hold",
+  "dimensions": [
+    {
+      "name": "land",
+      "rag": "red",
+      "score": 10.0,
+      "flags": [
+        "site_acres is null — cannot validate land sufficiency against ~6 ac/MW benchmark (~600 ac needed for 100 MW)",
+        "No title commitment, lease, or site-control evidence in the document set",
+        "No FMMP Important Farmland or Williamson Act contract screen for parcel 13401900020000"
+      ]
+    },
+    {
+      "name": "law",
+      "rag": "red",
+      "score": 8.0,
+      "flags": [
+        "UNRESOLVED KILL CRITERION: zoning not screened — prohibition status of the parcel unknown (no local ordinance check, no AB 205 CEC Opt-In eligibility assessment for ≥50 MW PV + ≥200 MWh BESS)",
+        "UNRESOLVED KILL CRITERION: tax-credit eligibility unevidenced — no beginning-of-construction-by-7/4/2026 package (OBBBA); solar ITC/PTC cannot be confirmed",
+        "No CEQA pathway, permit matrix, or ecological survey analysis (empty findings)"
+      ]
+    },
+    {
+      "name": "finance",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "No CAPEX figure — cannot test against $1.43–1.56/Wac LBNL/NREL benchmark band",
+        "No executed PPA; bankability norm of ≥80% of P50 contracted at close is unmet and untestable",
+        "No tax-credit monetization plan, DSCR, or contingency analysis"
+      ]
+    },
+    {
+      "name": "materials",
+      "rag": "red",
+      "score": 10.0,
+      "flags": [
+        "No equipment supply contracts or procurement strategy",
+        "GSU/large-power-transformer lead time of 128–144 weeks unaddressed against any COD",
+        "No BESS safety/procurement stack (NFPA 855, UL 9540A)"
+      ]
+    },
+    {
+      "name": "demand",
+      "rag": "red",
+      "score": 30.0,
+      "flags": [
+        "No executed offtake, LOI, or term sheet; no counterparty identified",
+        "No CAISO queue position, cluster study, or deliverability (FCDS) status — queue norm ~5 yr IR→COD with ~20% success rate",
+        "Macro tailwinds exist (CPUC 6 GW NQC procurement, SB 100/1020, CAISO hybrid PPA P25 ~$64.49/MWh) but nothing project-specific"
+      ]
+    }
+  ],
+  "red_flags": [],
+  "contradictions": [],
+  "missing_info": [
+    "No extracted facts were provided — the fact set is empty, so no cross-examination of quantified claims (CAPEX vs materials indices, contracted MW vs executed agreements, schedule vs permitting milestones, site control vs title evidence, schedule vs equipment lead times) is possible.",
+    "No research findings were provided — there is no external benchmark context against which to validate any claims.",
+    "No acquired documents were listed — cannot assess whether the document set is complete or which categories (e.g., interconnection agreements, PPAs, title commitments, permits, equipment supply contracts) are missing."
+  ],
+  "action_pack": {
+    "rfis": [
+      "Site control: provide executed lease/option/purchase agreements for parcel 13401900020000 and all adjacent parcels, total controlled acreage (benchmark ~6 ac/MW => ~600 ac for 100 MW), term length, extension rights, and assignment/cure provisions.",
+      "Title: provide a current ALTA title commitment with all Schedule B exceptions plus an ALTA/NSPS survey showing easements, access rights, and encumbrances.",
+      "Zoning: state the parcel's Sacramento County zoning designation and General Plan land-use designation; provide any county correspondence, pre-application meeting notes, or prior use-permit research for solar+storage on the parcel.",
+      "Agricultural status: provide the parcel's Williamson Act contract status (contract number, nonrenewal status) and FMMP Important Farmland classification (Prime/Statewide/Unique/Grazing).",
+      "Interconnection: provide the CAISO interconnection request, queue position and cluster number, all completed study reports, deliverability election (FCDS vs Energy-Only), network-upgrade cost estimates, and interconnection financial security postings to date.",
+      "Offtake: provide any executed PPA, LOI, or term sheet; identify the counterparty, contracted MW/MWh versus P50, tenor, price, deliverability requirements, and Resource Adequacy obligations.",
+      "CAPEX: provide the full capital cost estimate in $/Wac with EPC term sheet, owner-furnished equipment split, and contingency percentage, for testing against the $1.43-1.56/Wac LBNL/NREL benchmark band.",
+      "Equipment: provide module supply agreement or shortlisted vendors with pricing; BESS integrator, chemistry, and integrator agreement status; GSU/main power transformer procurement plan with quoted lead times and factory slot reservations.",
+      "Tax credits: provide the beginning-of-construction strategy under OBBBA (5% safe harbor vs physical work test), target BOC date relative to the July 4, 2026 deadline, supporting invoices/contracts, ITC vs PTC election analysis, and FEOC/material-assistance compliance plan for all components.",
+      "Permitting/CEQA: provide the full permit matrix, CEQA document status (or CEC AB 205 Opt-In filing status), protocol-level biological survey reports (Swainson's hawk, giant garter snake, burrowing owl, vernal pool species), aquatic resources delineation, and cultural resources survey.",
+      "BESS safety: provide UL 9540A test reports for the selected BESS product, NFPA 855 compliance design narrative, and records of any fire-authority consultation.",
+      "Financials: provide the project financial model with P50/P90 energy yield, degradation, DSCR by case, debt sizing, tax-equity structure, and ITC/PTC monetization plan.",
+      "Schedule: provide the integrated milestone schedule from NTP to COD showing permitting, interconnection construction, network upgrades, equipment delivery (especially GSU at 128-144 weeks), and commissioning.",
+      "Community: provide the community engagement plan, records of outreach, any known opposition, and the draft decommissioning plan with cost estimate and proposed financial assurance.",
+      "Water/drainage: provide construction and operations water source (dust control, panel washing), drainage/stormwater plan, and any well or water-district agreements."
+    ],
+    "agency_actions": [
+      {
+        "agency": "Sacramento County Planning and Environmental Review (PER)",
+        "action": "Request a formal zoning verification letter for parcel 13401900020000 and a pre-application meeting to confirm whether utility-scale solar+storage is a permitted or conditionally permitted use (CUP under the Sacramento County Zoning Code), and to scope the CEQA pathway with the County as lead agency.",
+        "why": "Zoning is an unresolved kill criterion: if the parcel is ag-zoned and solar is prohibited or requires discretionary approval with farmland conflicts, the local route may be blocked; this determines whether the CEC Opt-In fallback is needed.",
+        "deadline": "Within 30 days of engagement"
+      },
+      {
+        "agency": "California Department of Conservation, Division of Land Resource Protection (with Sacramento County Agricultural Commissioner)",
+        "action": "Obtain the parcel's FMMP Important Farmland classification and confirm Williamson Act contract status, nonrenewal/cancellation feasibility, and cancellation-cost exposure.",
+        "why": "Prime/Statewide farmland or an active Williamson Act contract can block or materially delay permitting and triggers CEQA farmland-conversion analysis and potential mitigation.",
+        "deadline": "Within 45 days"
+      },
+      {
+        "agency": "California Energy Commission (CEC) - Opt-In Certification Program (AB 205, Public Resources Code sec. 25545)",
+        "action": "Request an eligibility consultation for Opt-In Certification (eligible if >=50 MW PV plus >=200 MWh BESS) as the state-level permitting fallback that preempts local zoning and substitutes for CEQA review.",
+        "why": "If Sacramento County zoning is prohibitive or the CUP timeline is unworkable, the CEC Opt-In route is the only viable path to permit a 100 MW solar+storage facility on this parcel.",
+        "deadline": "Within 60 days; file notice of intent before local-path go/no-go decision"
+      },
+      {
+        "agency": "California ISO (CAISO) - Generator Interconnection and Deliverability Allocation Procedures",
+        "action": "Verify the project's queue position and cluster status under the reformed cluster process (Cluster 15), obtain study results and network-upgrade cost estimates, and confirm the deliverability (FCDS) allocation timeline and financial security posting schedule.",
+        "why": "No queue position is evidenced; CAISO's reformed process carries ~5-year IR-to-COD norms, ~20% historical success rates, and unquantified network-upgrade cost shock risk that directly drives CAPEX and schedule.",
+        "deadline": "Within 30 days; align with next CAISO cluster application window if not yet queued"
+      },
+      {
+        "agency": "South Sacramento Habitat Conservation Plan (SSHCP) - Sacramento County / SSHCP Joint Powers Authority",
+        "action": "Confirm parcel coverage under the SSHCP, determine covered-species take authorization pathway (giant garter snake, Swainson's hawk), applicable fees, and required avoidance/minimization measures.",
+        "why": "The parcel sits in SSHCP territory; coverage determines whether ESA/CESA take authorization is streamlined or requires separate USFWS/CDFW consultation, a major schedule driver.",
+        "deadline": "Within 60 days"
+      },
+      {
+        "agency": "California Department of Fish and Wildlife (CDFW), North Central Region",
+        "action": "Scope need for a Lake and Streambed Alteration Agreement (Fish and Game Code sec. 1602) and state-listed species consultation if impacts fall outside SSHCP coverage.",
+        "why": "Any jurisdictional stream/wetland crossings or listed-species take outside the SSHCP requires CDFW authorization before construction.",
+        "deadline": "Within 90 days, following aquatic resources delineation"
+      },
+      {
+        "agency": "Central Valley Regional Water Quality Control Board (Region 5S)",
+        "action": "Enroll under the Construction General Permit (SWPPP) and, if a federal CWA sec. 404 permit is required, obtain sec. 401 water quality certification.",
+        "why": "Construction stormwater coverage is mandatory before ground disturbance; 401 certification is a federal-permit dependency if wetlands/waters are impacted.",
+        "deadline": "SWPPP before any ground disturbance; 401 determination within 90 days of delineation"
+      },
+      {
+        "agency": "U.S. Army Corps of Engineers, Sacramento District",
+        "action": "Submit an approved jurisdictional determination request and, if waters of the U.S. are impacted, secure CWA sec. 404 authorization (nationwide permit or individual permit).",
+        "why": "Vernal pools and seasonal wetlands common in south Sacramento County may be federally jurisdictional; 404 permitting is a long-lead item that gates construction.",
+        "deadline": "AJD request within 90 days of delineation"
+      },
+      {
+        "agency": "U.S. Fish and Wildlife Service, Sacramento Fish and Wildlife Office",
+        "action": "Confirm whether ESA sec. 7 consultation is needed (via USACE nexus) or whether SSHCP incidental take coverage applies for giant garter snake and vernal pool species.",
+        "why": "Federal take authorization outside the SSHCP can add 12+ months; early confirmation de-risks the schedule.",
+        "deadline": "Within 90 days"
+      },
+      {
+        "agency": "Sacramento Metropolitan Fire District (or applicable fire authority having jurisdiction)",
+        "action": "Obtain BESS fire-protection plan review under NFPA 855 and the California Fire Code, including UL 9540A-based hazard mitigation analysis and emergency response plan approval.",
+        "why": "BESS fire-safety approval is a building-permit precondition and a lender/insurer requirement; no safety stack is currently evidenced.",
+        "deadline": "Before building permit issuance"
+      },
+      {
+        "agency": "Sacramento Municipal Utility District (SMUD) and/or Pacific Gas & Electric (as applicable to the point of interconnection)",
+        "action": "Confirm the transmission/distribution owner at the point of interconnection, obtain facility study scope, and verify any distribution-level or wholesale distribution interconnection requirements.",
+        "why": "Parcel 13401900020000 is in Sacramento County where SMUD is the balancing-adjacent utility; the interconnection facilities and network upgrades depend on the interconnecting utility's standards and construction timeline.",
+        "deadline": "Within 45 days"
+      },
+      {
+        "agency": "California Public Utilities Commission (CPUC)",
+        "action": "Monitor and position for CPUC-jurisdictional procurement windows (e.g., the 6 GW NQC central procurement and LSE RFOs) and confirm Resource Adequacy counting rules applicable to the hybrid configuration.",
+        "why": "Macro procurement tailwinds exist but nothing project-specific; aligning COD and deliverability with CPUC procurement cycles is the path to bankable offtake.",
+        "deadline": "Ongoing; map to next solicitation cycle within 60 days"
+      },
+      {
+        "agency": "Sacramento County Department of Airports / FAA (if within airport influence area)",
+        "action": "Screen the parcel for airport land-use compatibility (ALUC) and file FAA Form 7460-1 notices if glare or structure heights trigger review.",
+        "why": "PV glare near Mather, Executive, or McClellan airspace can require mitigation or redesign; unscreened, it is a late-stage permitting surprise.",
+        "deadline": "Within 60 days"
+      }
+    ],
+    "verification_requests": [
+      "Offtake: independently verify with the named counterparty (once identified) the existence and status of any PPA/LOI/term sheet, including authorized signatory, board approvals, and credit support terms; if none exists, obtain written confirmation from the developer that no offtake discussions are active.",
+      "Interconnection: verify directly with CAISO (via the developer's interconnection customer contact and queue data) the queue position, cluster study results, deliverability status, and network-upgrade cost allocation; do not rely on developer summaries.",
+      "GSU/transformer lead times: obtain written quotations from at least two transformer manufacturers (e.g., Hitachi Energy, Siemens Energy, GE Vernova, Hyundai) confirming current lead times (benchmark 128-144 weeks), slot availability, and price validity.",
+      "Module supply: verify with shortlisted module suppliers the quoted pricing, delivery windows, domestic-content eligibility, and FEOC/material-assistance compliance documentation for OBBBA credit eligibility.",
+      "BESS integrator: verify UL 9540A test reports directly with the integrator and the testing laboratory, and confirm production capacity and delivery slots for the target COD.",
+      "Title: order an independent title search/commitment from a national title insurer rather than relying on developer-provided documents.",
+      "Williamson Act/FMMP: verify contract status directly with Sacramento County and the Department of Conservation rather than developer representations.",
+      "Benchmark validation: commission an independent engineer to validate CAPEX against the $1.43-1.56/Wac band, energy yield (P50/P90), and the >=80% P50 contracted bankability norm once data is delivered.",
+      "Tax counsel: obtain an independent tax opinion on BOC strategy sufficiency under OBBBA and FEOC compliance before relying on any ITC/PTC value in the model.",
+      "Community: conduct independent outreach to Sacramento County supervisor's office and local community groups to verify the developer's community-engagement claims and identify opposition risk."
+    ],
+    "conditions_precedent": [
+      "CP-1 (Kill criterion - zoning): Written confirmation of a viable permitting path - either Sacramento County zoning verification that solar+storage is permitted/conditionally permitted with a credible CUP timeline, or a filed CEC AB 205 Opt-In Certification notice of intent with CEC eligibility confirmation.",
+      "CP-2 (Kill criterion - tax credits): A complete beginning-of-construction evidence package demonstrating BOC on or before July 4, 2026 (5% safe harbor invoices/binding contracts or physical-work documentation), supported by an independent tax opinion, plus a FEOC/material-assistance compliance plan.",
+      "CP-3 (Site control): Executed site-control documents covering >=600 acres (or an independently verified sufficiency analysis at the project's actual design density), with term through at least 30 years or COD plus extensions, and a clean ALTA title commitment with no fatal encumbrances.",
+      "CP-4 (Interconnection): Evidence of an active CAISO queue position with completed or in-progress cluster studies, quantified network-upgrade cost exposure, a deliverability (FCDS) plan, and a financial-security posting schedule consistent with the project schedule.",
+      "CP-5 (Offtake): An executed PPA or binding term sheet with a creditworthy counterparty covering >=80% of P50 energy, or a credible, dated procurement strategy mapped to specific CPUC/LSE solicitation windows.",
+      "CP-6 (CAPEX/financials): A full financial model with CAPEX within or justified against the $1.43-1.56/Wac benchmark band, DSCR by case, contingency >=5%, and a tax-credit monetization plan (transferability or tax equity).",
+      "CP-7 (Equipment): Executed or near-final supply agreements for modules and BESS with delivery schedules consistent with COD, and a GSU procurement plan with reserved factory slots addressing the 128-144 week lead time.",
+      "CP-8 (BESS safety): UL 9540A reports for the selected product, an NFPA 855-compliant design, and written fire-authority concurrence.",
+      "CP-9 (Environmental): Completed protocol-level biological surveys, aquatic resources delineation, SSHCP coverage determination, and a CEQA/CEC permitting schedule with no unresolved fatal-flaw findings.",
+      "CP-10 (Schedule): An integrated schedule demonstrating that permitting, interconnection construction, network upgrades, and long-lead equipment delivery support the stated COD, with float identified.",
+      "CP-11 (Decommissioning/community): A draft decommissioning plan with cost estimate and proposed financial assurance mechanism, plus documented community engagement with no unmitigated organized opposition."
+    ]
+  },
+  "recommended_next_action": "Empty diligence file: no extracted facts, no research findings, no acquired documents — no claim is verified and no cross-examination is possible",
+  "acquired_data": [],
+  "user": null
+}

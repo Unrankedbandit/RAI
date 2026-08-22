@@ -34,7 +34,7 @@ def get(url, timeout=15):
 # 1. Portfolio: serves reports, UTF-8 intact
 try:
     rows = json.loads(get(f"{BACKEND}/api/projects").read().decode("utf-8"))
-    ok("portfolio returns reports", len(rows) >= 3, f"got {len(rows)}")
+    ok("portfolio returns reports", len(rows) >= 1, f"got {len(rows)}")  # >=1: archived.txt hides cleared runs
     ok("readiness values sane", all(0 <= r["readiness"] <= 100 for r in rows))
     ok("worst-first ordering", rows[0]["readiness"] <= rows[-1]["readiness"])
     ok("UTF-8 em-dash intact", any("—" in r["project"] for r in rows),
@@ -137,6 +137,22 @@ if rows:
     dims = r.get("dimensions", [])
     ok("dimensions have pillar scores",
        len(dims) == 5 and all({"name", "rag", "score", "flags"} <= set(d) for d in dims))
+
+# 4b. Archived ids are hidden from the portfolio but remain fetchable by id —
+#     the permalink contract that lets cleared runs keep their shared links.
+archived_file = os.path.join(os.path.dirname(__file__), "..", "agent_backend",
+                             "reports", "archived.txt")
+if os.path.exists(archived_file):
+    with open(archived_file, encoding="utf-8") as fh:
+        archived_ids = [l.strip() for l in fh if l.strip() and not l.startswith("#")]
+    if archived_ids:
+        hidden = archived_ids[0]
+        ok("archived id hidden from portfolio", all(r.get("id") != hidden for r in rows))
+        try:
+            rep = json.loads(get(f"{BACKEND}/api/reports/{hidden}", timeout=15).read())
+            ok("archived report still fetchable by permalink", rep.get("project") is not None)
+        except Exception as e:
+            ok("archived report still fetchable by permalink", False, str(e))
 
 # cleanup the upload probe so fixtures stay clean
 try:

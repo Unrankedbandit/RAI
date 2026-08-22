@@ -1,0 +1,15 @@
+# Archived runs — hidden from the portfolio (/api/projects), still served by id
+# (/api/reports/<id>) so shared permalinks never break. Research preserved.
+# Cleared 2026-08-22, leaving solar-alpha as the lone public example.
+09833a3f2929
+0918ac037a71
+818a5ef7270d
+83745f63ed1a
+37f2f5d89b9c
+9e0ad77aabd9
+7e141fcddcd5
+451b8f4d31cb
+a779890d1d6a
+4e63c9cc4a80
+parcel-a-boulder-city
+parcel-b-sloan-canyon

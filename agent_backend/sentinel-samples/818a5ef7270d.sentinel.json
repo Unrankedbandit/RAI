@@ -1,0 +1,398 @@
+{
+  "project": {
+    "id": "818a5ef7270d",
+    "name": "Parcel 13401900020000 \u2014 ? ac",
+    "location": "Sacramento County, CA",
+    "capacityMW": 0,
+    "latitude": 0,
+    "longitude": 0,
+    "activationScore": 11.35,
+    "band": "risk",
+    "scoreReason": "Empty diligence file: no extracted facts, no research findings, no acquired documents \u2014 no claim is verified and no cross-examination is possible",
+    "status": "at-risk",
+    "pillars": [
+      {
+        "name": "Land",
+        "score": 10.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "3 flags open",
+        "subAgents": [
+          "extractor:land-docs",
+          "scout:zoning",
+          "researcher:land_use"
+        ],
+        "factors": [
+          {
+            "id": "land-flag-0",
+            "name": "site_acres is null \u2014 cannot validate land sufficiency against ~6 ac/MW benchmark (~600 ac ",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "site_acres is null \u2014 cannot validate land sufficiency against ~6 ac/MW benchmark (~600 ac needed for 100 MW)",
+            "sources": []
+          },
+          {
+            "id": "land-flag-1",
+            "name": "No title commitment, lease, or site-control evidence in the document set",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No title commitment, lease, or site-control evidence in the document set",
+            "sources": []
+          },
+          {
+            "id": "land-flag-2",
+            "name": "No FMMP Important Farmland or Williamson Act contract screen for parcel 13401900020000",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No FMMP Important Farmland or Williamson Act contract screen for parcel 13401900020000",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Law",
+        "score": 8.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "3 flags open",
+        "subAgents": [
+          "researcher:state_law",
+          "researcher:federal_law",
+          "researcher:ecology_epa"
+        ],
+        "factors": [
+          {
+            "id": "law-flag-0",
+            "name": "UNRESOLVED KILL CRITERION: zoning not screened \u2014 prohibition status of the parcel unknown ",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "UNRESOLVED KILL CRITERION: zoning not screened \u2014 prohibition status of the parcel unknown (no local ordinance check, no AB 205 CEC Opt-In eligibility assessment for \u226550 MW PV + \u2265200 MWh BESS)",
+            "sources": []
+          },
+          {
+            "id": "law-flag-1",
+            "name": "UNRESOLVED KILL CRITERION: tax-credit eligibility unevidenced \u2014 no beginning-of-constructi",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "UNRESOLVED KILL CRITERION: tax-credit eligibility unevidenced \u2014 no beginning-of-construction-by-7/4/2026 package (OBBBA); solar ITC/PTC cannot be confirmed",
+            "sources": []
+          },
+          {
+            "id": "law-flag-2",
+            "name": "No CEQA pathway, permit matrix, or ecological survey analysis (empty findings)",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No CEQA pathway, permit matrix, or ecological survey analysis (empty findings)",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Finance",
+        "score": 5.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "3 flags open",
+        "subAgents": [
+          "researcher:financials",
+          "cross-examiner"
+        ],
+        "factors": [
+          {
+            "id": "finance-flag-0",
+            "name": "No CAPEX figure \u2014 cannot test against $1.43\u20131.56/Wac LBNL/NREL benchmark band",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No CAPEX figure \u2014 cannot test against $1.43\u20131.56/Wac LBNL/NREL benchmark band",
+            "sources": []
+          },
+          {
+            "id": "finance-flag-1",
+            "name": "No executed PPA; bankability norm of \u226580% of P50 contracted at close is unmet and untestab",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No executed PPA; bankability norm of \u226580% of P50 contracted at close is unmet and untestable",
+            "sources": []
+          },
+          {
+            "id": "finance-flag-2",
+            "name": "No tax-credit monetization plan, DSCR, or contingency analysis",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No tax-credit monetization plan, DSCR, or contingency analysis",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Materials",
+        "score": 10.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "3 flags open",
+        "subAgents": [
+          "researcher:supply_chain"
+        ],
+        "factors": [
+          {
+            "id": "materials-flag-0",
+            "name": "No equipment supply contracts or procurement strategy",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No equipment supply contracts or procurement strategy",
+            "sources": []
+          },
+          {
+            "id": "materials-flag-1",
+            "name": "GSU/large-power-transformer lead time of 128\u2013144 weeks unaddressed against any COD",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "GSU/large-power-transformer lead time of 128\u2013144 weeks unaddressed against any COD",
+            "sources": []
+          },
+          {
+            "id": "materials-flag-2",
+            "name": "No BESS safety/procurement stack (NFPA 855, UL 9540A)",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No BESS safety/procurement stack (NFPA 855, UL 9540A)",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Demand",
+        "score": 30.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "3 flags open",
+        "subAgents": [
+          "researcher:demand",
+          "researcher:interconnection"
+        ],
+        "factors": [
+          {
+            "id": "demand-flag-0",
+            "name": "No executed offtake, LOI, or term sheet; no counterparty identified",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No executed offtake, LOI, or term sheet; no counterparty identified",
+            "sources": []
+          },
+          {
+            "id": "demand-flag-1",
+            "name": "No CAISO queue position, cluster study, or deliverability (FCDS) status \u2014 queue norm ~5 yr",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No CAISO queue position, cluster study, or deliverability (FCDS) status \u2014 queue norm ~5 yr IR\u2192COD with ~20% success rate",
+            "sources": []
+          },
+          {
+            "id": "demand-flag-2",
+            "name": "Macro tailwinds exist (CPUC 6 GW NQC procurement, SB 100/1020, CAISO hybrid PPA P25 ~$64.4",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Macro tailwinds exist (CPUC 6 GW NQC procurement, SB 100/1020, CAISO hybrid PPA P25 ~$64.49/MWh) but nothing project-specific",
+            "sources": []
+          }
+        ]
+      }
+    ]
+  },
+  "eyebrow": "Solar \u00b7 0 MW \u00b7 Sacramento County, CA",
+  "runSummary": "0 documents analyzed \u00b7 3 open items",
+  "scoreBandLabel": "Risk \u00b7 11/100",
+  "scoreNote": "Empty diligence file: no extracted facts, no research findings, no acquired documents \u2014 no claim is verified and no cross-examination is possible",
+  "evidence": {},
+  "timeline": [
+    {
+      "id": "tl-0",
+      "label": "ITC deadline",
+      "date": "2030-12-31",
+      "kind": "deadline",
+      "band": "risk",
+      "position": 50
+    }
+  ],
+  "documents": [],
+  "priorityActions": [
+    {
+      "id": "pa-1",
+      "rank": 1,
+      "title": "CP-1 (Kill criterion - zoning): Written confirmation of a viable permitting path - either ",
+      "detail": "CP-1 (Kill criterion - zoning): Written confirmation of a viable permitting path - either Sacramento County zoning verification that solar+storage is permitted/conditionally permitted with a credible CUP timeline, or a filed CEC AB 205 Opt-In Certification notice of intent with CEC eligibility confirmation.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-2",
+      "rank": 2,
+      "title": "CP-2 (Kill criterion - tax credits): A complete beginning-of-construction evidence package",
+      "detail": "CP-2 (Kill criterion - tax credits): A complete beginning-of-construction evidence package demonstrating BOC on or before July 4, 2026 (5% safe harbor invoices/binding contracts or physical-work documentation), supported by an independent tax opinion, plus a FEOC/material-assistance compliance plan.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-3",
+      "rank": 3,
+      "title": "CP-3 (Site control): Executed site-control documents covering >=600 acres (or an independe",
+      "detail": "CP-3 (Site control): Executed site-control documents covering >=600 acres (or an independently verified sufficiency analysis at the project's actual design density), with term through at least 30 years or COD plus extensions, and a clean ALTA title commitment with no fatal encumbrances.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-4",
+      "rank": 4,
+      "title": "CP-4 (Interconnection): Evidence of an active CAISO queue position with completed or in-pr",
+      "detail": "CP-4 (Interconnection): Evidence of an active CAISO queue position with completed or in-progress cluster studies, quantified network-upgrade cost exposure, a deliverability (FCDS) plan, and a financial-security posting schedule consistent with the project schedule.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-5",
+      "rank": 5,
+      "title": "CP-5 (Offtake): An executed PPA or binding term sheet with a creditworthy counterparty cov",
+      "detail": "CP-5 (Offtake): An executed PPA or binding term sheet with a creditworthy counterparty covering >=80% of P50 energy, or a credible, dated procurement strategy mapped to specific CPUC/LSE solicitation windows.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-6",
+      "rank": 6,
+      "title": "CP-6 (CAPEX/financials): A full financial model with CAPEX within or justified against the",
+      "detail": "CP-6 (CAPEX/financials): A full financial model with CAPEX within or justified against the $1.43-1.56/Wac benchmark band, DSCR by case, contingency >=5%, and a tax-credit monetization plan (transferability or tax equity).",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-7",
+      "rank": 7,
+      "title": "CP-7 (Equipment): Executed or near-final supply agreements for modules and BESS with deliv",
+      "detail": "CP-7 (Equipment): Executed or near-final supply agreements for modules and BESS with delivery schedules consistent with COD, and a GSU procurement plan with reserved factory slots addressing the 128-144 week lead time.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-8",
+      "rank": 8,
+      "title": "CP-8 (BESS safety): UL 9540A reports for the selected product, an NFPA 855-compliant desig",
+      "detail": "CP-8 (BESS safety): UL 9540A reports for the selected product, an NFPA 855-compliant design, and written fire-authority concurrence.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-9",
+      "rank": 9,
+      "title": "CP-9 (Environmental): Completed protocol-level biological surveys, aquatic resources delin",
+      "detail": "CP-9 (Environmental): Completed protocol-level biological surveys, aquatic resources delineation, SSHCP coverage determination, and a CEQA/CEC permitting schedule with no unresolved fatal-flaw findings.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-10",
+      "rank": 10,
+      "title": "CP-10 (Schedule): An integrated schedule demonstrating that permitting, interconnection co",
+      "detail": "CP-10 (Schedule): An integrated schedule demonstrating that permitting, interconnection construction, network upgrades, and long-lead equipment delivery support the stated COD, with float identified.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-11",
+      "rank": 11,
+      "title": "CP-11 (Decommissioning/community): A draft decommissioning plan with cost estimate and pro",
+      "detail": "CP-11 (Decommissioning/community): A draft decommissioning plan with cost estimate and proposed financial assurance mechanism, plus documented community engagement with no unmitigated organized opposition.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-12",
+      "rank": 12,
+      "title": "Site control: provide executed lease/option/purchase agreements for parcel 13401900020000 ",
+      "detail": "Site control: provide executed lease/option/purchase agreements for parcel 13401900020000 and all adjacent parcels, total controlled acreage (benchmark ~6 ac/MW => ~600 ac for 100 MW), term length, extension rights, and assignment/cure provisions.",
+      "impact": "medium",
+      "scoreDelta": 3
+    },
+    {
+      "id": "pa-13",
+      "rank": 13,
+      "title": "Title: provide a current ALTA title commitment with all Schedule B exceptions plus an ALTA",
+      "detail": "Title: provide a current ALTA title commitment with all Schedule B exceptions plus an ALTA/NSPS survey showing easements, access rights, and encumbrances.",
+      "impact": "medium",
+      "scoreDelta": 3
+    },
+    {
+      "id": "pa-14",
+      "rank": 14,
+      "title": "Zoning: state the parcel's Sacramento County zoning designation and General Plan land-use ",
+      "detail": "Zoning: state the parcel's Sacramento County zoning designation and General Plan land-use designation; provide any county correspondence, pre-application meeting notes, or prior use-permit research for solar+storage on the parcel.",
+      "impact": "medium",
+      "scoreDelta": 3
+    }
+  ],
+  "projectedScoreAfterMitigation": 39.35,
+  "suggestedQuestions": [
+    {
+      "question": "What's the top item to clear next?",
+      "answer": {
+        "role": "assistant",
+        "text": "Empty diligence file: no extracted facts, no research findings, no acquired documents \u2014 no claim is verified and no cross-examination is possible"
+      }
+    },
+    {
+      "question": "Why is the activation score 11?",
+      "answer": {
+        "role": "assistant",
+        "text": "0 critical red flags and 0 cross-document contradictions. Weakest pillars: finance 5, law 8."
+      }
+    }
+  ],
+  "chatHistory": [
+    {
+      "role": "assistant",
+      "text": "I've completed diligence on Parcel 13401900020000 \u2014 ? ac. Activation score 11/100 \u2014 decision: Hold. 0 critical flags, 0 cross-document contradictions, 3 open information requests. Ask me what to prioritize."
+    }
+  ],
+  "report": {
+    "badge": "RED FLAG REPORT",
+    "title": "Parcel 13401900020000 \u2014 ? ac \u2014 due-diligence report",
+    "preparedBy": "Red Flag agent framework",
+    "summary": "Empty diligence file: no extracted facts, no research findings, no acquired documents \u2014 no claim is verified and no cross-examination is possible",
+    "findings": [],
+    "recommendedActions": [
+      "CP-1 (Kill criterion - zoning): Written confirmation of a viable permitting path - either Sacramento County zoning verification that solar+storage is permitted/conditionally permitted with a credible CUP timeline, or a filed CEC AB 205 Opt-In Certification notice of intent with CEC eligibility confirmation.",
+      "CP-2 (Kill criterion - tax credits): A complete beginning-of-construction evidence package demonstrating BOC on or before July 4, 2026 (5% safe harbor invoices/binding contracts or physical-work documentation), supported by an independent tax opinion, plus a FEOC/material-assistance compliance plan.",
+      "CP-3 (Site control): Executed site-control documents covering >=600 acres (or an independently verified sufficiency analysis at the project's actual design density), with term through at least 30 years or COD plus extensions, and a clean ALTA title commitment with no fatal encumbrances.",
+      "CP-4 (Interconnection): Evidence of an active CAISO queue position with completed or in-progress cluster studies, quantified network-upgrade cost exposure, a deliverability (FCDS) plan, and a financial-security posting schedule consistent with the project schedule.",
+      "CP-5 (Offtake): An executed PPA or binding term sheet with a creditworthy counterparty covering >=80% of P50 energy, or a credible, dated procurement strategy mapped to specific CPUC/LSE solicitation windows."
+    ],
+    "sourceBasis": "0 source documents + 0 acquired research packs"
+  },
+  "map": {
+    "parcelSize": "\u2014",
+    "toggles": [
+      {
+        "id": "zoning",
+        "label": "Zoning",
+        "on": true
+      },
+      {
+        "id": "protected-land",
+        "label": "Protected land",
+        "on": true
+      },
+      {
+        "id": "transmission",
+        "label": "Transmission",
+        "on": false
+      }
+    ],
+    "distances": [],
+    "zones": [],
+    "pin": {
+      "left": 50,
+      "top": 50,
+      "label": "Sacramento County, CA"
+    }
+  },
+  "teamMembers": []
+}

@@ -1,0 +1,167 @@
+{
+  "project": "TierCheck Ventura",
+  "location": "Ventura County, CA",
+  "readiness": 2.0,
+  "decision": "Hold",
+  "dimensions": [
+    {
+      "name": "land",
+      "rag": "red",
+      "score": 0.0,
+      "flags": [
+        "site_acres is null and capacity_mw is 0.0 — no site definition exists to underwrite",
+        "No title, lease, or site-control evidence acquired; cannot verify acreage or ac/MW plausibility",
+        "Weighted contribution: 0 x 0.20 = 0.00"
+      ]
+    },
+    {
+      "name": "law",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "No applicable rules identified (applicable_rules empty); permitting and zoning status entirely unknown",
+        "Unresolved kill-criterion: zoning cannot be screened for prohibition (KB precedent: CA counties can prohibit commercial solar/BESS outright — a threshold kill, not a schedule risk)",
+        "Unresolved kill-criterion: ITC/PTC beginning-of-construction eligibility unverified (OBBBA July 4, 2026 BOC deadline per KB — missing BOC evidence = $0 tax credits)",
+        "Weighted contribution: 5 x 0.20 = 1.00"
+      ]
+    },
+    {
+      "name": "finance",
+      "rag": "red",
+      "score": 0.0,
+      "flags": [
+        "No CAPEX figure, financial model, or funding evidence; cannot test against KB benchmark of $1.43–1.56/Wac installed",
+        "Tax-credit eligibility (ITC/PTC) unconfirmed — a go/no-go item per KB",
+        "Weighted contribution: 0 x 0.25 = 0.00"
+      ]
+    },
+    {
+      "name": "materials",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "No equipment supply contracts, BOM, or procurement data acquired",
+        "Cannot validate schedule against KB lead-time norms (large power transformers/GSUs at 128–144 weeks)",
+        "Weighted contribution: 5 x 0.20 = 1.00"
+      ]
+    },
+    {
+      "name": "demand",
+      "rag": "red",
+      "score": 0.0,
+      "flags": [
+        "capacity_mw = 0.0 — no generation to sell; no PPA, LOI, or offtake evidence",
+        "No interconnection agreement or queue position; cannot test bankability norm of >=80% of P50 contracted at close",
+        "Weighted contribution: 0 x 0.15 = 0.00"
+      ]
+    }
+  ],
+  "red_flags": [],
+  "contradictions": [],
+  "missing_info": [
+    "No extracted facts were provided — the fact set is empty, so no cross-examination of quantified claims (CAPEX vs materials indices, contracted MW vs executed agreements, schedule vs permitting milestones, site control vs title evidence, schedule vs equipment lead times) is possible.",
+    "No research findings were provided — there is no external benchmark context against which to validate any claims.",
+    "No acquired documents were listed — cannot assess whether the document set is complete or which due-diligence categories (permits, interconnection agreements, PPAs, title/lease documents, equipment supply contracts, financial models) are missing.",
+    "Why are the facts, findings, and acquired arrays all empty? Confirm whether document extraction has been run and re-submit once extracted facts are available for cross-examination."
+  ],
+  "action_pack": {
+    "rfis": [
+      "RFI-01: Provide executed site-control instrument (lease, option, or purchase agreement) for the Ventura parcel, including legal description, APN, acreage, term, and recorded title report or preliminary title commitment. Current site_acres is null and no title evidence has been acquired.",
+      "RFI-02: Provide the project's nameplate capacity (AC and DC) and the basis of determination — engineering single-line diagram, equipment datasheets, or interconnection application. Current capacity_mw is 0.0, which prevents all benchmark tests (CAPEX $/W, ac/MW, AB 205 thresholds).",
+      "RFI-03: Provide a zoning verification letter or written determination from the Ventura County Planning Division confirming whether utility-scale solar and battery energy storage are permitted, conditionally permitted, or prohibited on the subject parcel. This is a threshold kill-criterion — CA counties can prohibit commercial solar/BESS outright.",
+      "RFI-04: Provide the current permitting roadmap and status of all required discretionary and ministerial permits, including any Conditional Use Permit application, building permits, and grading permits. No applicable rules or permits have been identified.",
+      "RFI-05: Provide documentation evidencing ITC/PTC beginning-of-construction (BOC) compliance — either 5% safe-harbor expenditure records, physical work test documentation, or continuous-construction evidence. The OBBBA July 4, 2026 BOC deadline is a go/no-go item; missing BOC evidence means $0 tax credits.",
+      "RFI-06: Provide the executed interconnection agreement or, at minimum, the CAISO or SCE interconnection application, queue position number, queue date, and completed Phase I/II/III study results. No interconnection evidence has been acquired.",
+      "RFI-07: Provide the executed PPA, offtake agreement, or LOI for energy, capacity, and/or REC sales, including counterparty name, contract term, pricing, and contracted MW. No offtake evidence exists and capacity is 0.0 MW.",
+      "RFI-08: Provide the financial model with CAPEX breakdown ($/Wac), OPEX assumptions, debt/equity structure, and tax-credit monetization assumptions. No CAPEX figure or financial model has been acquired; cannot test against the $1.43–1.56/Wac installed benchmark.",
+      "RFI-09: Provide executed equipment supply contracts or binding reservations for major long-lead items: PV modules, inverters, battery cells/racks, BESS enclosure, and large power transformers/GSUs. No BOM or procurement data has been acquired; cannot validate schedule against 128–144 week transformer lead times.",
+      "RFI-10: Provide the construction schedule with critical-path milestones tied to permitting, interconnection, equipment delivery, and COD. No schedule has been provided to test against permitting milestones or equipment lead times.",
+      "RFI-11: Provide the Phase I Environmental Site Assessment, biological resources survey, cultural resources survey, and any CEQA determination (Notice of Exemption, Negative Declaration, or EIR). No environmental or ecological documentation has been acquired.",
+      "RFI-12: Provide evidence of community engagement or outreach plan, including any meetings held, public comment responses, or community benefit agreements. The community component is listed but no documentation has been acquired.",
+      "RFI-13: Confirm whether document extraction has been run on the data room. The facts, findings, and acquired-document arrays are all empty — if documents exist in the data room, re-run extraction and re-submit; if the data room is not yet populated, provide the document index and expected upload timeline."
+    ],
+    "agency_actions": [
+      {
+        "agency": "Ventura County Planning Division",
+        "action": "Request a zoning verification letter confirming the land-use designation and whether utility-scale solar and BESS are permitted, conditionally permitted, or prohibited on the subject parcel. If conditionally permitted, confirm the discretionary permit pathway (Conditional Use Permit) and hearing body.",
+        "why": "Zoning prohibition is a threshold kill-criterion — CA counties can prohibit commercial solar/BESS outright. Without this determination, the project cannot be underwritten. This is the single highest-priority agency action.",
+        "deadline": "30 days from RFI issuance"
+      },
+      {
+        "agency": "California Independent System Operator (CAISO)",
+        "action": "Confirm the project's interconnection queue position, queue date, study phase (Phase I/II/III), and any network upgrade cost allocations. If the project is not in the CAISO queue, confirm whether SCE distribution-level interconnection is the applicable path.",
+        "why": "No interconnection agreement or queue position has been acquired. Interconnection is a bankability prerequisite and a critical-path schedule driver. CAISO cluster study timelines can exceed 24–36 months.",
+        "deadline": "45 days from RFI issuance"
+      },
+      {
+        "agency": "Southern California Edison (SCE)",
+        "action": "Request an interconnection feasibility study or confirm the status of any existing SCE distribution interconnection application for the Ventura site. SCE is the likely load-serving utility for Ventura County.",
+        "why": "If the project is below the CAISO threshold (typically 100 kV or sub-100 MW), SCE distribution interconnection applies. The applicable interconnection path must be confirmed before schedule and cost can be validated.",
+        "deadline": "45 days from RFI issuance"
+      },
+      {
+        "agency": "California Energy Commission (CEC)",
+        "action": "Determine whether the project must opt in to the CEC's AB 205 (2022) streamlined certification process for solar+storage projects, and if so, confirm eligibility thresholds (≥50 MW for solar, ≥50 MW for storage) and initiate pre-application consultation.",
+        "why": "AB 205 provides a streamlined CEC certification pathway for certain solar and storage projects, bypassing local permitting. If the project qualifies, this materially changes the permitting timeline and strategy. If it does not qualify (sub-50 MW), local Ventura County permitting remains the path.",
+        "deadline": "60 days from RFI issuance"
+      },
+      {
+        "agency": "IRS (via tax counsel)",
+        "action": "Obtain a tax-counsel opinion or memorandum confirming ITC/PTC beginning-of-construction eligibility under the OBBBA, including the July 4, 2026 BOC deadline, and identifying the specific safe-harbor or physical-work-test pathway the project will rely on.",
+        "why": "Tax-credit eligibility is a go/no-go item. Missing BOC evidence means $0 in ITC/PTC, which would render the project economics non-viable. This must be resolved before IC approval.",
+        "deadline": "60 days from RFI issuance"
+      },
+      {
+        "agency": "California Department of Fish and Wildlife (CDFW)",
+        "action": "Initiate early consultation on biological resources, including any California Endangered Species Act (CESA) incidental take permit requirements and CEQA biological resources review.",
+        "why": "Ventura County contains habitat for multiple listed species (e.g., California gnatcatcher, least Bell's vireo). CDFW consultation can trigger permitting timelines of 6–12 months and is a critical-path item if listed species are present.",
+        "deadline": "90 days from RFI issuance"
+      },
+      {
+        "agency": "State Water Resources Control Board (SWRCB)",
+        "action": "Confirm requirement for and initiate application for NPDES Construction General Permit (Order 2009-0009-DWQ as amended) for stormwater discharges from construction activities.",
+        "why": "Any construction project disturbing ≥1 acre requires NPDES CGP coverage. This is a ministerial but mandatory permit with a 30–90 day lead time for filing and risk-level determination.",
+        "deadline": "90 days from RFI issuance"
+      },
+      {
+        "agency": "Ventura County Air Pollution Control District (VCAPCD)",
+        "action": "Confirm whether BESS installation requires an air quality permit from VCAPCD and whether any construction-related permits (fugitive dust control plan) are required.",
+        "why": "While BESS itself typically does not require air permits, construction activities may require fugitive dust control plans. VCAPCD rules must be screened to confirm no additional permits are triggered.",
+        "deadline": "60 days from RFI issuance"
+      },
+      {
+        "agency": "U.S. Fish and Wildlife Service (USFWS)",
+        "action": "If a federal nexus exists (e.g., federal funding, federal land, or federal permit), initiate Section 7 consultation. If no federal nexus, confirm whether a Habitat Conservation Plan under Section 10 is required for any federally listed species.",
+        "why": "Federal ESA compliance can add 6–18 months to the schedule depending on consultation type. Early determination of whether a federal nexus exists is critical for schedule accuracy.",
+        "deadline": "90 days from RFI issuance"
+      }
+    ],
+    "verification_requests": [
+      "Verify offtake: Request the PPA/offtake counterparty to provide a creditworthiness package (credit rating, financial statements) and confirm the executed contract is in effect, not merely an LOI. Confirm contracted MW represents ≥80% of P50 generation for bankability.",
+      "Verify interconnection: Request CAISO or SCE to confirm in writing the project's queue position, study completion status, and any network upgrade cost estimates. Cross-reference the queue date against the developer's claimed COD schedule.",
+      "Verify equipment lead times: Request each major equipment supplier (modules, inverters, BESS integrator, transformer manufacturer) to provide written delivery quotes with firm lead times. Cross-reference transformer/GSU lead times against the 128–144 week benchmark and the project's critical-path schedule.",
+      "Verify site control: Request a title company to issue a preliminary title report for the subject parcel confirming ownership, encumbrances, easements, and any liens. Cross-reference the legal description against the developer's claimed acreage.",
+      "Verify CAPEX: Request an independent cost estimate or EPC bid to validate the developer's CAPEX figure against the $1.43–1.56/Wac installed benchmark. If the developer's CAPEX falls outside this range, request a line-item reconciliation.",
+      "Verify ITC/PTC eligibility: Request tax counsel to provide a written opinion on BOC compliance, including the specific safe-harbor expenditures or physical-work-test activities relied upon and the documentary evidence supporting each.",
+      "Verify zoning: Request the Ventura County Planning Division to issue a written zoning verification letter — do not accept verbal assurances or the developer's interpretation of the zoning code.",
+      "Verify permitting timeline: Request the developer's permitting counsel to provide a written opinion on the realistic timeline for all required permits, keyed to the specific Ventura County and state agency processes."
+    ],
+    "conditions_precedent": [
+      "CP-01: Document extraction must be completed on the data room and the fact set re-submitted with extracted claims for cross-examination. No dimension can be scored above red until facts are available.",
+      "CP-02: Ventura County zoning verification letter must be obtained confirming that solar+BESS is a permitted or conditionally permitted use on the subject parcel. A prohibition determination is a deal-killer.",
+      "CP-03: ITC/PTC beginning-of-construction evidence must be provided and confirmed by tax counsel. The OBBBA July 4, 2026 BOC deadline is a hard go/no-go item.",
+      "CP-04: Executed site-control instrument (lease, option, or purchase agreement) with recorded title report must be provided. No site control = no underwriting.",
+      "CP-05: Project capacity (AC and DC MW) must be defined and supported by engineering documentation. Capacity of 0.0 MW prevents all benchmark tests.",
+      "CP-06: Interconnection agreement or firm CAISO/SCE queue position with completed study results must be provided. No interconnection = no bankability.",
+      "CP-07: PPA or offtake agreement covering ≥80% of P50 generation must be executed. No offtake = no revenue certainty.",
+      "CP-08: Equipment supply contracts or binding reservations for all long-lead items (especially transformers/GSUs at 128–144 weeks) must be provided with delivery dates reconciled to the construction schedule.",
+      "CP-09: Financial model with CAPEX within or reconciled to the $1.43–1.56/Wac benchmark must be provided, including tax-credit monetization assumptions.",
+      "CP-10: CEQA determination (Notice of Exemption, Negative Declaration, or EIR) must be initiated or completed, with CDFW and USFWS consultations scoped.",
+      "CP-11: Construction schedule with critical-path milestones tied to permitting, interconnection, equipment delivery, and COD must be provided and validated against agency timelines and supplier lead times.",
+      "CP-12: All third-party claims (offtake, interconnection, equipment lead times, CAPEX) must be independently verified per the verification request list before IC approval."
+    ]
+  },
+  "recommended_next_action": "Empty diligence record: facts, findings, and acquired-document arrays are all empty — document extraction has not run, so no claim can be cross-examined and no dimension can be scored above red",
+  "acquired_data": [],
+  "user": "zero-downtime"
+}

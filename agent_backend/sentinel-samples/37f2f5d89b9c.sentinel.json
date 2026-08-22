@@ -1,0 +1,438 @@
+{
+  "project": {
+    "id": "37f2f5d89b9c",
+    "name": "parallel-0",
+    "location": "Ventura County, CA",
+    "capacityMW": 0,
+    "latitude": 0,
+    "longitude": 0,
+    "activationScore": 7.5,
+    "band": "risk",
+    "scoreReason": "Empty data room: no facts, no findings, no acquired documents \u2014 cross-examination impossible; every dimension is unverifiable rather than merely risky",
+    "status": "at-risk",
+    "pillars": [
+      {
+        "name": "Land",
+        "score": 5.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "3 flags open",
+        "subAgents": [
+          "extractor:land-docs",
+          "scout:zoning",
+          "researcher:land_use"
+        ],
+        "factors": [
+          {
+            "id": "land-flag-0",
+            "name": "site_acres is null \u2014 cannot test footprint against ~5\u20137 ac/MW benchmark for 100 MW solar+s",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "site_acres is null \u2014 cannot test footprint against ~5\u20137 ac/MW benchmark for 100 MW solar+storage",
+            "sources": []
+          },
+          {
+            "id": "land-flag-1",
+            "name": "Zero site-control evidence: no title commitment, leases, or easements in data room (acquir",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Zero site-control evidence: no title commitment, leases, or easements in data room (acquired array empty)",
+            "sources": []
+          },
+          {
+            "id": "land-flag-2",
+            "name": "Ventura County land-use designation unknown; Williamson Act / ag-protection constraints un",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Ventura County land-use designation unknown; Williamson Act / ag-protection constraints untestable without parcel data",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Law",
+        "score": 5.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "4 flags open",
+        "subAgents": [
+          "researcher:state_law",
+          "researcher:federal_law",
+          "researcher:ecology_epa"
+        ],
+        "factors": [
+          {
+            "id": "law-flag-0",
+            "name": "UNRESOLVED KILL CRITERION: zoning/permissibility unverified \u2014 no zoning verification, no p",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "UNRESOLVED KILL CRITERION: zoning/permissibility unverified \u2014 no zoning verification, no permit applications, no agency correspondence",
+            "sources": []
+          },
+          {
+            "id": "law-flag-1",
+            "name": "UNRESOLVED KILL CRITERION: tax-credit eligibility undocumented \u2014 no beginning-of-construct",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "UNRESOLVED KILL CRITERION: tax-credit eligibility undocumented \u2014 no beginning-of-construction (BOC) evidence package; under OBBBA the solar ITC/PTC is $0 without documented BOC by Jul 4, 2026 (Notice 2025-42: no 5% safe harbor >1.5 MW)",
+            "sources": []
+          },
+          {
+            "id": "law-flag-2",
+            "name": "No CEQA status (EIR likely required for utility-scale CA project; 18\u201330 month entitlement ",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No CEQA status (EIR likely required for utility-scale CA project; 18\u201330 month entitlement benchmark untestable)",
+            "sources": []
+          },
+          {
+            "id": "law-flag-3",
+            "name": "CEC AB 205 Opt-In eligibility (solar \u226550 MW + storage \u2265200 MWh) cannot be assessed \u2014 stora",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "CEC AB 205 Opt-In eligibility (solar \u226550 MW + storage \u2265200 MWh) cannot be assessed \u2014 storage MWh not disclosed",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Finance",
+        "score": 5.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "3 flags open",
+        "subAgents": [
+          "researcher:financials",
+          "cross-examiner"
+        ],
+        "factors": [
+          {
+            "id": "finance-flag-0",
+            "name": "Zero CAPEX coverage \u2014 nothing to test against $1.43\u20131.56/Wac installed benchmark (LBNL/NRE",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Zero CAPEX coverage \u2014 nothing to test against $1.43\u20131.56/Wac installed benchmark (LBNL/NREL) plus ~$200\u2013350/kWh for BESS",
+            "sources": []
+          },
+          {
+            "id": "finance-flag-1",
+            "name": "No financial model, no DSCR (\u22651.20x P90 benchmark), no contingency (\u22655\u201310% benchmark), no ",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No financial model, no DSCR (\u22651.20x P90 benchmark), no contingency (\u22655\u201310% benchmark), no debt sizing",
+            "sources": []
+          },
+          {
+            "id": "finance-flag-2",
+            "name": "No executed PPA/tolling agreement \u2014 revenue projections irreconcilable; tax-credit monetiz",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No executed PPA/tolling agreement \u2014 revenue projections irreconcilable; tax-credit monetization unaddressed",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Materials",
+        "score": 10.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "3 flags open",
+        "subAgents": [
+          "researcher:supply_chain"
+        ],
+        "factors": [
+          {
+            "id": "materials-flag-0",
+            "name": "No EPC/supply agreements in data room \u2014 procurement status unknown",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No EPC/supply agreements in data room \u2014 procurement status unknown",
+            "sources": []
+          },
+          {
+            "id": "materials-flag-1",
+            "name": "Large power transformer/GSU lead times now 128\u2013144 weeks; no evidence orders placed",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Large power transformer/GSU lead times now 128\u2013144 weeks; no evidence orders placed",
+            "sources": []
+          },
+          {
+            "id": "materials-flag-2",
+            "name": "No BOM, so domestic-content bonus (+10 pts ITC) and FEOC compliance untestable",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No BOM, so domestic-content bonus (+10 pts ITC) and FEOC compliance untestable",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Demand",
+        "score": 15.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "3 flags open",
+        "subAgents": [
+          "researcher:demand",
+          "researcher:interconnection"
+        ],
+        "factors": [
+          {
+            "id": "demand-flag-0",
+            "name": "No offtake/revenue claims whatsoever \u2014 CAISO TPD allocation priority goes to executed PPAs",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No offtake/revenue claims whatsoever \u2014 CAISO TPD allocation priority goes to executed PPAs; 'projects without PPAs nearly always withdraw'",
+            "sources": []
+          },
+          {
+            "id": "demand-flag-1",
+            "name": "No interconnection agreement or queue position \u2014 CAISO IR\u2192COD ~5 years, ~20% of queued pro",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No interconnection agreement or queue position \u2014 CAISO IR\u2192COD ~5 years, ~20% of queued projects reach COD, network-upgrade cost shock is #1 dropout driver",
+            "sources": []
+          },
+          {
+            "id": "demand-flag-2",
+            "name": "Market context adverse and unmitigated: CAISO solar market value ~$27/MWh (lowest in US), ",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Market context adverse and unmitigated: CAISO solar market value ~$27/MWh (lowest in US), 11.5% solar curtailment early 2025, battery merchant revenue compressed to ~$52/kW-yr (2025)",
+            "sources": []
+          }
+        ]
+      }
+    ]
+  },
+  "eyebrow": "Solar \u00b7 0 MW \u00b7 Ventura County, CA",
+  "runSummary": "0 documents analyzed \u00b7 9 open items",
+  "scoreBandLabel": "Risk \u00b7 8/100",
+  "scoreNote": "Empty data room: no facts, no findings, no acquired documents \u2014 cross-examination impossible; every dimension is unverifiable rather than merely risky",
+  "evidence": {},
+  "timeline": [
+    {
+      "id": "tl-0",
+      "label": "California Energy Commission (CEC), AB 205 Opt-In Certification (Pub. Res. Code ",
+      "date": "2026-07-01",
+      "kind": "milestone",
+      "band": "risk",
+      "position": 0.0
+    },
+    {
+      "id": "tl-1",
+      "label": "ITC deadline",
+      "date": "2030-12-31",
+      "kind": "deadline",
+      "band": "risk",
+      "position": 100.0
+    }
+  ],
+  "documents": [],
+  "priorityActions": [
+    {
+      "id": "pa-1",
+      "rank": 1,
+      "title": "Complete data room: every RFI delivered and indexed; no material category (title, zoning, ",
+      "detail": "Complete data room: every RFI delivered and indexed; no material category (title, zoning, interconnection, offtake, EPC/supply, model, tax-credit evidence) may remain empty.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-2",
+      "rank": 2,
+      "title": "Zoning kill criterion resolved: written RMA verification that solar+storage is permissible",
+      "detail": "Zoning kill criterion resolved: written RMA verification that solar+storage is permissible on all parcels, plus written confirmation that no SOAR vote or Williamson Act barrier applies, or a filed CEC AB 205 opt-in preempting local zoning.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-3",
+      "rank": 3,
+      "title": "Tax-credit kill criterion resolved: documented BOC under Notice 2025-42 before July 4, 202",
+      "detail": "Tax-credit kill criterion resolved: documented BOC under Notice 2025-42 before July 4, 2026, with independent tax-counsel opinion, continuity plan, and PWA/domestic-content/FEOC documentation.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-4",
+      "rank": 4,
+      "title": "Interconnection: executed LGIA or Phase II results with network-upgrade costs within budge",
+      "detail": "Interconnection: executed LGIA or Phase II results with network-upgrade costs within budget and security postings funded; credible energization path vs the ~5-year CAISO benchmark.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-5",
+      "rank": 5,
+      "title": "Offtake: executed PPA/tolling/RA-plus-merchant structure with a creditworthy counterparty ",
+      "detail": "Offtake: executed PPA/tolling/RA-plus-merchant structure with a creditworthy counterparty covering a board-approved minimum share of energy, independently verified; CPUC approval conditions identified.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-6",
+      "rank": 6,
+      "title": "Underwriting: model showing DSCR >=1.20x at P90, contingency >=5-10%, CAPEX within or just",
+      "detail": "Underwriting: model showing DSCR >=1.20x at P90, contingency >=5-10%, CAPEX within or justified vs $1.43-1.56/Wac plus $200-350/kWh BESS, and revenue consistent with verified CAISO market values.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-7",
+      "rank": 7,
+      "title": "Site control: ALTA title commitment with no fatal exceptions covering the full footprint (",
+      "detail": "Site control: ALTA title commitment with no fatal exceptions covering the full footprint (~500-700 acres), leases/options executed, recorded, and coterminous with the financing term plus extensions.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-8",
+      "rank": 8,
+      "title": "CEQA path confirmed: county EIR schedule consistent with COD or filed CEC opt-in, with the",
+      "detail": "CEQA path confirmed: county EIR schedule consistent with COD or filed CEC opt-in, with the 18-30 month entitlement benchmark in the integrated schedule.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-9",
+      "rank": 9,
+      "title": "Long-lead equipment: binding POs with confirmed production slots for GSU/large transformer",
+      "detail": "Long-lead equipment: binding POs with confirmed production slots for GSU/large transformers (128-144 weeks) and BESS, delivery supporting COD, with LD protection.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-10",
+      "rank": 10,
+      "title": "Environmental: protocol surveys complete with no unmitigable impacts; CESA/ESA strategy ag",
+      "detail": "Environmental: protocol surveys complete with no unmitigable impacts; CESA/ESA strategy agreed with CDFW/USFWS; JD submitted; sec. 404/401/1602 path confirmed.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-11",
+      "rank": 11,
+      "title": "BESS safety: Ventura County Fire Protection District acceptance of the NFPA 855 package, U",
+      "detail": "BESS safety: Ventura County Fire Protection District acceptance of the NFPA 855 package, UL 9540A reports, and emergency response plan.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-12",
+      "rank": 12,
+      "title": "Insurance: bound or committed construction, operational, wildfire, and BESS thermal-runawa",
+      "detail": "Insurance: bound or committed construction, operational, wildfire, and BESS thermal-runaway coverage at pricing consistent with the model.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-13",
+      "rank": 13,
+      "title": "Tribal/cultural: NAHC Sacred Lands File search complete and AB 52 consultation opened with",
+      "detail": "Tribal/cultural: NAHC Sacred Lands File search complete and AB 52 consultation opened with no unresolved objections.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-14",
+      "rank": 14,
+      "title": "Re-verification: all third-party verification requests returned with no material discrepan",
+      "detail": "Re-verification: all third-party verification requests returned with no material discrepancies against developer claims.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-15",
+      "rank": 15,
+      "title": "Site control: ALTA title commitment (current within 90 days), vesting deeds, all leases/op",
+      "detail": "Site control: ALTA title commitment (current within 90 days), vesting deeds, all leases/options/easements with recordation status, parcel list with APNs, total controlled acreage (site_acres is null; test against ~5-7 ac/MW, i.e., ~500-700 acres for 100 MW), and an ALTA/NSPS survey.",
+      "impact": "medium",
+      "scoreDelta": 3
+    },
+    {
+      "id": "pa-16",
+      "rank": 16,
+      "title": "Zoning and land use: Ventura County RMA zoning verification letter for every parcel, Gener",
+      "detail": "Zoning and land use: Ventura County RMA zoning verification letter for every parcel, General Plan designations, SOAR applicability analysis, Williamson Act contract status and any non-renewal/cancellation filings, and all County pre-application meeting records.",
+      "impact": "medium",
+      "scoreDelta": 3
+    },
+    {
+      "id": "pa-17",
+      "rank": 17,
+      "title": "Permitting: complete permit matrix with dates and status; all agency correspondence; CEQA ",
+      "detail": "Permitting: complete permit matrix with dates and status; all agency correspondence; CEQA status (NOP, draft EIR schedule, or MND) or intended CEQA pathway; any CEC AB 205 Opt-In application if filed.",
+      "impact": "medium",
+      "scoreDelta": 3
+    }
+  ],
+  "projectedScoreAfterMitigation": 35.5,
+  "suggestedQuestions": [
+    {
+      "question": "What's the top item to clear next?",
+      "answer": {
+        "role": "assistant",
+        "text": "Empty data room: no facts, no findings, no acquired documents \u2014 cross-examination impossible; every dimension is unverifiable rather than merely risky"
+      }
+    },
+    {
+      "question": "Why is the activation score 8?",
+      "answer": {
+        "role": "assistant",
+        "text": "0 critical red flags and 0 cross-document contradictions. Weakest pillars: land 5, law 5."
+      }
+    }
+  ],
+  "chatHistory": [
+    {
+      "role": "assistant",
+      "text": "I've completed diligence on parallel-0. Activation score 8/100 \u2014 decision: Hold. 0 critical flags, 0 cross-document contradictions, 9 open information requests. Ask me what to prioritize."
+    }
+  ],
+  "report": {
+    "badge": "RED FLAG REPORT",
+    "title": "parallel-0 \u2014 due-diligence report",
+    "preparedBy": "Red Flag agent framework",
+    "summary": "Empty data room: no facts, no findings, no acquired documents \u2014 cross-examination impossible; every dimension is unverifiable rather than merely risky",
+    "findings": [],
+    "recommendedActions": [
+      "Complete data room: every RFI delivered and indexed; no material category (title, zoning, interconnection, offtake, EPC/supply, model, tax-credit evidence) may remain empty.",
+      "Zoning kill criterion resolved: written RMA verification that solar+storage is permissible on all parcels, plus written confirmation that no SOAR vote or Williamson Act barrier applies, or a filed CEC AB 205 opt-in preempting local zoning.",
+      "Tax-credit kill criterion resolved: documented BOC under Notice 2025-42 before July 4, 2026, with independent tax-counsel opinion, continuity plan, and PWA/domestic-content/FEOC documentation.",
+      "Interconnection: executed LGIA or Phase II results with network-upgrade costs within budget and security postings funded; credible energization path vs the ~5-year CAISO benchmark.",
+      "Offtake: executed PPA/tolling/RA-plus-merchant structure with a creditworthy counterparty covering a board-approved minimum share of energy, independently verified; CPUC approval conditions identified."
+    ],
+    "sourceBasis": "0 source documents + 0 acquired research packs"
+  },
+  "map": {
+    "parcelSize": "\u2014",
+    "toggles": [
+      {
+        "id": "zoning",
+        "label": "Zoning",
+        "on": true
+      },
+      {
+        "id": "protected-land",
+        "label": "Protected land",
+        "on": true
+      },
+      {
+        "id": "transmission",
+        "label": "Transmission",
+        "on": false
+      }
+    ],
+    "distances": [],
+    "zones": [],
+    "pin": {
+      "left": 50,
+      "top": 50,
+      "label": "Ventura County, CA"
+    }
+  },
+  "teamMembers": []
+}

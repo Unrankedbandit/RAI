@@ -1,0 +1,297 @@
+{
+  "project": "ReconnectTest",
+  "location": "Ventura County, CA",
+  "readiness": 18.75,
+  "decision": "Hold",
+  "dimensions": [
+    {
+      "name": "land",
+      "rag": "red",
+      "score": 10.0,
+      "flags": [
+        "CRITICAL: Parcel zoning unverified — site_acres null, no zoning facts, Ventura RMA/Public Works fetches failed; CA ag-county precedent (Solano ZT 12-04 bans solar in all ag districts; BESS banned on ag land Ord. 2025-1864) shows a potential kill switch if parcels are ag-zoned",
+        "Land basis unconfirmed: 100 MW needs ~570-600 ac at 5.7-6.0 ac/MW; site control incl. gen-tie not evidenced",
+        "Williamson Act exposure unknown — incompatible use on contracted land: 9-yr nonrenewal or cancellation at 12.5% FMV (25% FSZ); prime farmland triggers LESA with likely significant-and-unavoidable impact, easements 1:1 (2:1 prime), decommissioning bond ~100% removal"
+      ]
+    },
+    {
+      "name": "law",
+      "rag": "red",
+      "score": 15.0,
+      "flags": [
+        "CRITICAL: ITC beginning-of-construction cliff — OBBBA + Notice 2025-42 require physical-work BOC by Jul 4, 2026 (no 5% safe harbor >1.5 MW); no BOC/COD evidence in facts; ~$43-47M ITC at stake on ~$143-156M PV capex; storage ITC (§48E) survives",
+        "CEC Opt-In eligibility unconfirmed — solar ≥50 MW met but storage ≥200 MWh not shown; without Opt-In, local route is 18-36 mo with denial risk plus full CEQA EIR (12-24 mo, +1-3 yrs litigated, ~43% plaintiff win rate)",
+        "AB 52 tribal consultation must conclude before EIR certification; CESA burrowing owl candidate = take protection now; MBTA strict liability; CGP SWPPP, CDFW §1602 LSAA, NFPA 855/UL 9540A fire sign-off all unaddressed"
+      ]
+    },
+    {
+      "name": "finance",
+      "rag": "red",
+      "score": 10.0,
+      "flags": [
+        "No capex, PPA, DSCR, or COD data — facts array empty; bankability untestable against benchmarks ($1.43-1.56/Wac PV ≈ $143-156M; BESS $200-350/kWh ≈ $80-140M for 100 MW/400 MWh; escalation 10-15%)",
+        "No executed offtake: benchmark requires ≥80% P50 contracted at close, executed PPA (not LOI), tenor ≥ debt + 2 yrs, DSCR 1.20x P90, PPA ≥ ~$64.49/MWh (Q1 2026 LevelTen P25)",
+        "No interconnection queue position, cluster phase, POI, or deliverability — CAISO queue >500 GW, ~20% reach COD, IR→COD ~5 yrs, network-upgrade shock is #1 dropout cause; Energy-Only status would block RA sales"
+      ]
+    },
+    {
+      "name": "materials",
+      "rag": "amber",
+      "score": 30.0,
+      "flags": [
+        "No equipment strategy, orders, or supplier data provided",
+        "Transformer/GSU lead times 128-144 wks ($3-8M/unit) and switchgear 60-100+ wks gate any realistic COD; no evidence of orders placed",
+        "Module pricing $0.34-0.40/W import vs $0.56/W US with Section 232 tariffs at 50% — procurement plan and domestic-content posture unknown"
+      ]
+    },
+    {
+      "name": "demand",
+      "rag": "amber",
+      "score": 35.0,
+      "flags": [
+        "Storage duration unspecified — standalone solar NQC ~10% and ineligible for CPUC 6 GW procurement; 4-hr storage (90-95% NQC) effectively mandatory in CA",
+        "Revenue environment degrading: 11.5% solar curtailment early 2025; battery merchant revenue fell $115→$52/kW-yr (2022→2025) — must underwrite to 2025 benchmarks",
+        "Structural demand tailwind intact (SB 100/SB 1020 100% zero-carbon by 2045; Slice-of-Day RA) but no offtake, queue deliverability, or hybrid QC vs POI analysis provided"
+      ]
+    }
+  ],
+  "red_flags": [
+    {
+      "title": "Parcel zoning unverified — potential ag-zone kill switch",
+      "severity": "critical",
+      "component": "zoning",
+      "evidence": "site_acres null; no zoning in facts; Ventura zoning unverifiable (search down, vcrma.org 404). KB precedent: Solano ZT 12-04 prohibits commercial solar in ALL ag districts; BESS banned on ag land (Ord. 2025-1864). If Ventura parcels are ag-zoned, local permit may be impossible; path = CEC Opt-In (270-day, preempts local zoning).",
+      "benchmark": "Zoning of every parcel confirmed + prohibition screen; local amendment route 18–36 mo with denial risk",
+      "sources": [
+        "kb_lookup: Ventura County solar zoning farmland SOAR ordinance",
+        "kb_lookup: California solar permitting CEQA SB 100 state law requirements"
+      ]
+    },
+    {
+      "title": "ITC beginning-of-construction cliff — no BOC evidence",
+      "severity": "critical",
+      "component": "federal_law",
+      "evidence": "OBBBA + Notice 2025-42: solar >1.5 MW forfeits 30% ITC/PTC without physical-work BOC by Jul 4, 2026 (no 5% safe harbor); PIS by Dec 31, 2030 under continuity. Facts have no COD/BOC. ~$43–47M ITC at stake on ~$143–156M PV capex; storage ITC survives. Make BOC proof a condition precedent.",
+      "benchmark": "Physical-work BOC by Jul 4, 2026; PIS by Dec 31, 2030",
+      "sources": [
+        "kb_lookup: federal law ITC investment tax credit NEPA solar storage"
+      ]
+    },
+    {
+      "title": "Opt-In eligibility unconfirmed — storage ≥200 MWh not shown",
+      "severity": "high",
+      "component": "permitting",
+      "evidence": "Storage MW/MWh unspecified. Opt-In requires ≥50 MW solar (met) AND ≥200 MWh storage. If BESS <200 MWh: local route 18–36 mo with denial risk if ag-zoned, plus full EIR (12–24 mo; +1–3 yrs litigated; ~43% plaintiff win rate).",
+      "benchmark": "≥50 MW PV + ≥200 MWh BESS for Opt-In; else 18–36 mo local + 12–24 mo EIR",
+      "sources": [
+        "kb_lookup: California solar permitting CEQA SB 100 state law requirements"
+      ]
+    },
+    {
+      "title": "No interconnection queue position — CAISO completion ~20%",
+      "severity": "high",
+      "component": "interconnection",
+      "evidence": "No queue position, cluster phase, POI, or deliverability in facts. CAISO queue >500 GW; ~20% reach COD; IR→COD ~5 yrs; intake capped 150%/zone, scored — Cluster 15 advanced 145/541. Network-upgrade shock = #1 dropout (~30% attrition); transmission +6.1 yrs avg delay. FCDS vs Energy-Only unknown; Energy-Only blocks RA sales.",
+      "benchmark": "Queue position verified; Phase II study + 30–50% upgrade contingency; FCDS in writing",
+      "sources": [
+        "kb_lookup: interconnection queue CAISO timeline cluster study"
+      ]
+    },
+    {
+      "title": "Storage duration unspecified — 4-hr BESS effectively mandatory",
+      "severity": "high",
+      "component": "grid_integration",
+      "evidence": "Storage sizing absent. Standalone solar NQC ~10% (CPUC 2026), ineligible for 6 GW procurement; 4-hr storage = 90–95% NQC. Curtailment 11.5% of potential solar early 2025; battery merchant revenue fell $115→$52/kW-yr (2022→2025) — underwrite to 2025 benchmarks.",
+      "benchmark": "4-hr storage 90–95% NQC vs ~10% standalone; Slice-of-Day hybrid QC capped by POI",
+      "sources": [
+        "kb_lookup: demand offtake PPA buyers CCA resource adequacy California"
+      ]
+    },
+    {
+      "title": "No capex/offtake/financing data to test against benchmarks",
+      "severity": "high",
+      "component": "financials",
+      "evidence": "Facts empty: no capex, PPA, DSCR, COD. Benchmarks: $1.43–1.56/Wac → 100 MWac PV ≈ $143–156M plus BESS $200–350/kWh (100 MW/400 MWh ≈ $80–140M); escalation 10–15%. Bankability: ≥80% P50 contracted, executed PPA only, tenor ≥ debt + 2 yrs, DSCR 1.20x P90, ~$64.49/MWh index. Capex materially below $1.43/Wac combined is a validated red-flag pattern.",
+      "benchmark": "$1.43–1.56/Wac; DSCR 1.20x P90; ≥80% contracted; PPA ≥$60–65/MWh",
+      "sources": [
+        "kb_lookup: solar project financial benchmarks capex per MW PPA price"
+      ]
+    },
+    {
+      "title": "Land basis unverified — ~570–600 ac needed; Williamson Act exposure unknown",
+      "severity": "high",
+      "component": "zoning",
+      "evidence": "site_acres null; 100 MW needs ~570–600 ac at 5.7–6.0 ac/MW; site control incl. gen-tie unconfirmed. Williamson Act land = incompatible use: 9-yr nonrenewal, cancellation 12.5% FMV (25% FSZ), or 6.25% easement (impaired only). Prime/Statewide farmland triggers LESA, likely significant-and-unavoidable; mitigation easements 1:1 (2:1 prime) + decommissioning bond ~100% removal.",
+      "benchmark": "5.7–6.0 ac/MW; WA cancellation 12.5% FMV; easements 1:1–2:1; bond ~100% removal",
+      "sources": [
+        "kb_lookup: California solar permitting CEQA SB 100 state law requirements"
+      ]
+    },
+    {
+      "title": "Biological survey windows gate schedule — none started",
+      "severity": "medium",
+      "component": "ecology_epa",
+      "evidence": "No bio data in facts. Seasonal protocols (miss = +1 yr): SWHA 0.25–0.5 mi buffers, blackout Apr 21–Jun 10; burrowing owl CESA candidate (Oct 2024) = take protection now, 4 visits Apr 15–Jul 15; CA tiger salamander 2 wet seasons; giant garter snake presence assumed. MBTA strict liability, no ITP. CGP SWPPP before disturbance; CDFW §1602 LSAA for drainages.",
+      "benchmark": "SWHA/BUOW/CTS protocols; CGP risk level; §1602 LSAA",
+      "sources": [
+        "kb_lookup: ecology endangered species California solar CEQA biological surveys wetlands"
+      ]
+    },
+    {
+      "title": "No CBA or tribal consultation — both gate permit paths",
+      "severity": "medium",
+      "component": "community",
+      "evidence": "No CBA or tribal outreach in facts. Certified CBA is MANDATORY for CEC Opt-In; benchmarks $0.5–5M (Darden $2M; Jacumba $4M); <$1,000/MW below-market. AB 52: notice ≤14 days of complete application; consultation must conclude before EIR certification (fatal defect); NAHC Sacred Lands File required. Use CalEnviroScreen 5.0 (final Jul 1, 2026) for EJ.",
+      "benchmark": "CBA $0.5–5M; AB 52 concluded before EIR cert; CES 5.0",
+      "sources": [
+        "kb_lookup: community benefits agreement tribal AB 52 opposition solar"
+      ]
+    },
+    {
+      "title": "Long-lead equipment not ordered — transformers 128–144 wks",
+      "severity": "medium",
+      "component": "resource_supply_chain",
+      "evidence": "No procurement status in facts. GSU transformers 128–144 wks (~30% deficit, +60–95% price since 2019, $3–8M/unit) — POs already due for any COD before ~2029. Modules $0.34–0.40/W compliant import vs $0.56/W US; BESS needs FEOC-compliant cells, 26–52 wk slots; switchgear 60–100+ wks; Section 232 tariffs 50% require indexed escalation.",
+      "benchmark": "Transformers 128–144 wks; switchgear 60–100+ wks; FEOC-compliant BESS",
+      "sources": [
+        "kb_lookup: transformer lead time supply chain solar modules tariffs"
+      ]
+    },
+    {
+      "title": "Site resource/yield unverified",
+      "severity": "low",
+      "component": "resource_supply_chain",
+      "evidence": "No GHI, CF, or P50 in facts. CA benchmark: GHI ~5.3–6.2 kWh/m²/day, CF 27–31%, ~5.7 ac/MW. Coastal-influenced Ventura sites typically underperform desert benchmarks; parcel-specific P50/P90 required before underwriting.",
+      "benchmark": "GHI 5.32+; CF 27–31%; 5.7 ac/MW",
+      "sources": [
+        "kb_lookup: solar resource GHI capacity factor acres per MW California Central Coast"
+      ]
+    }
+  ],
+  "contradictions": [],
+  "missing_info": [
+    "No extracted facts were provided (facts array is empty) — cross-examination is impossible because contradictions can only arise between at least two fact sets or documents.",
+    "No research findings were provided (findings array is empty) — there are no external benchmarks (e.g., materials indices, equipment lead times, market comparables) against which to test any claims.",
+    "No acquired documents were provided (acquired array is empty) — provenance and source reliability cannot be assessed.",
+    "All standard due-diligence domains are unverified due to absent inputs: CAPEX vs. cost benchmarks, contracted vs. executed capacity (MW/MWh), schedule dates vs. permitting milestones, site control claims vs. title evidence, and schedule vs. equipment lead times."
+  ],
+  "action_pack": {
+    "rfis": [
+      "Site control: executed leases/options for all parcels and the gen-tie corridor, APN schedule with acreage (site_acres is null; 100 MW needs ~570-600 ac), preliminary title reports, ALTA survey, and landowner estoppels.",
+      "Zoning file: current zoning and General Plan designations per APN, Williamson Act contract status, FMMP prime-farmland mapping, SOAR applicability, and all Ventura County RMA correspondence.",
+      "BOC evidence under Notice 2025-42 (physical work test only, no 5% safe harbor above 1.5 MW): executed contracts, binding equipment orders, invoices, dated photos, and work logs proving BOC before Jul 4, 2026, plus tax counsel memo; ~$43-47M solar ITC at stake.",
+      "Storage sizing: BESS MW/MWh, duration, chemistry, and augmentation plan; confirm >=200 MWh (CEC Opt-In threshold) and >=4-hour duration (90-95% NQC vs ~10% solar-only).",
+      "Interconnection: CAISO queue position, cluster phase, Phase I/II study reports, POI, deliverability election (FCDS vs Energy-Only), network-upgrade cost allocation, and gen-tie route.",
+      "Offtake: executed PPAs (not LOIs) with counterparty, tenor, price, percent of P50 contracted, and RA allocation; benchmark is >=80% P50, tenor of debt plus 2 years, price >= ~$64.49/MWh.",
+      "Financials: full CAPEX budget (benchmark $1.43-1.56/Wac PV; BESS $200-350/kWh), sources and uses, model with DSCR at P50/P90 (1.20x P90 floor), COD schedule, and 10-15% escalation assumptions.",
+      "Equipment: module, inverter, GSU transformer, switchgear, and BESS quotes or supply agreements with delivery dates; transformer lead times run 128-144 weeks and switchgear 60-100+ weeks, so provide order confirmations and slot reservations; include Section 232 (50%) and AD/CVD tariff posture and domestic-content strategy.",
+      "Permitting: applications filed or planned, CEQA status, CEC Opt-In pre-application under AB 205, and a permitting matrix (local route 18-36 months plus EIR 12-24 months).",
+      "Biological surveys: all completed surveys (BUOW, SWHA, CTS), jurisdictional delineation, and schedule against windows (BUOW 4 visits Apr 15-Jul 15; SWHA blackout Apr 21-Jun 10; CTS 2 wet seasons); a missed season adds ~1 year.",
+      "Fire safety: NFPA 855 compliance, UL 9540A test reports, emergency response plan, and Ventura County Fire Protection District correspondence.",
+      "Cultural/tribal: AB 52 consultation status, NAHC Sacred Lands File search, and cultural resources study; consultation must conclude before EIR certification.",
+      "Water/stormwater: Construction General Permit enrollment in SMARTS, draft SWPPP, construction water source, and any CDFW Sec. 1602 LSAA or 404/401 needs.",
+      "Decommissioning plan with engineer's cost estimate for bond sizing (~100% of removal cost), plus community benefits agreement and local opposition assessment."
+    ],
+    "agency_actions": [
+      {
+        "agency": "Ventura County Resource Management Agency (RMA), Planning Division",
+        "action": "Obtain written zoning verification for every APN and the gen-tie corridor, confirming whether utility-scale solar/BESS is permitted, conditional, or prohibited, plus General Plan and SOAR consistency.",
+        "why": "Kill criterion: zoning unverified and CA ag-county precedent (Solano ZT 12-04; Ord. 2025-1864 banning BESS on ag land) shows a potential kill switch; if ag-zoned, CEC Opt-In is the only path.",
+        "deadline": "15 business days"
+      },
+      {
+        "agency": "Ventura County Agricultural Commissioner and CA Dept. of Conservation, Division of Land Resource Protection",
+        "action": "Confirm Williamson Act contract status; if contracted, scope 9-year nonrenewal vs cancellation at 12.5% FMV (25% in Farmland Security Zones).",
+        "why": "Incompatible use on contracted land triggers multi-year exit or 12.5-25% FMV penalty; prime farmland triggers LESA with likely significant-and-unavoidable impact and 1:1 (2:1 prime) easement mitigation.",
+        "deadline": "30 days"
+      },
+      {
+        "agency": "California Energy Commission (CEC), Opt-In Certification Program (AB 205, Pub. Res. Code Sec. 25545)",
+        "action": "Request pre-application meeting and file notice of intent; confirm eligibility (solar >=50 MW met; storage >=200 MWh must be evidenced) and map the 270-day certification clock.",
+        "why": "Opt-In is the fallback if Ventura zoning fails and compresses permitting vs an 18-36 month local route with full EIR and ~43% plaintiff win rate if litigated.",
+        "deadline": "Pre-app meeting in 30 days; go/no-go in 60 days"
+      },
+      {
+        "agency": "California ISO (CAISO), Interconnection Services",
+        "action": "Verify queue position, cluster phase, study status, POI, deliverability election, and network-upgrade allocation directly; confirm standing under the reformed cluster process and 150% zonal intake cap.",
+        "why": "Queue unverified in a >500 GW queue with ~20% COD rate, ~5-year IR-to-COD, and network-upgrade shock as the top attrition driver; Energy-Only status blocks RA sales.",
+        "deadline": "30 days"
+      },
+      {
+        "agency": "Southern California Edison (SCE), Transmission and Interconnection",
+        "action": "Confirm POI feasibility, gen-tie route and easements, service terms, and SCE-side upgrade scope and schedule.",
+        "why": "SCE controls physical interconnection; its upgrade scope and timeline gate COD and must reconcile with CAISO studies and 128-144 week transformer lead times.",
+        "deadline": "45 days"
+      },
+      {
+        "agency": "CA Dept. of Fish and Wildlife (CDFW), South Coast Region 5",
+        "action": "Engage on CESA take strategy for candidate burrowing owl (Sec. 2081 ITP), Sec. 1602 LSAA scope, and protocol survey concurrence.",
+        "why": "Burrowing owl has take protection now as a CESA candidate; surveys need 4 visits Apr 15-Jul 15 and a missed window adds ~1 year.",
+        "deadline": "Engage by Mar 15, 2026 so surveys start Apr 15, 2026"
+      },
+      {
+        "agency": "U.S. Fish and Wildlife Service, Ventura Fish and Wildlife Office",
+        "action": "Request technical assistance on MBTA, ESA needs (CTS requires 2 wet seasons; condor occurs in Ventura County), and raptor survey protocols.",
+        "why": "MBTA is strict liability; CTS protocol gates the schedule; early alignment prevents a late ESA stop-work.",
+        "deadline": "45 days; CTS sampling must begin with the 2026-27 wet season"
+      },
+      {
+        "agency": "Native American Heritage Commission (NAHC)",
+        "action": "Obtain Sacred Lands File search and AB 52 tribal contact list; support lead agency in initiating consultation.",
+        "why": "AB 52 consultation must conclude before EIR certification; late starts are a common cause of multi-month CEQA delay.",
+        "deadline": "20 business days"
+      },
+      {
+        "agency": "State Water Resources Control Board (SMARTS) and Los Angeles Regional Water Board (Region 4)",
+        "action": "Enroll under the Construction General Permit (Order 2022-0057-DWQ) with site-specific SWPPP; scope any Sec. 401 certification.",
+        "why": "CGP coverage is a precondition to the ground disturbance needed for the Jul 4, 2026 BOC deadline; Ventura is in Region 4.",
+        "deadline": "Enrollment complete by Jun 1, 2026 to protect the BOC window"
+      },
+      {
+        "agency": "Ventura County Fire Protection District, Fire Prevention Bureau",
+        "action": "Submit BESS design for fire code review under NFPA 855 with UL 9540A data and emergency response plan; obtain written sign-off.",
+        "why": "Fire sign-off is unaddressed and gates BESS permitting and insurability in a high-fire-risk county.",
+        "deadline": "60 days"
+      },
+      {
+        "agency": "FAA (Obstruction Evaluation) and DoD Siting Clearinghouse",
+        "action": "File Form 7460-1 if structures or glare are near Camarillo/Oxnard airports or NAS Point Mugu; request DoD radar and flight-path review.",
+        "why": "Point Mugu and county airports create glare/radar exposure; a late adverse determination can force redesign.",
+        "deadline": "60 days"
+      },
+      {
+        "agency": "Caltrans District 7",
+        "action": "Scope encroachment permits for gen-tie or access crossings of state highways and heavy-haul permits for transformer delivery.",
+        "why": "State right-of-way crossings need Caltrans approval and 128-144 week transformer deliveries require route planning on the critical path.",
+        "deadline": "90 days"
+      }
+    ],
+    "verification_requests": [
+      "Offtake: confirm directly with the named buyer that the PPA is executed (not LOI); verify tenor, price, percent of P50, RA allocation, curtailment terms, and counterparty credit against the >=80% P50, debt-plus-2-year, >=~$64.49/MWh benchmark.",
+      "CAISO and SCE: verify queue position, cluster phase, Phase I/II results, POI, deliverability (FCDS vs Energy-Only), and network-upgrade allocation directly with CAISO; confirm POI and upgrade scope with SCE; do not rely on developer summaries.",
+      "GSU transformer OEMs (Hitachi Energy, Siemens Energy, GE Vernova, Hyundai): written confirmation of production slot, lead time vs the 128-144 week norm, price ($3-8M/unit), and cancellation terms; verify claimed orders by PO number.",
+      "Switchgear suppliers: verify lead times against the 60-100+ week norm and confirm slot reservations in writing.",
+      "Module supplier: verify pricing ($0.34-0.40/W import vs $0.56/W US), Section 232 (50%) and AD/CVD exposure, domestic-content certification, and delivery alignment with the Jul 4, 2026 BOC date.",
+      "BESS integrator (Tesla, Fluence, Sungrow, CATL): verify UL 9540A reports for the exact cell model, lead time, augmentation and warranty terms, and NFPA 855 documentation.",
+      "Title company: preliminary title reports confirming no encumbrances, mineral severances, or easement conflicts on all parcels and the gen-tie; landowner estoppels confirming execution and no defaults.",
+      "Independent engineer (DNV, UL Solutions, Wood Mackenzie): validate CAPEX vs benchmarks ($1.43-1.56/Wac PV; $200-350/kWh BESS), P50/P90 yield, 11.5% curtailment assumption, and battery merchant revenue at 2025 levels ($52/kW-yr, down from $115 in 2022).",
+      "Tax counsel: independent BOC opinion under Notice 2025-42 confirming the physical work test is met before Jul 4, 2026 and the ~$43-47M solar ITC is preserved; confirm storage Sec. 48E treatment separately."
+    ],
+    "conditions_precedent": [
+      "Zoning kill-switch clearance: written Ventura County RMA verification that no parcel prohibits utility-scale solar/BESS, OR a filed and accepted CEC Opt-In application with storage >=200 MWh evidenced.",
+      "BOC proof: tax counsel opinion and documentary evidence that the Notice 2025-42 physical work test is met before Jul 4, 2026; no reliance on the 5% safe harbor; failure forfeits ~$43-47M ITC and kills the deal.",
+      "Executed offtake: PPA(s) covering >=80% of P50, tenor >= debt plus 2 years, price >= ~$64.49/MWh, RA allocation consistent with Slice-of-Day; LOIs do not satisfy this condition.",
+      "Interconnection certainty: CAISO Phase II study in hand with network-upgrade allocation within an agreed cap and FCDS deliverability confirmed; Energy-Only is disqualifying absent a merchant case clearing DSCR.",
+      "Site control: executed leases/options for >=570-600 net acres plus gen-tie corridor, clean title, and estoppels for every parcel.",
+      "Williamson Act resolution: documented path (nonrenewal, cancellation at 12.5-25% FMV, or compatibility finding) for any contracted parcel, with LESA completed and easement mitigation (1:1, 2:1 prime) and decommissioning bond (~100% of removal) budgeted.",
+      "Storage configuration: BESS >=4-hour duration and >=200 MWh with NQC analysis showing 90-95% and hybrid QC vs POI validated; solar-only (~10% NQC) is disqualifying.",
+      "Equipment critical path: executed supply agreements with locked slots for GSU transformers (128-144 weeks) and switchgear (60-100+ weeks) with delivery supporting committed COD; tariff and domestic-content strategy documented.",
+      "Biological schedule lock: CDFW/USFWS engagement complete and surveys funded so BUOW visits occur Apr 15-Jul 15, SWHA avoids the Apr 21-Jun 10 blackout, and CTS sampling begins next wet season; a missed window moves COD ~1 year and reprices the deal.",
+      "Bankability: model showing DSCR >=1.20x at P90, CAPEX within benchmark, revenue underwritten to 2025 conditions (11.5% curtailment; $52/kW-yr merchant), and sensitivity to network-upgrade shock.",
+      "Fire sign-off: Ventura County Fire Protection District written acceptance of BESS design under NFPA 855 with UL 9540A data and approved emergency response plan.",
+      "Environmental path fixed: CEQA strategy chosen (CEC Opt-In or local EIR), AB 52 consultation initiated and concluded before EIR certification, CGP enrollment and SWPPP complete before any ground disturbance."
+    ]
+  },
+  "recommended_next_action": "KILL CRITERION: Parcel zoning unverified with ag-zone prohibition precedent (Solano ZT 12-04 / Ord. 2025-1864) — if Ventura parcels are ag-zoned, local permitting may be impossible; only path is CEC Opt-In, which itself is unconfirmed (storage ≥200 MWh not shown)",
+  "acquired_data": []
+}
