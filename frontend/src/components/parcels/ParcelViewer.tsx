@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import MapGL, { Layer, Source } from "react-map-gl/maplibre";
 import type { MapRef } from "react-map-gl/maplibre";
@@ -187,6 +187,12 @@ export default function ParcelViewer() {
   // Why the last search came up empty (no match vs county has no attribute
   // search) — shown as a small caption, since the rail only gets panelStatus.
   const [searchNote, setSearchNote] = useState<string | null>(null);
+  // Typeahead: live suggestions under the search box while typing.
+  const [suggestions, setSuggestions] = useState<ParcelResult[] | null>(null);
+  const [suggestOpen, setSuggestOpen] = useState(false);
+  const [suggestLoading, setSuggestLoading] = useState(false);
+  const [activeOption, setActiveOption] = useState(0);
+  const suggestSeqRef = useRef(0);
 
   const sortedCounties = useMemo(
     () => [...COUNTIES].sort((a, b) => a.name.localeCompare(b.name)),
@@ -210,7 +216,11 @@ export default function ParcelViewer() {
       setSelectedCounty(name);
       setPanel({ status: "idle" });
       setSearchNote(null);
+      setSuggestions(null);
+      setSuggestOpen(false);
+      setSearchText("");
       requestRef.current++; // cancel any in-flight identify
+      suggestSeqRef.current++; // cancel any in-flight suggestion fetch
       const statewide = name === STATEWIDE_COUNTY_NAME;
       mapRef.current?.flyTo({
         center: statewide ? CA_CENTER : (COUNTY_CENTERS[name] ?? CA_CENTER),
@@ -254,18 +264,80 @@ export default function ParcelViewer() {
   );
 
   // Text search runs against the currently selected county only.
+  const countySearchSupported =
+    selectedCounty !== STATEWIDE_COUNTY_NAME &&
+    !!countyByName.get(selectedCounty)?.endpoint &&
+    countyByName.get(selectedCounty)?.status !== "mosaic-only";
+
+  // Shared by handleSearch (submit) and dropdown picks: select the parcel,
+  // fly to its centroid, record it in the rail's Recent list.
+  const applySearchResult = useCallback(
+    (p: ParcelResult, fallbackKey: string) => {
+      setPanel({ status: "found", result: p, queriedCounty: p.county });
+      setSearchNote(null);
+      const center = geometryCenter(p.geometry);
+      if (center) {
+        mapRef.current?.flyTo({ center, zoom: 16, duration: 1200 });
+      }
+      recordRecent(toSavedParcel(p, fallbackKey, center?.[0], center?.[1]));
+    },
+    [],
+  );
+
+  // Debounced typeahead: as the user types (3+ chars), query the county and
+  // offer the matches as a dropdown — pick one instead of submitting blind.
+  // All setState happens inside the timeout (react-hooks/set-state-in-effect).
+  useEffect(() => {
+    const text = searchText.trim();
+    const seq = ++suggestSeqRef.current;
+    const t = setTimeout(
+      async () => {
+        if (seq !== suggestSeqRef.current) return; // stale keystroke
+        if (text.length < 3) {
+          setSuggestions(null);
+          setSuggestOpen(false);
+          setSuggestLoading(false);
+          return;
+        }
+        if (!countySearchSupported) {
+          setSuggestions([]);
+          setSuggestLoading(false);
+          setSuggestOpen(true);
+          return;
+        }
+        setSuggestLoading(true);
+        setSuggestOpen(true);
+        const results = await searchParcels(selectedCounty, text);
+        if (seq !== suggestSeqRef.current) return; // stale keystroke
+        setSuggestions(results);
+        setActiveOption(0);
+        setSuggestLoading(false);
+      },
+      text.length < 3 ? 0 : 350,
+    );
+    return () => clearTimeout(t);
+  }, [searchText, selectedCounty, countySearchSupported]);
+
+  const pickSuggestion = useCallback(
+    (p: ParcelResult) => {
+      applySearchResult(p, p.apn ?? p.address ?? searchText.trim());
+      setSuggestOpen(false);
+      setSuggestions(null);
+    },
+    [applySearchResult, searchText],
+  );
+
   const handleSearch = useCallback(async () => {
     const text = searchText.trim();
     if (!text) return;
+    // If the dropdown is open with results, Enter picks the active option.
+    if (suggestOpen && suggestions && suggestions.length > 0) {
+      pickSuggestion(suggestions[Math.min(activeOption, suggestions.length - 1)]);
+      return;
+    }
     const req = ++requestRef.current;
-    const cfg = countyByName.get(selectedCounty);
-    const supported =
-      selectedCounty !== STATEWIDE_COUNTY_NAME &&
-      !!cfg &&
-      cfg.status !== "mosaic-only" &&
-      !!cfg.endpoint;
     setSearchNote(null);
-    if (!supported) {
+    if (!countySearchSupported) {
       setPanel({ status: "empty" });
       setSearchNote(
         "Text search needs a live county — the statewide mosaic has no attribute search. Pick a Live or Partial county above.",
@@ -281,13 +353,8 @@ export default function ParcelViewer() {
       setSearchNote(`No parcels in ${selectedCounty} match “${text}”.`);
       return;
     }
-    setPanel({ status: "found", result: first, queriedCounty: first.county });
-    const center = geometryCenter(first.geometry);
-    if (center) {
-      mapRef.current?.flyTo({ center, zoom: 16, duration: 1200 });
-    }
-    recordRecent(toSavedParcel(first, text, center?.[0], center?.[1]));
-  }, [searchText, selectedCounty, countyByName]);
+    applySearchResult(first, text);
+  }, [searchText, selectedCounty, countySearchSupported, suggestOpen, suggestions, activeOption, pickSuggestion, applySearchResult]);
 
   // Kick the selected parcel into the agent pipeline; fall back to the plain
   // scanning page when the backend is down (same pattern as IntakeDropzone).
@@ -429,12 +496,105 @@ export default function ParcelViewer() {
           </svg>
           <input
             type="text"
+            role="combobox"
+            aria-expanded={suggestOpen}
+            aria-controls="parcel-search-listbox"
+            aria-activedescendant={
+              suggestOpen && suggestions && suggestions.length > 0
+                ? `parcel-search-option-${activeOption}`
+                : undefined
+            }
+            aria-autocomplete="list"
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
-            placeholder="Search APN or address…"
+            onFocus={() => {
+              if (suggestions !== null) setSuggestOpen(true);
+            }}
+            onBlur={() => {
+              // Delay so option mousedown lands before the dropdown closes.
+              setTimeout(() => setSuggestOpen(false), 120);
+            }}
+            onKeyDown={(e) => {
+              if (!suggestOpen) return;
+              const n = suggestions?.length ?? 0;
+              if (e.key === "ArrowDown" && n > 0) {
+                e.preventDefault();
+                setActiveOption((i) => (i + 1) % n);
+              } else if (e.key === "ArrowUp" && n > 0) {
+                e.preventDefault();
+                setActiveOption((i) => (i - 1 + n) % n);
+              } else if (e.key === "Escape") {
+                setSuggestOpen(false);
+              }
+            }}
+            placeholder="Type a few letters — APN or address…"
             aria-label="Search APN or address in the selected county"
-            className="w-[220px] rounded-full bg-canvas py-1.5 pl-8 pr-3 text-[12.5px] text-ink outline-none ring-1 ring-hairline placeholder:text-faint focus:ring-2 focus:ring-vista"
+            autoComplete="off"
+            spellCheck={false}
+            className="w-[240px] rounded-full bg-canvas py-1.5 pl-8 pr-3 text-[12.5px] text-ink outline-none ring-1 ring-hairline placeholder:text-faint focus:ring-2 focus:ring-vista"
           />
+          {suggestOpen && searchText.trim().length >= 3 && (
+            <ul
+              id="parcel-search-listbox"
+              role="listbox"
+              aria-label="Parcel suggestions"
+              className="absolute left-0 top-full z-20 mt-1.5 w-[340px] max-w-[calc(100vw-24px)] overflow-hidden rounded-[11px] border border-hairline bg-canvas shadow-pop"
+            >
+              {suggestLoading && (
+                <li className="px-3 py-2.5 text-xs text-faint">
+                  Searching {selectedCounty}…
+                </li>
+              )}
+              {!suggestLoading && !countySearchSupported && (
+                <li className="px-3 py-2.5 text-xs leading-snug text-faint">
+                  Text search needs a live county — pick a Live or Partial
+                  county above.
+                </li>
+              )}
+              {!suggestLoading &&
+                countySearchSupported &&
+                suggestions !== null &&
+                suggestions.length === 0 && (
+                  <li className="px-3 py-2.5 text-xs text-faint">
+                    No matches in {selectedCounty} — keep typing or try an APN.
+                  </li>
+                )}
+              {!suggestLoading &&
+                suggestions?.map((s, i) => (
+                  <li key={`${s.county}:${s.apn ?? s.address ?? i}`} role="presentation">
+                    <button
+                      type="button"
+                      role="option"
+                      id={`parcel-search-option-${i}`}
+                      aria-selected={i === activeOption}
+                      onMouseDown={(e) => {
+                        e.preventDefault(); // don't blur the input first
+                        pickSuggestion(s);
+                      }}
+                      onMouseEnter={() => setActiveOption(i)}
+                      className={`block w-full px-3 py-2 text-left transition-colors ${
+                        i === activeOption ? "bg-surface-2" : ""
+                      }`}
+                    >
+                      <span className="block truncate text-[12.5px] font-medium text-ink">
+                        {s.address ?? s.apn ?? "Unnamed parcel"}
+                      </span>
+                      <span className="block truncate text-xs text-faint">
+                        {[
+                          s.address ? s.apn : null,
+                          s.county,
+                          s.acres != null
+                            ? `${s.acres.toLocaleString(undefined, { maximumFractionDigits: 2 })} ac`
+                            : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+            </ul>
+          )}
         </form>
         <span className="ml-auto text-[12px] text-faint">
           {counts.live} live · {counts.partial} partial · {counts.mosaic} via
