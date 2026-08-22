@@ -89,8 +89,12 @@ if job_id:
                 line = raw.decode("utf-8", "replace").strip()
                 if not line.startswith("data: "):
                     continue
-                status = json.loads(line[6:])["status"]
+                msg = json.loads(line[6:])
+                # The stream carries two shapes (main.py): legacy {"status": str}
+                # narration and structured {"event": dict} trace frames. Both
+                # prove the pipe is live; only status strings carry a terminal.
                 frames += 1
+                status = msg.get("status", "")
                 if status.startswith("__DONE__") or status.startswith("__ERROR__"):
                     terminal = status
                     break
