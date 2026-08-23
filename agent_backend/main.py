@@ -57,6 +57,7 @@ app.add_middleware(
         "http://localhost:4173",
         "http://localhost:3000",
     ],
+    allow_origin_regex=r"https://(.*\.)?josephbissell\.com|http://localhost:\d+",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
