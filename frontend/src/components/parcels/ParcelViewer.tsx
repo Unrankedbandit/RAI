@@ -240,7 +240,7 @@ export default function ParcelViewer() {
   const [activeOption, setActiveOption] = useState(0);
   const suggestSeqRef = useRef(0);
   // Basemap toggle: Positron vector style vs Esri imagery raster.
-  const [basemap, setBasemap] = useState<"map" | "satellite">("map");
+  const [basemap, setBasemap] = useState<"map" | "satellite">("satellite"); // satellite default (user call)
   // "Copy link" confirmation — briefly swaps the button label to "Copied".
   const [copied, setCopied] = useState(false);
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
