@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type JSX, type ReactNode } from "react";
+import { useResearchedParcels } from "@/lib/agent/researched";
 
 import { ViabilityPreview } from "@/components/parcels/ViabilityPreview";
 import { clsx } from "@/lib/clsx";
@@ -47,19 +48,11 @@ export function ParcelRail(props: {
   onFlyTo: (lng: number, lat: number) => void;
 }): JSX.Element {
   const { selected, panelStatus, onCloseSelected, onResearch, onFlyTo } = props;
-  const [researched, setResearched] = useState<{ id: string; name: string }[]>([]);
-  useEffect(() => {
-    let live = true;
-    void import("@/lib/agent/researched").then((m) =>
-      m.loadResearchedParcels().then((rows) => {
-        if (live) setResearched(rows.map((r) => ({ id: r.id, name: r.name })));
-      }),
-    );
-    return () => {
-      live = false;
-    };
-  }, []);
-  const reportId = matchReportId(selected, researched);
+  const researchedRows = useResearchedParcels();
+  const reportId = matchReportId(
+    selected,
+    researchedRows.map((r) => ({ id: r.id, name: r.name })),
+  );
   const watching = useWatching();
   const recent = useRecent();
   const [justWatched, setJustWatched] = useState(false);
