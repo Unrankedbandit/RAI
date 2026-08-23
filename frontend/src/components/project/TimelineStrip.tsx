@@ -258,9 +258,8 @@ function TimelineGantt({
     return { min, span: Math.max(max - min, 86_400_000) };
   }, [rows, dlines]);
 
-  // Hooks must precede the early return below (rules-of-hooks) — the useState
-  // initializer samples Date.now() once per mount, so the render stays pure
-  // (react-hooks/purity flags Date.now() in render).
+  // Sampled once per mount (render stays pure); hooks must precede the
+  // early return below (react-hooks/rules-of-hooks).
   const [today] = useState(() => Date.now());
 
   if (!range || rows.length === 0) {
