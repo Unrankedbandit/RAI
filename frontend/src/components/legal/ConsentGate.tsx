@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -35,12 +35,16 @@ function readConsent(): boolean {
  */
 export function ConsentGate() {
   const pathname = usePathname();
-  const [status, setStatus] = useState<ConsentStatus>("pending");
+  // Mount-read without setState-in-effect (react-hooks/purity): the consent
+  // snapshot comes from useSyncExternalStore — server snapshot "pending"
+  // (gate hidden pre-hydration), client snapshot reads localStorage live.
+  const accepted = useSyncExternalStore(
+    () => () => {},
+    () => readConsent(),
+    () => false,
+  );
+  const status: ConsentStatus = accepted ? "accepted" : "pending";
   const [openSection, setOpenSection] = useState<string | null>(null);
-
-  useEffect(() => {
-    setStatus(readConsent() ? "accepted" : "pending");
-  }, []);
 
   // Lock background scroll while the gate is up.
   useEffect(() => {
