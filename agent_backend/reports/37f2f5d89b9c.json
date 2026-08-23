@@ -1,0 +1,218 @@
+{
+  "project": "parallel-0",
+  "location": "Ventura County, CA",
+  "readiness": 7.5,
+  "decision": "Hold",
+  "dimensions": [
+    {
+      "name": "land",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "site_acres is null — cannot test footprint against ~5–7 ac/MW benchmark for 100 MW solar+storage",
+        "Zero site-control evidence: no title commitment, leases, or easements in data room (acquired array empty)",
+        "Ventura County land-use designation unknown; Williamson Act / ag-protection constraints untestable without parcel data"
+      ]
+    },
+    {
+      "name": "law",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "UNRESOLVED KILL CRITERION: zoning/permissibility unverified — no zoning verification, no permit applications, no agency correspondence",
+        "UNRESOLVED KILL CRITERION: tax-credit eligibility undocumented — no beginning-of-construction (BOC) evidence package; under OBBBA the solar ITC/PTC is $0 without documented BOC by Jul 4, 2026 (Notice 2025-42: no 5% safe harbor >1.5 MW)",
+        "No CEQA status (EIR likely required for utility-scale CA project; 18–30 month entitlement benchmark untestable)",
+        "CEC AB 205 Opt-In eligibility (solar ≥50 MW + storage ≥200 MWh) cannot be assessed — storage MWh not disclosed"
+      ]
+    },
+    {
+      "name": "finance",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "Zero CAPEX coverage — nothing to test against $1.43–1.56/Wac installed benchmark (LBNL/NREL) plus ~$200–350/kWh for BESS",
+        "No financial model, no DSCR (≥1.20x P90 benchmark), no contingency (≥5–10% benchmark), no debt sizing",
+        "No executed PPA/tolling agreement — revenue projections irreconcilable; tax-credit monetization unaddressed"
+      ]
+    },
+    {
+      "name": "materials",
+      "rag": "red",
+      "score": 10.0,
+      "flags": [
+        "No EPC/supply agreements in data room — procurement status unknown",
+        "Large power transformer/GSU lead times now 128–144 weeks; no evidence orders placed",
+        "No BOM, so domestic-content bonus (+10 pts ITC) and FEOC compliance untestable"
+      ]
+    },
+    {
+      "name": "demand",
+      "rag": "red",
+      "score": 15.0,
+      "flags": [
+        "No offtake/revenue claims whatsoever — CAISO TPD allocation priority goes to executed PPAs; 'projects without PPAs nearly always withdraw'",
+        "No interconnection agreement or queue position — CAISO IR→COD ~5 years, ~20% of queued projects reach COD, network-upgrade cost shock is #1 dropout driver",
+        "Market context adverse and unmitigated: CAISO solar market value ~$27/MWh (lowest in US), 11.5% solar curtailment early 2025, battery merchant revenue compressed to ~$52/kW-yr (2025)"
+      ]
+    }
+  ],
+  "red_flags": [],
+  "contradictions": [],
+  "missing_info": [
+    "No extracted facts were provided (facts array is empty) — cross-examination is impossible because there are no quantified claims to compare across documents.",
+    "No research findings were provided (findings array is empty) — there are no external benchmarks (e.g., materials indices, equipment lead times, typical permitting timelines) against which to test any claims.",
+    "No acquired documents were listed (acquired array is empty) — cannot confirm which source documents (EPC/Supply agreements, interconnection agreement, title/commitment documents, permit filings, offtake agreements, financial model) are even in the data room.",
+    "Zero coverage of CAPEX/budget claims — no capital cost figures to test against materials or labor cost indices.",
+    "Zero coverage of contracted capacity (MW) or energy (MWh) claims — no interconnection agreement or executed contracts to reconcile.",
+    "Zero coverage of schedule claims — no milestone dates to test against permitting timelines or equipment lead times.",
+    "Zero coverage of site control claims — no title evidence, leases, or easements to verify against asserted site control.",
+    "Zero coverage of offtake/revenue claims — no executed PPAs or tolling agreements to compare against revenue projections.",
+    "Zero coverage of permitting status — no permit applications, approvals, or agency correspondence to compare against the project schedule."
+  ],
+  "action_pack": {
+    "rfis": [
+      "Site control: ALTA title commitment (current within 90 days), vesting deeds, all leases/options/easements with recordation status, parcel list with APNs, total controlled acreage (site_acres is null; test against ~5-7 ac/MW, i.e., ~500-700 acres for 100 MW), and an ALTA/NSPS survey.",
+      "Zoning and land use: Ventura County RMA zoning verification letter for every parcel, General Plan designations, SOAR applicability analysis, Williamson Act contract status and any non-renewal/cancellation filings, and all County pre-application meeting records.",
+      "Permitting: complete permit matrix with dates and status; all agency correspondence; CEQA status (NOP, draft EIR schedule, or MND) or intended CEQA pathway; any CEC AB 205 Opt-In application if filed.",
+      "Storage specification: BESS MW and MWh, duration, augmentation plan, chemistry (needed to assess CEC AB 205 eligibility at 200 MWh and fire-code scope).",
+      "Interconnection: CAISO interconnection request and queue number, cluster study phase and results, TPD allocation group, network-upgrade cost estimates, security postings, and draft or executed LGIA; if not in queue, intended cluster window and readiness.",
+      "Offtake and revenue: executed PPA/tolling/RA agreements or term sheets with counterparty, tenor, price, delivery point, and conditions precedent; RA contracting status; merchant revenue build-up (CAISO solar value ~$27/MWh, ancillary services, RA); curtailment assumptions vs ~11.5% CAISO solar curtailment.",
+      "Financial model: CAPEX by line item (test vs $1.43-1.56/Wac solar plus ~$200-350/kWh BESS), DSCR at P50/P90 (1.20x P90 benchmark), contingency (5-10%), debt sizing, sources and uses, tax-equity structure, ITC vs PTC election, and curtailment/degradation/network-upgrade sensitivities.",
+      "Tax-credit eligibility (kill criterion): BOC evidence package under Notice 2025-42 (physical work test only; no 5% safe harbor above 1.5 MW) establishing BOC before July 4, 2026; continuity plan; prevailing wage and apprenticeship plan (Notice 2022-61); domestic-content strategy (Notice 2023-38); FEOC/prohibited-foreign-entity analysis under OBBBA.",
+      "EPC and supply chain: EPC agreement or term sheet; module supply agreement with domestic-content certification, UFLPA traceability, AD/CVD exposure; BESS supply agreement with integrator and cell supplier, cell allocation, FEOC status; GSU/large transformer POs with production slots and delivery dates (128-144 week benchmark); racking/tracker/MV equipment status; full BOM.",
+      "Technical studies: geotechnical report, Phase I ESA, hydrology/drainage/flood study, glint/glare analysis (Oxnard and Camarillo airports), noise study, protocol biological surveys, cultural resources survey, Alquist-Priolo fault analysis, wildfire risk assessment.",
+      "BESS safety: UL 9540 listings, UL 9540A test reports, NFPA 855 design, emergency response plan, Ventura County Fire Protection District correspondence.",
+      "Schedule: integrated milestone schedule from entitlement through NTP to COD, reconciled against 18-30 month CEQA benchmark, ~5-year CAISO IR-to-COD timeline, and 128-144 week transformer lead times.",
+      "Community and tribal: engagement plan and records, any Community Benefits Agreement, known opposition, NAHC Sacred Lands File results, AB 52 consultation records.",
+      "Insurance: broker quotes or indications for construction and operational coverage including wildfire liability and BESS thermal-runaway coverage.",
+      "Data room index: complete document list with dates, authors, versions; the data room currently contains zero documents, so full population is required before cross-examination."
+    ],
+    "agency_actions": [
+      {
+        "agency": "Ventura County Resource Management Agency (RMA), Planning Division",
+        "action": "Obtain written zoning verification and General Plan designations for all APNs; confirm Planned Development Permit/CUP requirement; obtain written SOAR applicability determination (whether voter approval is required) and hold a formal pre-application meeting.",
+        "why": "Unresolved zoning kill criterion; Ventura County SOAR measures can force a countywide vote for solar on agricultural/open-space land, fatal to schedule.",
+        "deadline": "Pre-app meeting within 30 days; written zoning/SOAR verification within 45 days"
+      },
+      {
+        "agency": "California Energy Commission (CEC), AB 205 Opt-In Certification (Pub. Res. Code sec. 25545)",
+        "action": "Decide go/no-go on the Opt-In pathway (solar >=50 MW and storage >=200 MWh); if elected, file the application so CEC's ~270-day environmental review governs entitlement.",
+        "why": "Consolidated state path with defined timeline in lieu of county review; eligibility unknown until storage MWh is disclosed.",
+        "deadline": "Decision within 60 days; file by Q3 2026 to protect COD"
+      },
+      {
+        "agency": "California Independent System Operator (CAISO)",
+        "action": "With developer authorization, confirm queue position, cluster study phase and results, TPD allocation group, and network-upgrade cost estimates; if not queued, prepare for the next annual cluster window.",
+        "why": "No interconnection evidence; CAISO IR-to-COD ~5 years, ~20% of queue reaches COD, network-upgrade cost shock is the top dropout driver.",
+        "deadline": "Confirmation within 30 days of authorization; next cluster window (typically April)"
+      },
+      {
+        "agency": "Southern California Edison (SCE)",
+        "action": "Confirm point of interconnection, Participating TO facilities scope, transmission vs wholesale-distribution path, substation capacity, and cost responsibility.",
+        "why": "Ventura County is SCE territory; SCE facilities scope drives CAPEX and schedule and is undocumented.",
+        "deadline": "Written confirmation within 45 days"
+      },
+      {
+        "agency": "California Department of Fish and Wildlife (CDFW), South Coast Region 5",
+        "action": "Open early consultation on CESA species and sec. 1602 LSAA; set protocol survey scope (arroyo toad, least Bell's vireo, coastal California gnatcatcher, California condor) and any sec. 2081 ITP need.",
+        "why": "No biological surveys exist; missing a survey season adds a year; unmitigable take is fatal.",
+        "deadline": "Initiate within 60 days; surveys in spring 2026 season"
+      },
+      {
+        "agency": "U.S. Fish and Wildlife Service, Ventura Fish and Wildlife Office",
+        "action": "Pull IPaC species list; establish Section 7 (via USACE nexus) or Section 10/HCP strategy.",
+        "why": "Federal listed-species exposure unassessed; consultation path sets survey scope, mitigation cost, timeline.",
+        "deadline": "Species list within 30 days; strategy memo within 90 days"
+      },
+      {
+        "agency": "U.S. Army Corps of Engineers, Los Angeles District",
+        "action": "Submit approved jurisdictional delineation; confirm Nationwide Permit 51 eligibility and PCN requirements.",
+        "why": "No delineation exists; WOTUS impacts drive sec. 404/401 path and federal ESA/NHPA nexus.",
+        "deadline": "JD submittal within 90 days; PCN before any fill"
+      },
+      {
+        "agency": "Los Angeles Regional Water Quality Control Board (Region 4) and State Water Board",
+        "action": "File sec. 401 Water Quality Certification if a 404 nexus exists; enroll in the Construction General Permit (Order 2022-0057-DWQ) via SMARTS with a SWPPP.",
+        "why": "401 certification gates USACE authorization; CGP coverage is mandatory before construction.",
+        "deadline": "401 with USACE submittal; SMARTS NOI 30 days before ground disturbance"
+      },
+      {
+        "agency": "California Department of Conservation, Division of Land Resource Protection, and Ventura County Agricultural Commissioner",
+        "action": "Obtain written Williamson Act contract status for every parcel, any non-renewal/cancellation filings, FMMP designations, and preserve compatibility findings.",
+        "why": "Williamson Act contracts can prohibit solar; cancellation carries penalties; status unknown and a potential second land-use kill criterion.",
+        "deadline": "Written confirmation within 45 days"
+      },
+      {
+        "agency": "Ventura County Fire Protection District",
+        "action": "Submit BESS package for preliminary fire-code review: NFPA 855, UL 9540/9540A, hazard mitigation analysis, emergency response plan, access, water supply, defensible space.",
+        "why": "BESS fire approval is gating; no safety documentation exists; Ventura wildfire exposure elevates scrutiny.",
+        "deadline": "Preliminary review within 90 days"
+      },
+      {
+        "agency": "Ventura County Air Pollution Control District (VCAPCD)",
+        "action": "Confirm Rule 55 fugitive-dust plan requirements and whether any stationary sources need VCAPCD permits.",
+        "why": "Construction air compliance unaddressed; affects schedule and SWPPP/dust-control scope.",
+        "deadline": "Before ground disturbance"
+      },
+      {
+        "agency": "Native American Heritage Commission; Barbareno/Ventureno Band of Mission Indians; Santa Ynez Band of Chumash Indians",
+        "action": "Request Sacred Lands File search; coordinate AB 52 consultation through the CEQA lead agency.",
+        "why": "No cultural/tribal records; AB 52 consultation is mandatory and unaddressed resources can stop entitlement.",
+        "deadline": "NAHC request within 30 days; consultation opened with CEQA notice"
+      },
+      {
+        "agency": "IRS and U.S. Treasury (via tax counsel)",
+        "action": "Execute BOC strategy under Notice 2025-42 (physical work test) before the OBBBA July 4, 2026 deadline; document PWA (Notice 2022-61), domestic content (Notice 2023-38), and FEOC material-assistance compliance.",
+        "why": "Kill criterion: solar ITC/PTC is zero without documented BOC by July 4, 2026 (or PIS by Dec 31, 2027); no BOC package exists.",
+        "deadline": "Hard deadline: BOC physical work documented before July 4, 2026"
+      },
+      {
+        "agency": "California Public Utilities Commission (CPUC)",
+        "action": "If offtake is with a CA IOU/CCA, confirm PPA approval path and timeline and RA counting eligibility for the solar-plus-storage configuration.",
+        "why": "CPUC approval timing can be a PPA condition precedent; RA value depends on CPUC counting rules.",
+        "deadline": "Before offtake execution; within 90 days"
+      },
+      {
+        "agency": "Federal Aviation Administration (FAA)",
+        "action": "File Form 7460-1 if structures or glare fall within Oxnard/Camarillo airport approach surfaces; complete glint/glare analysis.",
+        "why": "Airport-proximity glare/obstruction unassessed; can force redesign.",
+        "deadline": "7460-1 at least 45 days before construction; analysis within 90 days"
+      }
+    ],
+    "verification_requests": [
+      "CAISO (with developer authorization): verify queue number, cluster, study phase, TPD group, network-upgrade cost estimate, and security posting status directly.",
+      "SCE: verify interconnection facilities scope, cost responsibility, and earliest feasible energization date in writing.",
+      "Offtaker(s): confirm directly with the counterparty that the PPA/tolling/RA agreement is executed (or term sheet authentic), including price, tenor, delivery point, CPs, and credit support; do not rely on developer copies.",
+      "Transformer/GSU OEMs (Hitachi Energy, Siemens Energy, GE Vernova, Prolec GE, Hyundai): verify POs, production slots, and delivery dates vs the 128-144 week benchmark.",
+      "BESS integrator and cell supplier (Tesla, Fluence, Sungrow, CATL, BYD): verify supply agreement, cell allocation, delivery schedule, UL 9540/9540A reports, and FEOC status.",
+      "Module supplier: verify supply agreement, domestic-content certification for the 10-point ITC adder, UFLPA traceability, and AD/CVD exposure.",
+      "Title company (First American, Fidelity, Chicago Title): obtain the commitment directly; verify vesting, exceptions, encumbrances, mineral rights, and insured acreage vs claimed site control.",
+      "Ventura County RMA: independently verify zoning, General Plan designations, SOAR status, and any pre-app records or pending applications.",
+      "Ventura County Agricultural Commissioner / Dept. of Conservation: verify Williamson Act contract numbers, status, and any cancellation/non-renewal filings of record.",
+      "Independent engineer: lender's-engineer review of energy yield (P50/P90), curtailment vs ~11.5% CAISO solar curtailment, CAPEX vs $1.43-1.56/Wac plus $200-350/kWh BESS, and schedule feasibility.",
+      "Market revenue: independent CAISO study validating ~$27/MWh solar value, ~$52/kW-yr battery merchant revenue (2025), ancillary services, and RA price assumptions.",
+      "Insurance broker: verify insurability and pricing for wildfire liability and BESS thermal-runaway coverage with at least two markets.",
+      "Independent tax counsel: written opinion that the BOC package satisfies the Notice 2025-42 physical work test and the FEOC analysis is supportable.",
+      "Lead-time benchmarking: cross-check all quoted lead times against Wood Mackenzie, LBNL, and NREL indices rather than developer assertions."
+    ],
+    "conditions_precedent": [
+      "Complete data room: every RFI delivered and indexed; no material category (title, zoning, interconnection, offtake, EPC/supply, model, tax-credit evidence) may remain empty.",
+      "Zoning kill criterion resolved: written RMA verification that solar+storage is permissible on all parcels, plus written confirmation that no SOAR vote or Williamson Act barrier applies, or a filed CEC AB 205 opt-in preempting local zoning.",
+      "Tax-credit kill criterion resolved: documented BOC under Notice 2025-42 before July 4, 2026, with independent tax-counsel opinion, continuity plan, and PWA/domestic-content/FEOC documentation.",
+      "Interconnection: executed LGIA or Phase II results with network-upgrade costs within budget and security postings funded; credible energization path vs the ~5-year CAISO benchmark.",
+      "Offtake: executed PPA/tolling/RA-plus-merchant structure with a creditworthy counterparty covering a board-approved minimum share of energy, independently verified; CPUC approval conditions identified.",
+      "Underwriting: model showing DSCR >=1.20x at P90, contingency >=5-10%, CAPEX within or justified vs $1.43-1.56/Wac plus $200-350/kWh BESS, and revenue consistent with verified CAISO market values.",
+      "Site control: ALTA title commitment with no fatal exceptions covering the full footprint (~500-700 acres), leases/options executed, recorded, and coterminous with the financing term plus extensions.",
+      "CEQA path confirmed: county EIR schedule consistent with COD or filed CEC opt-in, with the 18-30 month entitlement benchmark in the integrated schedule.",
+      "Long-lead equipment: binding POs with confirmed production slots for GSU/large transformers (128-144 weeks) and BESS, delivery supporting COD, with LD protection.",
+      "Environmental: protocol surveys complete with no unmitigable impacts; CESA/ESA strategy agreed with CDFW/USFWS; JD submitted; sec. 404/401/1602 path confirmed.",
+      "BESS safety: Ventura County Fire Protection District acceptance of the NFPA 855 package, UL 9540A reports, and emergency response plan.",
+      "Insurance: bound or committed construction, operational, wildfire, and BESS thermal-runaway coverage at pricing consistent with the model.",
+      "Tribal/cultural: NAHC Sacred Lands File search complete and AB 52 consultation opened with no unresolved objections.",
+      "Re-verification: all third-party verification requests returned with no material discrepancies against developer claims."
+    ]
+  },
+  "recommended_next_action": "Empty data room: no facts, no findings, no acquired documents — cross-examination impossible; every dimension is unverifiable rather than merely risky",
+  "acquired_data": [],
+  "user": "zero-downtime"
+}

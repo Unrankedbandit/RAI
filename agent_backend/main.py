@@ -55,6 +55,22 @@ init_telemetry(app)
 
 STORE = Path(__file__).resolve().parent / "reports"
 STORE.mkdir(exist_ok=True)
+# Ids listed in reports/archived.txt are hidden from the portfolio listing
+# (/api/projects) but remain fetchable by id (/api/reports/{id}) — clearing
+# the board never breaks an already-shared permalink.
+ARCHIVE_LIST = STORE / "archived.txt"
+
+
+def _archived_ids() -> set[str]:
+    try:
+        return {
+            line.strip()
+            for line in ARCHIVE_LIST.read_text(encoding="utf-8").splitlines()
+            if line.strip() and not line.startswith("#")
+        }
+    except FileNotFoundError:
+        return set()
+
 JOB_QUEUES: dict[str, asyncio.Queue] = {}
 JOB_TRACES: dict[str, Trace] = {}
 # Per-job gap-review gate handles (GAP_REVIEW=1). Registered at analyze time,
@@ -418,9 +434,15 @@ async def get_answer(ask_id: str):
 
 @app.get("/api/projects")
 async def portfolio():
-    """Portfolio dashboard: every completed report, worst first."""
+    """Portfolio dashboard: every completed report, worst first.
+
+    Archived ids (reports/archived.txt) are hidden from the listing only —
+    their reports stay fetchable by id so permalinks keep working. Review
+    sidecar files (*.review.json) are not reports and never list."""
+    archived = _archived_ids()
     pairs = [(p.stem, Report.model_validate_json(p.read_text(encoding="utf-8")))
-             for p in STORE.glob("*.json") if not p.name.endswith(".review.json")]
+             for p in STORE.glob("*.json")
+             if p.stem not in archived and not p.name.endswith(".review.json")]
     pairs.sort(key=lambda t: t[1].readiness)
     return [
         {"id": pid, "project": r.project, "location": r.location, "readiness": r.readiness,

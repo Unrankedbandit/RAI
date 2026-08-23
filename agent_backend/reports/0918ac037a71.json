@@ -1,0 +1,200 @@
+{
+  "project": "Parcel 002180019000 — ? ac",
+  "location": "Kings County, CA",
+  "readiness": 5.75,
+  "decision": "Hold",
+  "dimensions": [
+    {
+      "name": "land",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "site_acres is null: cannot test land intensity against the ~5-7 ac/MW benchmark (100 MW implies ~500-700 ac required)",
+        "No site control, lease, or title evidence in the record",
+        "Kings County is heavily agricultural: Williamson Act contract status and Important Farmland classification unknown (solar is an incompatible use on contracted land; cancellation costs 12.5-25% of FMV)"
+      ]
+    },
+    {
+      "name": "law",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "UNRESOLVED KILL CRITERION: zoning permissibility unknown — CA county precedent (e.g., Solano) shows outright prohibition of commercial solar/BESS on ag-zoned land; Kings County zoning for this parcel unverified",
+        "No permitting status: CEQA/EIR path vs. CEC AB 205 Opt-In Certification (eligible at solar >=50 MW) undetermined",
+        "No state/federal law analysis, no ecology/ESA exposure screen, no community or ALUC review performed"
+      ]
+    },
+    {
+      "name": "finance",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "UNRESOLVED KILL CRITERION: tax-credit eligibility unverifiable — no beginning-of-construction evidence under OBBBA/Notice 2025-42 (no 5% safe harbor for >1.5 MW solar); ITC/PTC value cannot be confirmed",
+        "No CAPEX or budget figures to test against the $1.43-1.56/Wac installed benchmark (LBNL/NREL)",
+        "No executed offtake/revenue contracts; bankability norm of >=80% of P50 contracted at close untestable"
+      ]
+    },
+    {
+      "name": "materials",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "No equipment supply agreements or lead-time data: large transformer/GSU market norm of 128-144 weeks cannot be tested against any schedule",
+        "No module, tracker, or BESS procurement status; no schedule milestones exist to check procurement critical path"
+      ]
+    },
+    {
+      "name": "demand",
+      "rag": "red",
+      "score": 10.0,
+      "flags": [
+        "No PPA/offtake, no CAISO queue position, no deliverability (FCDS vs Energy-Only) status — CAISO IR-to-COD now ~5 years with only ~20% of queued projects reaching COD",
+        "Macro tailwind only: CPUC IRP 6,000 MW NQC procurement and SB 100/1020 100% zero-carbon by 2045 favor solar+4hr-storage, but nothing project-specific is evidenced"
+      ]
+    }
+  ],
+  "red_flags": [],
+  "contradictions": [],
+  "missing_info": [
+    "No extracted facts were provided (facts array is empty): cross-examination is impossible because there are no quantified claims to compare across documents. Fact extraction must be re-run on the source data room before this engine can operate.",
+    "No research findings or acquired research were provided (findings and acquired arrays are empty): even if facts existed, there would be no external benchmarks (materials indices, equipment lead times, permitting norms) to test them against.",
+    "All standard fact categories are absent from the record: CAPEX/budget figures, contracted vs. executed capacity (MW/MWh), schedule milestones, permitting status, site control/title evidence, interconnection agreements, equipment supply agreements and lead times, and offtake/revenue contracts. None of the core contradiction checks (CAPEX vs. materials indices, contracted MW vs. executed agreements, schedule vs. permitting milestones, site control claims vs. title evidence, schedule vs. equipment lead times) can be performed."
+  ],
+  "action_pack": {
+    "rfis": [
+      "Site control: provide executed lease/option agreements for APN 002-180-019-000 and all adjacent parcels (term, escalation, purchase options, recorded memoranda), a current preliminary title report, ALTA survey, and confirmed gross/net acreage — site_acres is null and 100 MW requires ~500-700 ac at the 5-7 ac/MW benchmark.",
+      "Zoning/land use: provide the parcel's Kings County zoning and General Plan designations, Williamson Act contract number and status (including any non-renewal or cancellation filings), DOC FMMP Important Farmland classification, and any prior SB 618 solar-use easement analysis.",
+      "Permitting: provide all permit applications filed or planned (CUP/site plan review, grading, building), the CEQA strategy (EIR vs. MND) or CEC AB 205 Opt-In Certification intent, and a permitting milestone schedule.",
+      "Interconnection: provide the CAISO interconnection request number, queue position and cluster, study phase and results (Phase I/II), deliverability election (FCDS vs. Energy-Only), point of interconnection and voltage, network upgrade cost estimates, and any executed Interconnection Agreement.",
+      "Offtake: provide all executed or draft PPAs/tolling agreements/LOIs with counterparties, tenor, price, and contracted MW/MWh vs. nameplate, plus status of negotiations — bankability norm is >=80% of P50 energy contracted at financial close.",
+      "CAPEX/financials: provide a detailed CAPEX budget in $/Wac with EPC quotes or term sheets, and the pro forma model including revenue, ITC/PTC and adder assumptions (domestic content, energy community), debt sizing, and sources & uses.",
+      "Tax credits: provide beginning-of-construction documentation under OBBBA/Notice 2025-42 (physical work of a significant nature — the 5% safe harbor is unavailable for >1.5 MW solar), the continuity plan, FEOC/material-assistance compliance analysis for IRC 45Y/48E eligibility, and the placed-in-service target relative to the July 4, 2026 start-of-construction deadline.",
+      "Equipment/procurement: provide module, tracker, inverter, and BESS supply agreements or quotes (pricing, delivery schedules, domestic content specs); GSU/main power transformer orders with OEM, production slot confirmation, and quoted lead time (market norm 128-144 weeks); and BESS capacity (MWh/duration) with UL 9540/9540A certification.",
+      "Schedule: provide the integrated milestone schedule (NTP, major equipment delivery, energization, COD) reconciled to permitting, interconnection, and procurement critical paths.",
+      "Resource/engineering: provide the solar resource assessment and P50/P90 energy yield report, BESS dispatch and augmentation plan, preliminary layout with setbacks and gen-tie route, geotechnical report, hydrology/drainage study, and Phase I ESA.",
+      "Environmental: provide biological survey results (San Joaquin kit fox, blunt-nosed leopard lizard, Swainson's hawk, burrowing owl, Tipton/giant kangaroo rat), an aquatic resources delineation (Tulare Lake bed/ephemeral drainages), cultural resources survey, and tribal outreach records.",
+      "Community/government relations: provide the community engagement plan, documentation of any opposition or support, and any agreements with Kings County (e.g., development agreement).",
+      "Water: provide the construction and operational water supply plan (dust control) given SGMA critically overdrafted status of the Tulare Lake and Kings groundwater subbasins.",
+      "Corporate: provide entity structure, development track record, capitalization, and any existing financing commitments.",
+      "Data room: re-run fact extraction on the source data room and deliver the extracted facts set — the current record contains zero extracted facts, making cross-examination and all core contradiction checks unperformable."
+    ],
+    "agency_actions": [
+      {
+        "agency": "Kings County Community Development Agency (Planning Division)",
+        "action": "Submit a written zoning verification request for APN 002-180-019-000 covering zoning/General Plan designation, whether utility-scale solar+BESS is a permitted or conditionally permitted use, and CUP/site plan review requirements.",
+        "why": "Unresolved kill criterion: CA county precedent (e.g., Solano) shows outright prohibition of commercial solar/BESS on ag-zoned land; if prohibited, the local permit path dies and the CEC AB 205 opt-in route becomes mandatory.",
+        "deadline": "Submit within 5 business days; written verification typically returned in 2-4 weeks"
+      },
+      {
+        "agency": "Kings County Agricultural Commissioner and California Department of Conservation, Division of Land Resource Protection",
+        "action": "Obtain Williamson Act contract status and map for the parcel plus FMMP Important Farmland classification; if under contract, evaluate cancellation (Gov. Code sec. 51282, 12.5% of FMV fee) versus an SB 618 solar-use easement.",
+        "why": "Solar is an incompatible use on Williamson Act contracted land; cancellation costs 12.5-25% of FMV and materially affect CAPEX and schedule.",
+        "deadline": "Records request within 5 business days; DOC response ~30 days"
+      },
+      {
+        "agency": "California Energy Commission (CEC)",
+        "action": "Request a pre-application meeting on AB 205 Opt-In Certification (Pub. Resources Code sec. 25545; eligible for solar >=50 MW) as the fallback permitting route if local zoning fails.",
+        "why": "CEC certification preempts local permitting and carries a 270-day decision target, providing a viable path if Kings County zoning prohibits the project.",
+        "deadline": "Schedule pre-application meeting within 30 days of the zoning determination"
+      },
+      {
+        "agency": "California ISO (CAISO)",
+        "action": "Confirm the project's queue position, cluster, study phase, deliverability election (FCDS vs. Energy-Only), and network upgrade cost exposure; if no position exists, assess the next cluster application window.",
+        "why": "CAISO interconnection-request-to-COD is now ~5 years and only ~20% of queued projects reach COD; network upgrade cost shock is the #1 dropout driver.",
+        "deadline": "Confirm within 10 business days via developer queue data and CAISO account records"
+      },
+      {
+        "agency": "California Department of Fish and Wildlife (CDFW), Central Region (Region 4)",
+        "action": "Initiate early consultation on CESA-listed species (San Joaquin kit fox, blunt-nosed leopard lizard, Swainson's hawk), protocol survey requirements, and likelihood of a 2081 incidental take permit; flag Lake/Streambed Alteration Agreement (Fish & Game Code sec. 1602) needs.",
+        "why": "Blunt-nosed leopard lizard is fully protected under California law — presence can be fatal to the site layout; survey windows are seasonal and drive the schedule.",
+        "deadline": "Consultation request within 15 business days; protocol surveys aligned to spring/summer windows"
+      },
+      {
+        "agency": "U.S. Fish and Wildlife Service (USFWS), Sacramento Fish and Wildlife Office",
+        "action": "Request a species list (IPaC) and technical assistance on federal ESA exposure (San Joaquin kit fox, giant kangaroo rat) and whether Section 7 consultation or a Section 10 HCP is required.",
+        "why": "Federal take authorization may be required independent of state permits and can add 12+ months if an HCP is needed.",
+        "deadline": "IPaC list within 10 business days; scoping response within 60 days"
+      },
+      {
+        "agency": "Central Valley Regional Water Quality Control Board (Region 5, Fresno office) and State Water Resources Control Board",
+        "action": "Confirm Construction General Permit (Order 2022-0057-DWQ) enrollment path via SMARTS, SWPPP requirements, and whether Waste Discharge Requirements or a 401 certification are triggered by any waters on site.",
+        "why": "NPDES coverage is a precondition to ground disturbance; Tulare Lake bed hydrology may create jurisdictional waters issues.",
+        "deadline": "Determination within 30 days; SMARTS enrollment before any grading"
+      },
+      {
+        "agency": "San Joaquin Valley Air Pollution Control District (SJVAPCD)",
+        "action": "Confirm Regulation VIII fugitive dust control plan requirements, Rule 9510 Indirect Source Review applicability, and any stationary source permits (e.g., backup generators).",
+        "why": "Kings County is in a severe nonattainment area; dust plan approval is a grading precondition and ISR fees affect CAPEX.",
+        "deadline": "Applicability determination within 30 days"
+      },
+      {
+        "agency": "Native American Heritage Commission (NAHC) and California SHPO",
+        "action": "Request a Sacred Lands File search and tribal contact list; initiate AB 52 tribal consultation through the CEQA lead agency and scope Section 106 consultation if a federal nexus exists.",
+        "why": "AB 52 consultation is a CEQA legal prerequisite; unaddressed tribal cultural resources are a leading cause of EIR delay and litigation.",
+        "deadline": "NAHC request within 10 business days; consultation opened with CEQA Notice of Preparation"
+      },
+      {
+        "agency": "Kings County Airport Land Use Commission and DoD Military Aviation and Installation Assurance Siting Clearinghouse",
+        "action": "Determine whether the parcel lies within the NAS Lemoore Airport Influence Area; if so, obtain an ALUC compatibility determination and file for DoD Siting Clearinghouse review with a glint/glare analysis (ForgeSolar).",
+        "why": "NAS Lemoore is the Navy's largest master jet base and is located in Kings County; glare and radar impacts can trigger DoD objection and permit denial.",
+        "deadline": "AIA screening within 15 business days; Clearinghouse review 60-90 days if required"
+      },
+      {
+        "agency": "Kings County Fire Department / Fire Marshal",
+        "action": "Engage on BESS fire safety requirements: California Fire Code energy systems provisions, NFPA 855 compliance, UL 9540A test data review, emergency response plan, and site access/water supply for fire suppression.",
+        "why": "BESS fire safety approval is a building permit precondition and a lender/insurer requirement; early fire marshal alignment avoids redesign.",
+        "deadline": "Pre-application meeting within 30 days"
+      },
+      {
+        "agency": "Kings Groundwater Sustainability Agencies (Tulare Lake and Kings subbasins) and applicable irrigation/water district",
+        "action": "Confirm construction water supply availability and any pumping restrictions under SGMA, including the Tulare Lake subbasin probationary status before the State Water Board.",
+        "why": "Both subbasins are critically overdrafted; dust control for a 500-700 ac site requires a firm water source that SGMA restrictions may constrain.",
+        "deadline": "Water supply confirmation within 45 days"
+      },
+      {
+        "agency": "U.S. Army Corps of Engineers, Sacramento District",
+        "action": "Obtain an approved jurisdictional determination if the aquatic resources delineation identifies potentially jurisdictional waters (Tulare Lake bed, ephemeral drainages); assess Section 404 permit needs.",
+        "why": "Unanticipated jurisdictional waters can force layout redesign and add 6-12 months of federal permitting.",
+        "deadline": "AJD request within 60 days of delineation completion"
+      },
+      {
+        "agency": "IRS / U.S. Treasury (via tax counsel)",
+        "action": "Obtain a tax opinion or memo confirming IRC 45Y/48E eligibility under OBBBA and Notice 2025-42: physical-work beginning-of-construction evidence, continuity, FEOC material-assistance compliance, and placed-in-service timing.",
+        "why": "Unresolved kill criterion: without documented beginning of construction by July 4, 2026, the 30% ITC/PTC may be forfeited — a ~30% swing in project economics.",
+        "deadline": "Tax memo before investment committee; construction-start evidence preserved contemporaneously"
+      }
+    ],
+    "verification_requests": [
+      "CAISO: independently verify the claimed queue position, cluster study phase and results, deliverability status (FCDS vs. Energy-Only), and network upgrade cost estimates directly from CAISO queue data and the developer's interconnection account — do not rely on developer summaries.",
+      "Offtake counterparties: confirm directly with each named buyer (utility, CCA, or corporate) the execution status, tenor, price, contracted volume, and conditions remaining for any claimed PPA/tolling agreement/LOI; verify counterparty creditworthiness.",
+      "Transformer OEM (e.g., Hitachi Energy, Siemens Energy, GE Vernova, Prolec GE, Hyundai): verify any claimed GSU/main power transformer order, production slot, and quoted lead time against the 128-144 week market norm; if no order exists, obtain current budgetary quotes and slot availability.",
+      "Module supplier: verify supply agreement or quote, pricing, delivery schedule, and domestic content qualification (for the 10% ITC adder) directly with the manufacturer.",
+      "BESS integrator (e.g., Tesla, Fluence, Sungrow, CATL): verify quoted lead times, pricing, and UL 9540/9540A certification status for the specified system.",
+      "Title company: obtain an independent preliminary title report and confirm ownership, encumbrances, mineral rights, and any recorded easements or Williamson Act notices on APN 002-180-019-000.",
+      "Kings County Assessor/Recorder: verify parcel acreage, ownership of record, and any recorded lease memoranda supporting claimed site control.",
+      "Landowner(s): confirm directly that lease/option agreements are executed, current, and cover the full buildable area claimed.",
+      "Independent engineer: validate the P50/P90 energy yield, BESS dispatch assumptions, and CAPEX against LBNL/NREL benchmarks ($1.43-1.56/Wac installed) once developer data is produced.",
+      "EPC contractor: verify any quoted EPC price and schedule directly, including validity period and escalation terms.",
+      "Tax counsel (independent): verify the beginning-of-construction position under Notice 2025-42 and FEOC compliance rather than relying on developer tax representations."
+    ],
+    "conditions_precedent": [
+      "Data room completeness: fact extraction re-run on the source data room with a complete extracted facts set delivered; no IC vote on an empty record.",
+      "Site control: executed lease/option agreements covering >=500-700 contiguous buildable acres (5-7 ac/MW for 100 MW) with a clean preliminary title report and title insurance commitment.",
+      "Zoning resolution: written Kings County zoning verification confirming utility-scale solar+BESS is permitted or conditionally permitted, OR CEC acceptance of an AB 205 Opt-In Certification application; Williamson Act status resolved via cancellation, non-renewal, SB 618 solar-use easement, or confirmation the parcel is uncontracted.",
+      "Tax credit eligibility: documented beginning of construction satisfying Notice 2025-42 (physical work test; no 5% safe harbor) before July 4, 2026, with continuity plan and FEOC/material-assistance compliance memo from independent tax counsel.",
+      "Interconnection: executed CAISO Interconnection Agreement, or at minimum completed Phase II cluster study with network upgrade costs within an approved cap and a deliverability election consistent with the offtake.",
+      "Offtake: executed PPA(s)/tolling agreement(s) covering >=80% of P50 energy with creditworthy counterparties at financial close.",
+      "CAPEX validation: EPC-level CAPEX within +/-10% of the $1.43-1.56/Wac LBNL/NREL benchmark, supported by firm quotes.",
+      "Procurement critical path: firm GSU/main power transformer supply agreement with delivery aligned to the energization date (lead time tested against the 128-144 week norm), plus executed module and BESS supply agreements with delivery schedules consistent with COD.",
+      "Environmental clearance: completed protocol biological surveys with no unmitigable fully protected species (blunt-nosed leopard lizard) conflict; CEQA path (EIR/MND or CEC certification) determined with a realistic schedule; AB 52 tribal consultation initiated.",
+      "BESS fire safety: Kings County Fire Marshal concurrence on the NFPA 855/UL 9540A-based fire safety and emergency response plan.",
+      "Water supply: firm construction water source confirmed given SGMA critically overdrafted status of the Tulare Lake/Kings subbasins.",
+      "Schedule realism: integrated milestone schedule reconciled to permitting, interconnection (~5-year CAISO norm), and transformer lead times, with COD no earlier than these constraints allow.",
+      "Military/aviation clearance: NAS Lemoore AIA screening completed and, if applicable, DoD Siting Clearinghouse no-objection and ALUC compatibility determination obtained.",
+      "Financial model: pro forma validated with contracted revenue, confirmed ITC/PTC treatment, and downside cases for Energy-Only deliverability and network upgrade cost overruns."
+    ]
+  },
+  "recommended_next_action": "Diligence record is empty: no extracted facts, no research findings, no benchmarks — cross-examination impossible; fact extraction must be re-run on the source data room before any scoring can be substantive",
+  "acquired_data": [],
+  "user": null
+}
