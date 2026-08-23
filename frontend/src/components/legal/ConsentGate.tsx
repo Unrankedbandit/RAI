@@ -43,7 +43,10 @@ export function ConsentGate() {
     () => readConsent(),
     () => false,
   );
-  const status: ConsentStatus = accepted ? "accepted" : "pending";
+  // "declined" is a session-only user gesture, so it stays a normal state;
+  // only the persisted consent read needed the purity-safe store.
+  const [declined, setDeclined] = useState(false);
+  const status: ConsentStatus = accepted ? "accepted" : declined ? "declined" : "pending";
   const [openSection, setOpenSection] = useState<string | null>(null);
 
   // Lock background scroll while the gate is up.
@@ -70,7 +73,7 @@ export function ConsentGate() {
       // Storage unavailable — still let the session proceed; the gate will
       // reappear on the next visit.
     }
-    setStatus("accepted");
+    setDeclined(false)  // acceptance re-reads from storage on next render;
   };
 
   return (
@@ -98,7 +101,7 @@ export function ConsentGate() {
             <div className="mt-5 flex items-center justify-end gap-2">
               <button
                 type="button"
-                onClick={() => setStatus("pending")}
+                onClick={() => setDeclined(false)}
                 className="cursor-pointer rounded-[7px] border border-hairline bg-surface-2 px-4 py-2 text-[13px] font-medium text-ink"
               >
                 Review terms again
@@ -180,7 +183,7 @@ export function ConsentGate() {
             <div className="flex flex-col-reverse gap-2 border-t border-hairline p-[16px_20px] sm:flex-row sm:items-center sm:justify-between">
               <button
                 type="button"
-                onClick={() => setStatus("declined")}
+                onClick={() => setDeclined(true)}
                 className="cursor-pointer rounded-[7px] border border-hairline bg-surface-2 px-4 py-2 text-[13px] font-medium text-muted"
               >
                 Decline
