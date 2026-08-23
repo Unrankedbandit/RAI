@@ -39,7 +39,7 @@ const MAP_STYLE_DARK =
 
 // Satellite default (user call 2026-08-22): Esri World Imagery — keyless,
 // CORS-friendly raster tiles; attribution required and kept.
-const MAP_STYLE_SATELLITE = {
+const MAP_STYLE_SATELLITE: StyleSpecification = {
   version: 8,
   sources: {
     satellite: {
@@ -52,7 +52,7 @@ const MAP_STYLE_SATELLITE = {
     },
   },
   layers: [{ id: "satellite", type: "raster", source: "satellite" }],
-} as const;
+};
 
 export default function PortfolioMapView({
   projects,
