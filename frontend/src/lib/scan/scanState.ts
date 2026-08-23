@@ -45,6 +45,14 @@ export type ScanResult = {
   activationScore: number;
 };
 
+/** One scraped/searched URL's latest lifecycle state (live runs only). */
+export type SourceRow = {
+  url: string;
+  status: "fetching" | "fetched" | "repaired" | "failed" | "skipped";
+  agent?: string;
+  chars?: number;
+};
+
 /** The accumulated data (phase is derived separately, in the hook). */
 export type ScanData = {
   percent: number;
@@ -61,6 +69,10 @@ export type ScanData = {
   gate: GapGateState | null;
   /** Agent boxes in first-seen order — the hero of the live run view. */
   agents: AgentBox[];
+  /** Scraped/searched URLs in first-seen order (live scraper events only). */
+  sources: SourceRow[];
+  /** Pipeline mode announced by the backend; null on old backends/mock. */
+  mode: "fast" | "deep" | null;
   /** Total events folded so far (0 = nothing has arrived yet). */
   eventCount: number;
 };
@@ -77,6 +89,8 @@ export const initialScanData: ScanData = {
   error: null,
   gate: null,
   agents: [],
+  sources: [],
+  mode: null,
   eventCount: 0,
 };
 
@@ -222,6 +236,42 @@ export function reduceScan(state: ScanData, event: ScanEvent): ScanData {
         ),
         trail: [...state.trail, line(text, "gate")],
       };
+    }
+    case "source_update": {
+      // Upsert by URL — latest status wins. A repair render re-fetch
+      // legitimately downgrades a row back to "fetching"; that's honest.
+      // chars/agent persist from the previous row when the new event doesn't
+      // carry them (repair frames omit chars), so the count doesn't blink out.
+      const idx = state.sources.findIndex((s) => s.url === event.url);
+      const prev = idx >= 0 ? state.sources[idx] : undefined;
+      const row: SourceRow = {
+        url: event.url,
+        status: event.status,
+        agent: event.agent ?? prev?.agent,
+        chars: event.chars ?? prev?.chars,
+      };
+      const sources = prev
+        ? state.sources.map((s, i) => (i === idx ? row : s))
+        : [...state.sources, row];
+      // Keep log noise down: only failures and repairs earn a trail line.
+      if (event.status === "failed" || event.status === "repaired") {
+        const text =
+          event.status === "failed"
+            ? `Source failed: ${event.url}`
+            : `Source repaired: ${event.url}`;
+        return {
+          ...next,
+          sources,
+          trail: [
+            ...state.trail,
+            line(text, event.status === "failed" ? "flag" : "read"),
+          ],
+        };
+      }
+      return { ...next, sources };
+    }
+    case "run_mode": {
+      return { ...next, mode: event.mode };
     }
     case "complete": {
       return {

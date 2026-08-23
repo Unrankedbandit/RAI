@@ -451,6 +451,53 @@
     ],
     "sourceBasis": "0 source documents + 3 acquired research packs"
   },
+  "acquiredData": [
+    {
+      "component": "zoning",
+      "dataPoints": [
+        "Energy Resource zoning verified: 12.5% of city = 17,107 acres (city official site)",
+        ">1 GW operating complex adjacent: Copper Mountain 802 MWac, Techren 300 MW, Boulder Solar 150 MW"
+      ],
+      "sources": [
+        "flybvu.com/1099",
+        "BCMC Title 11"
+      ],
+      "stillMissing": [
+        "APN-level zoning printout"
+      ]
+    },
+    {
+      "component": "resource",
+      "dataPoints": [
+        "Copper Mountain 4 tracker measured 32.3% CF (2019)",
+        "GHI ~5.8-6.2 kWh/m2/day",
+        "6.0 ac/MWac plausible"
+      ],
+      "sources": [
+        "EIA via Copper Mountain Facility data",
+        "NREL NSRDB"
+      ],
+      "stillMissing": [
+        "On-site met campaign",
+        "PVSyst P50/P90"
+      ]
+    },
+    {
+      "component": "interconnection",
+      "dataPoints": [
+        "NV Energy BAA (NEVP), not CAISO",
+        "FERC Order 2023 cluster process",
+        "Greenlink West 525 kV energizing 2027",
+        "Eldorado/Marketplace-Mead 500/230 kV hub adjacent"
+      ],
+      "sources": [
+        "NV Energy OASIS"
+      ],
+      "stillMissing": [
+        "Queue position + study report"
+      ]
+    }
+  ],
   "map": {
     "parcelSize": "\u2014",
     "toggles": [
