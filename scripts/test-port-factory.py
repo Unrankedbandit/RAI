@@ -181,6 +181,47 @@ finally:
 check("disabled client performed zero HTTP calls", len(calls_c) == 0,
       f"saw {len(calls_c)} calls")
 
+# ── (d) startup reconciliation: RUNNING zombies → FAILED/WorkerLost ──────────
+print("\n▸ (d) orphan reconciliation sweeps dead workers' RUNNING runs")
+calls_d: list[dict] = []
+orig_get = httpx.get
+
+
+def fake_post_d(url, json=None, params=None, headers=None, timeout=None):
+    calls_d.append({"url": url, "json": json or {}})
+    if url.endswith("/v1/auth/access_token"):
+        return FakeResponse({"accessToken": "t"})
+    return FakeResponse({"ok": True})
+
+
+def fake_get_d(url, headers=None, timeout=None):
+    return FakeResponse({"entities": [
+        {"identifier": "zombie-1", "properties": {"status": "RUNNING"}},
+        {"identifier": "alive-1", "properties": {"status": "RUNNING"}},
+        {"identifier": "done-1", "properties": {"status": "AWAITING_REVIEW"}},
+    ]})
+
+
+httpx.post = fake_post_d
+httpx.get = fake_get_d
+try:
+    client_d = PortClient("id", "secret", "https://api.getport.test", log=lambda m: None)
+    client_d.reconcile_orphans(active_ids={"alive-1"})
+    client_d.flush()
+finally:
+    httpx.post = orig_post
+    httpx.get = orig_get
+
+upserts = [c for c in calls_d if "entities" in c["url"]]
+zombie = [c for c in upserts if c["json"].get("identifier") == "zombie-1"]
+check("exactly one orphan upserted", len(zombie) == 1,
+      f"upserts: {[c['json'].get('identifier') for c in upserts]}")
+check("orphan flipped to FAILED/WorkerLost",
+      bool(zombie) and zombie[0]["json"]["properties"]["status"] == "FAILED"
+      and zombie[0]["json"]["properties"]["errorClass"] == "WorkerLost")
+check("active and non-RUNNING runs untouched",
+      all(c["json"].get("identifier") not in ("alive-1", "done-1") for c in upserts))
+
 print("\n" + "─" * 56)
 if failures:
     print(f"❌ {failures} check(s) failed")
