@@ -30,31 +30,38 @@ export function ViabilityPreview({ parcel }: { parcel: ParcelResult }) {
     [identityKey],
   );
 
-  const [state, setState] = useState<
-    { status: "loading" } | { status: "done"; result: PreviewScore | null }
-  >({ status: "loading" });
+  // The last finished score, keyed by the parcel that produced it. When the
+  // selected parcel changes, the key mismatch IS the loading state, derived
+  // during render — the effect only completes asynchronously, so there is no
+  // synchronous setState in an effect body (react-hooks lint) and no
+  // cascading render.
+  const [scored, setScored] = useState<{
+    key: string;
+    result: PreviewScore | null;
+  } | null>(null);
   const seqRef = useRef(0);
 
   useEffect(() => {
     const seq = ++seqRef.current;
     let cancelled = false;
-    setState({ status: "loading" });
     previewScore(parcel, centroid)
       .then((result) => {
         if (cancelled || seq !== seqRef.current) return;
-        setState({ status: "done", result });
+        setScored({ key: identityKey, result });
       })
       .catch(() => {
         // Contract promises previewScore never throws; stay defensive so a
         // mid-flight regression can never break the rail.
         if (cancelled || seq !== seqRef.current) return;
-        setState({ status: "done", result: null });
+        setScored({ key: identityKey, result: null });
       });
     return () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [identityKey]);
+
+  const current = scored && scored.key === identityKey ? scored : null;
 
   return (
     <div className="mt-4 border-t border-hairline pt-3">
@@ -65,14 +72,14 @@ export function ViabilityPreview({ parcel }: { parcel: ParcelResult }) {
         <span className="text-[10px] text-faint">instant estimate</span>
       </div>
 
-      {state.status === "loading" ? (
+      {current === null ? (
         <p className="mt-2 animate-pulse text-[11px] text-faint">Scoring…</p>
-      ) : state.result === null ? (
+      ) : current.result === null ? (
         <p className="mt-2 text-[11px] text-faint">
           Preview unavailable for this parcel — run full diligence.
         </p>
       ) : (
-        <PreviewBody result={state.result} />
+        <PreviewBody result={current.result} />
       )}
     </div>
   );
