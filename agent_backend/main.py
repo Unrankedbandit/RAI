@@ -27,7 +27,20 @@ from .schemas import ChatAnswer, Report
 from .telemetry import init_telemetry
 from .tools import DOC_DIR
 
-app = FastAPI(title="Red Flag Agent Backend")
+from contextlib import asynccontextmanager
+
+
+@asynccontextmanager
+async def _lifespan(_app: FastAPI):
+    # Crash recovery: pipeline jobs live in process memory, so a restart
+    # orphans their Port entities mid-flight. Sweep any RUNNING zombies to
+    # FAILED/WorkerLost before serving — the catalog must never claim a run
+    # is alive when nothing is executing it.
+    _port.reconcile_orphans(set(JOB_QUEUES))
+    yield
+
+
+app = FastAPI(title="Red Flag Agent Backend", lifespan=_lifespan)
 # Explicit origins + credentials: the hackathon gate authenticates via an
 # HttpOnly cookie on .josephbissell.com, so browser fetches from the parcel
 # viewer arrive credentialed — and browsers reject allow_origins=["*"] for

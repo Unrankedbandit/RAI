@@ -140,6 +140,44 @@ class PortClient:
             except Exception:
                 pass
 
+    def reconcile_orphans(self, active_ids: set[str]) -> None:
+        """Startup sweep: jobs live in process memory, so a factory_run still
+        showing RUNNING after a restart belongs to a dead worker. Flip those
+        zombies to FAILED/WorkerLost — the catalog must never claim a run is
+        alive when nothing is executing it."""
+        if not self.enabled:
+            return
+
+        def task() -> None:
+            try:
+                import httpx
+
+                r = httpx.get(
+                    f"{self.api_base}/v1/blueprints/factory_run/entities",
+                    headers={"Authorization": f"Bearer {self._get_token()}"},
+                    timeout=_HTTP_TIMEOUT,
+                )
+                r.raise_for_status()
+                orphans = [
+                    e["identifier"]
+                    for e in r.json().get("entities", [])
+                    if (e.get("properties") or {}).get("status") == "RUNNING"
+                    and e.get("identifier") not in active_ids
+                ]
+                for ident in orphans:
+                    self._upsert_sync("factory_run", ident, ident, {
+                        "status": "FAILED",
+                        "errorClass": "WorkerLost",
+                        "errorMessage": "backend restarted while this run was active; "
+                                        "the in-memory job died with it",
+                    }, {})
+                if orphans:
+                    self.log(f"reconciled {len(orphans)} orphaned RUNNING run(s) → FAILED (WorkerLost)")
+            except Exception as e:
+                self.log(f"orphan reconciliation skipped ({type(e).__name__}: {str(e)[:120]}) — never blocks startup")
+
+        self._pool.submit(task)
+
 
 # Process-wide singleton, built from env at import. main.py constructs
 # job-scoped PortReporters on top of this.
