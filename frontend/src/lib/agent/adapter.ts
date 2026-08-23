@@ -21,7 +21,7 @@ import type {
   TimelineEvent,
 } from "../types";
 import type { PortfolioRow } from "./client";
-import { slugify } from "./liveStore";
+import { slugify } from "./liveStore.ts";
 import type { AgentReport } from "./report";
 const ITC_DEADLINE = "2030-12-31";
 
