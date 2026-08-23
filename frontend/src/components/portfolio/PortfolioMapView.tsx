@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Map, { Marker, Popup, type MapRef } from "react-map-gl/maplibre";
+import type { StyleSpecification } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import { bandColorVar, statusLabelText } from "@/lib/band";
