@@ -208,14 +208,35 @@ async def run_pipeline(
     else:
         trace.event("phase", "auditing package completeness", phase="gap")
         # 2b. Gap analysis: what does a full diligence package need that the docs lack?
-        gap: GapAnalysis = await _degrade(
-            _agent("GapAnalyzer", GAP_ANALYZER, GapAnalysis, "gap_analyzer", on_status, trace).run(
-                "Compare the extracted facts against full diligence data requirements. List every missing data need.",
-                {"project": profile.model_dump(), "facts": [f.model_dump() for f in fact_sets]},
-            ),
-            GapAnalysis(needs=[]),
-            on_status, "GapAnalyzer",
-        )
+        # Gap analysis fans out per component (2026-08-23): the single
+        # consolidated analyzer was the last serial bottleneck — one
+        # flash-lane analyzer per component in parallel, then merge+dedupe.
+        # Analyzers ride the flash tier (model_tiers.json), so the swarm is
+        # cheap; the merge here dedupes on (component, missing[:80]).
+        _gap_components = profile.components or ["financials"]
+        on_status(f"[pipeline] gap analysis — {len(_gap_components)} analyzers in parallel")
+        _gap_parts: list[GapAnalysis] = list(await asyncio.gather(*[
+            _degrade(
+                _agent(f"GapAnalyzer:{c}", GAP_ANALYZER, GapAnalysis, "gap_analyzer", on_status, trace).run(
+                    f"For the '{c}' component only: compare the extracted facts "
+                    "against full diligence data requirements. List every missing "
+                    "data need for this component.",
+                    {"project": profile.model_dump(), "facts": [f.model_dump() for f in fact_sets]},
+                ),
+                GapAnalysis(needs=[]),
+                on_status, f"GapAnalyzer:{c}",
+            )
+            for c in _gap_components
+        ]))
+        _seen: set[str] = set()
+        _merged: list[DataNeed] = []
+        for g in _gap_parts:
+            for n in g.needs:
+                k = f"{n.component}::{n.missing[:80]}".lower()
+                if k not in _seen:
+                    _seen.add(k)
+                    _merged.append(n)
+        gap: GapAnalysis = GapAnalysis(needs=_merged)
 
         # 2c. Human gap-review gate (opt-in via GAP_REVIEW=1): park the run
         # here so a person can read the gaps and approve which ones the data
