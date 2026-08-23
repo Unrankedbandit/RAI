@@ -158,6 +158,26 @@ h6 {
   color: var(--color-ink);
 }
 
+/* Live-run agent tiles: a working agent's square tile breathes with a
+   pulsing brand ring (brand #ff8400 is the hue anchor in both themes). */
+.agent-tile-working {
+  animation: agent-tile-pulse 1.6s ease-out infinite;
+}
+
+@keyframes agent-tile-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px var(--color-brand),
+      0 0 0 0 rgba(255, 132, 0, 0.35);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px var(--color-brand),
+      0 0 0 6px rgba(255, 132, 0, 0);
+  }
+}
+
 /* --------------------------------------------------------------------------
    MapLibre popup overrides — portfolio map (PortfolioMapView.tsx).
    Aligns maplibre's popup chrome with the RAI design system (11px radius,
@@ -232,59 +252,4 @@ h6 {
       0 2px 6px rgba(11, 8, 41, 0.25),
       0 0 0 0 rgba(11, 8, 41, 0);
   }
-}
-
-/* --------------------------------------------------------------------------
-   Print — the memo export (/projects/<id>/memo). Only the memo card prints:
-   the visibility pattern hides the app shell without fighting its flex/
-   overflow layout, and the scroll containers un-clip so multi-page memos
-   paginate instead of truncating at one viewport.
-   -------------------------------------------------------------------------- */
-@media print {
-  body * {
-    visibility: hidden;
-  }
-  #memo-print,
-  #memo-print * {
-    visibility: visible;
-  }
-  #memo-print {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    max-width: none;
-  }
-  html,
-  body,
-  body > * {
-    height: auto;
-    overflow: visible;
-  }
-}
-
-/* universal return-to-run badge (RunBadge) — small pill, bottom-right,
-   slow throbbing glow in the brand color */
-.run-badge {
-  position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 18px;
-  z-index: 90;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 9px 16px;
-  border-radius: 999px;
-  border: 1px solid var(--color-brand);
-  background: var(--color-canvas, #fff);
-  color: var(--color-ink);
-  font: 600 12px ui-monospace, monospace;
-  letter-spacing: 0.06em;
-  cursor: pointer;
-  animation: runbadge-throb 3.4s ease-in-out infinite;
-}
-.run-badge:hover { background: var(--color-surface-2, #f4f4f6); }
-@keyframes runbadge-throb {
-  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-brand) 0%, transparent); }
-  50% { box-shadow: 0 0 22px 5px color-mix(in srgb, var(--color-brand) 45%, transparent); }
 }

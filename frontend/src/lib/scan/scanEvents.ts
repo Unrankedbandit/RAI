@@ -38,16 +38,6 @@ export type ScanEvent =
    * milestone path, which computes progress from pillar_complete events.
    */
   | { type: "progress"; percent: number }
-  /** One scraped source's lifecycle row (scraper.* trace events, live runs only). */
-  | {
-      type: "source_update";
-      url: string;
-      status: "fetching" | "fetched" | "repaired" | "failed" | "skipped";
-      agent?: string;
-      chars?: number;
-    }
-  /** Pipeline mode announced by the backend (job.mode frame); absent on old backends/mock. */
-  | { type: "run_mode"; mode: "fast" | "deep" }
   /**
    * Mid-run human-approval gate. The pipeline paused after the first research
    * step and is waiting for a human to pick which gaps the swarm should chase.

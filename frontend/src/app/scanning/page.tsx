@@ -9,14 +9,12 @@ import { ScanProgress } from "@/components/scanning/ScanProgress";
 import { AgentStatusGrid } from "@/components/scanning/AgentStatusGrid";
 import { ReasoningTrail } from "@/components/scanning/ReasoningTrail";
 import { SubAgentTrail } from "@/components/scanning/SubAgentTrail";
-import { SourcesPanel } from "@/components/scanning/SourcesPanel";
 import { GapReviewCard } from "@/components/scanning/GapReviewCard";
 import { useScanStream, type ScanStreamState } from "@/lib/scan/useScanStream";
 import { createMockScanSource, type MockScenario } from "@/lib/scan/mockScanSource";
 import { createSseScanSource } from "@/lib/scan/sseScanSource";
 import { createLiveScanSource } from "@/lib/scan/liveScanSource";
 import type { ScanSource } from "@/lib/scan/scanEvents";
-import { setActiveRun, clearActiveRun } from "@/lib/activeRun";
 
 const STREAM_URL = process.env.NEXT_PUBLIC_SCAN_STREAM_URL;
 
@@ -35,11 +33,13 @@ function parseScenario(value: string | null): MockScenario {
  */
 function AgentActivity({
   agents,
+  feeds,
   trail,
   flagCount,
   idleLabel,
 }: {
   agents: ScanStreamState["agents"];
+  feeds: ScanStreamState["feeds"];
   trail: ScanStreamState["trail"];
   flagCount: number;
   idleLabel: string;
@@ -58,17 +58,10 @@ function AgentActivity({
     );
   }
 
-  const working = agents.filter((a) => a.status === "working").length;
   return (
     <>
       <div className="mt-5">
-        <div className="mb-2 flex items-center justify-between">
-          <p className="text-xs text-faint">Agents</p>
-          <p className="text-xs text-faint tabular-nums">
-            {working > 0 ? `${working} working` : idleLabel}
-          </p>
-        </div>
-        <AgentStatusGrid agents={agents} />
+        <AgentStatusGrid agents={agents} feeds={feeds} />
       </div>
 
       <details className="mt-4">
@@ -81,16 +74,6 @@ function AgentActivity({
         </div>
       </details>
     </>
-  );
-}
-
-/** Pipeline-mode badge for the header; null state.mode → no badge at all. */
-function ModeBadge({ mode }: { mode: "fast" | "deep" | null }) {
-  if (!mode) return null;
-  return (
-    <span className="ml-2 inline-block rounded-full bg-surface-2 px-2.5 py-1 text-[12px] font-medium text-muted ring-1 ring-hairline">
-      {mode === "deep" ? "Deep diligence" : "Fast scan"}
-    </span>
   );
 }
 
@@ -115,14 +98,6 @@ function ScanningView() {
   }, [jobId, projectId, scenario]);
 
   const { state, cancel, retry, keepWaiting } = useScanStream(makeSource);
-
-  // Universal badge: a live run marks itself so every other page can offer the
-  // way back; terminal states clear it (complete also auto-advances below).
-  useEffect(() => {
-    if (!jobId) return;
-    setActiveRun(jobId);
-    if (state.phase === "complete" || state.phase === "error") clearActiveRun();
-  }, [jobId, state.phase]);
 
   // Auto-advance to the real project once the scan completes.
   const advancedRef = useRef(false);
@@ -211,10 +186,7 @@ function ScanningView() {
     return (
       <PageContainer className="max-w-3xl">
         <div className="mb-6">
-          <div className="flex items-center">
-            <p className="text-sm text-vista">New project</p>
-            <ModeBadge mode={state.mode} />
-          </div>
+          <p className="text-sm text-vista">New project</p>
           <h1 className="mt-1 text-2xl font-semibold text-ink">
             Analysis complete
           </h1>
@@ -233,6 +205,7 @@ function ScanningView() {
 
           <AgentActivity
             agents={state.agents}
+            feeds={state.feeds}
             trail={state.trail}
             flagCount={state.flagCount}
             idleLabel="Complete"
@@ -241,8 +214,6 @@ function ScanningView() {
           <div className="mt-5 border-t border-hairline pt-4">
             <SubAgentTrail subAgents={state.subAgents} done />
           </div>
-
-          <SourcesPanel sources={state.sources} />
         </Card>
 
         <div className="mt-5 flex items-center justify-between gap-4">
@@ -264,12 +235,9 @@ function ScanningView() {
   return (
     <PageContainer className="max-w-3xl">
       <div className="mb-6">
-        <div className="flex items-center">
-          <p className="text-sm text-vista">
-            {jobId ? "Live agent run" : "New project"}
-          </p>
-          <ModeBadge mode={state.mode} />
-        </div>
+        <p className="text-sm text-vista">
+          {jobId ? "Live agent run" : "New project"}
+        </p>
         <h1 className="mt-1 text-2xl font-semibold text-ink">
           Reading the document set
         </h1>
@@ -304,6 +272,7 @@ function ScanningView() {
 
         <AgentActivity
           agents={state.agents}
+          feeds={state.feeds}
           trail={state.trail}
           flagCount={state.flagCount}
           idleLabel="Scanning"
@@ -312,8 +281,6 @@ function ScanningView() {
         <div className="mt-5 border-t border-hairline pt-4">
           <SubAgentTrail subAgents={state.subAgents} done={false} />
         </div>
-
-        <SourcesPanel sources={state.sources} />
       </Card>
     </PageContainer>
   );
