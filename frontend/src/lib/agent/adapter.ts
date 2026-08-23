@@ -21,7 +21,14 @@ import type {
   TimelineEvent,
 } from "../types";
 import type { PortfolioRow } from "./client";
-import { slugify } from "./liveStore.ts";
+// slugify inlined (was ./liveStore) — adapter must stay free of local TS
+// imports: Node's ESM parity job needs an extension, Next forbids it.
+function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
 import type { AgentReport } from "./report";
 const ITC_DEADLINE = "2030-12-31";
 
