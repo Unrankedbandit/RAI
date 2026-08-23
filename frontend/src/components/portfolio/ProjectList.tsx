@@ -92,7 +92,9 @@ function ProjectRow({ project }: { project: Project }) {
         </div>
       </div>
 
-      <div className="w-[110px] flex-none">
+      {/* Score bar yields to the name on phones; the pill keeps the score
+          readable via its band colour. */}
+      <div className="hidden w-[110px] flex-none sm:block">
         <ScoreBar value={score} band={band} height={5} className="mb-[5px]" />
         <div className="flex justify-between text-xs text-faint">
           <span className="font-semibold text-ink">{score}</span>
@@ -104,7 +106,7 @@ function ProjectRow({ project }: { project: Project }) {
         band={band}
         label={statusLabelText[project.status]}
         size="sm"
-        className="w-[112px] flex-none justify-center"
+        className="flex-none justify-center sm:w-[112px]"
       />
 
       <span className="w-4 flex-none text-center text-[12.5px] text-faint transition-transform duration-200 group-hover:translate-x-0.5">

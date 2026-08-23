@@ -28,10 +28,17 @@ export function ProjectWorkspace() {
   return (
     <div className="flex h-full">
       <div className="min-w-0 flex-1 overflow-y-auto">
-        <div className="w-full px-8 pb-[60px]">
+        <div className="w-full px-4 pb-[60px] sm:px-8">
           <div className="sticky top-0 z-[15] bg-canvas pb-[18px] pt-[26px]">
             <ProjectHeader onShare={() => setShareOpen(true)} />
-            <TimelineStrip />
+            {/* The strip positions its dots absolutely by percentage — below
+                its design width the labels would collide, so on phones it
+                scrolls sideways at a fixed minimum width instead. */}
+            <div className="overflow-x-auto">
+              <div className="min-w-[560px]">
+                <TimelineStrip />
+              </div>
+            </div>
             <SubNav active={tab} onChange={setTab} />
           </div>
 

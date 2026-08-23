@@ -10,7 +10,8 @@ import { RaiLogo } from "./RaiLogo";
  * never a border — the brand's selection rule applied to chrome.
  */
 
-const links = [
+// Exported for MobileNav (the small-screen drawer renders the same links).
+export const links = [
   {
     href: "/",
     label: "Home",
@@ -49,7 +50,7 @@ const links = [
   },
 ];
 
-function isActive(pathname: string, href: string): boolean {
+export function isActive(pathname: string, href: string): boolean {
   if (href === "/") return pathname === "/";
   return pathname.startsWith(href);
 }
@@ -58,7 +59,8 @@ export function SideNav() {
   const pathname = usePathname();
 
   return (
-    <aside className="flex w-[218px] flex-none flex-col border-r border-hairline bg-canvas">
+    // Desktop chrome only — below md the MobileNav drawer takes over.
+    <aside className="hidden w-[218px] flex-none flex-col border-r border-hairline bg-canvas md:flex">
       <Link href="/" className="flex h-[57px] items-center px-5" aria-label="RAI home">
         <RaiLogo height={22} />
       </Link>

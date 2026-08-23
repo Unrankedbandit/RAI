@@ -46,7 +46,7 @@ export function PortfolioSummary({
   projects: Project[];
 }) {
   return (
-    <div className="grid grid-cols-[1.3fr_1fr_1fr_1fr] gap-3">
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-[1.3fr_1fr_1fr_1fr]">
       <RingCard
         score={summary.avgScore}
         band={summary.avgBand}
