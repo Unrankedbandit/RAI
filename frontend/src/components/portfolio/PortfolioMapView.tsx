@@ -121,7 +121,10 @@ export default function PortfolioMapView({
             ? MAP_STYLE_DARK
             : MAP_STYLE_LIGHT
       }
-      style={{ width: "100%", height: "100%" }}
+      // touchAction:none on the react-map-gl container (wraps canvas +
+      // markers + popups) so mobile pinch/drag on the map drives MapLibre
+      // rather than pinch-zooming the page. Desktop is unaffected.
+      style={{ width: "100%", height: "100%", touchAction: "none" }}
       attributionControl={{ compact: false }}
     >
       {projects.map((p) => {

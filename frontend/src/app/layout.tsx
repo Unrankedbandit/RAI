@@ -40,6 +40,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Script id="rai-theme-init" strategy="beforeInteractive">
           {`(function(){try{var t=localStorage.getItem("rai-theme");if(t!=="light"&&t!=="dark"){t=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}document.documentElement.dataset.theme=t}catch(e){document.documentElement.dataset.theme="light"}})()`}
         </Script>
+        {/*
+          Device gate — beforeInteractive, runs before first paint. Phones /
+          tablets are redirected to the mobile UI; re-classifies live on
+          resize / orientation / pointer / connection change so the two UIs
+          interchange with device data. Override: ?ui=web (sticky, session).
+        */}
+        <Script src="/device-gate.js" strategy="beforeInteractive" />
         <SideNav />
         <div className="flex min-w-0 flex-1 flex-col">
           <TopBar />

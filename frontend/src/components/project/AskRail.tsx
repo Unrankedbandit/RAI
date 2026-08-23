@@ -128,7 +128,10 @@ export function AskRail({
   }
 
   return (
-    <aside className="flex h-full w-[380px] flex-none flex-col overflow-hidden border-l border-hairline bg-canvas">
+    // max-w keeps the expanded rail inside the viewport on phones (360px),
+    // where a fixed 380px would force horizontal page scroll. Desktop
+    // viewports are always wider than 380px + 60px, so unchanged there.
+    <aside className="flex h-full w-[380px] max-w-[calc(100vw-60px)] flex-none flex-col overflow-hidden border-l border-hairline bg-canvas">
       {/* Header */}
       <div className="flex-none border-b border-hairline bg-surface-2 px-[18px] py-4">
         <div className="flex items-center justify-between">

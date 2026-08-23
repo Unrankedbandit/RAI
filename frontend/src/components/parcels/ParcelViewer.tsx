@@ -661,7 +661,11 @@ export default function ParcelViewer() {
           zoom: CA_ZOOM,
         }}
         mapStyle={basemap === "satellite" ? SATELLITE_STYLE : MAP_STYLE}
-        style={{ width: "100%", height: "100%", cursor: MAP_CURSOR }}
+        // touchAction:none on the react-map-gl container (wraps the canvas
+        // AND the marker/popup children) so mobile pinch/drag anywhere on the
+        // map drives MapLibre instead of pinch-zooming the page. Desktop
+        // (fine pointer) is unaffected.
+        style={{ width: "100%", height: "100%", cursor: MAP_CURSOR, touchAction: "none" }}
         cursor={MAP_CURSOR}
         attributionControl={{ compact: false }}
         onClick={(e) => void handleMapClick(e.lngLat.lng, e.lngLat.lat)}
@@ -906,7 +910,7 @@ export default function ParcelViewer() {
           </button>
         )}
         <span
-          className={`${panel.status === "found" ? "" : "ml-auto "}text-[12px] text-faint`}
+          className={`${panel.status === "found" ? "" : "ml-auto "}hidden text-[12px] text-faint md:inline`}
         >
           {counts.live} live · {counts.partial} partial · {counts.mosaic} via
           statewide mosaic
@@ -915,7 +919,7 @@ export default function ParcelViewer() {
 
       {/* why a search came up empty (no match vs county has no attribute search) */}
       {searchNote && (
-        <div className="absolute left-3 top-[76px] flex max-w-[360px] items-start gap-2 rounded-[11px] border border-hairline bg-surface-2 px-3 py-2 text-[12px] leading-snug text-muted shadow-card">
+        <div className="absolute left-3 top-[76px] flex max-w-[min(360px,calc(100vw-24px))] items-start gap-2 rounded-[11px] border border-hairline bg-surface-2 px-3 py-2 text-[12px] leading-snug text-muted shadow-card">
           <span className="min-w-0 flex-1">{searchNote}</span>
           <button
             type="button"
@@ -935,8 +939,13 @@ export default function ParcelViewer() {
         </div>
       )}
 
-      {/* right-side rail: selected parcel, watchlist, recent searches */}
-      <div className="absolute bottom-14 right-3 top-[76px] flex w-[360px] max-w-[calc(100vw-24px)] flex-col">
+      {/* right-side rail: selected parcel, watchlist, recent searches.
+          On phones the floating top bar wraps to several rows, so a fixed
+          top-[76px] rail would slide under it — anchor the rail to the
+          bottom as a height-capped sheet instead (Watching/Recent are
+          hidden below md anyway, so this is just the selected-parcel card).
+          Desktop geometry (right column, top 76px) is unchanged. */}
+      <div className="absolute flex max-w-[calc(100vw-24px)] flex-col max-md:inset-x-3 max-md:bottom-24 max-md:max-h-[42vh] max-md:overflow-y-auto md:bottom-14 md:right-3 md:top-[76px] md:w-[360px]">
         <ParcelRail
           selected={panel.status === "found" ? panel.result : null}
           panelStatus={panel.status}

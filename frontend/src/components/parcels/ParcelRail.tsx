@@ -91,23 +91,30 @@ export function ParcelRail(props: {
         </section>
       )}
 
-      <ParcelList
-        label="Watching"
-        parcels={watching}
-        emptyText="Save parcels to keep an eye on them."
-        removeLabel="Remove from watching"
-        onRemove={unwatchParcel}
-        onFlyTo={onFlyTo}
-      />
+      {/* Watching / Recent are hidden below md: on phones the rail overlays
+          the map full-width, so these lists covered it — mobile keeps only
+          the selected-parcel card. Desktop renders both, unchanged. */}
+      <div className="hidden md:block">
+        <ParcelList
+          label="Watching"
+          parcels={watching}
+          emptyText="Save parcels to keep an eye on them."
+          removeLabel="Remove from watching"
+          onRemove={unwatchParcel}
+          onFlyTo={onFlyTo}
+        />
+      </div>
 
-      <ParcelList
-        label="Recent"
-        parcels={recent}
-        emptyText="Parcels you look up will land here."
-        removeLabel="Remove from recent"
-        onRemove={removeRecent}
-        onFlyTo={onFlyTo}
-      />
+      <div className="hidden md:block">
+        <ParcelList
+          label="Recent"
+          parcels={recent}
+          emptyText="Parcels you look up will land here."
+          removeLabel="Remove from recent"
+          onRemove={removeRecent}
+          onFlyTo={onFlyTo}
+        />
+      </div>
     </div>
   );
 }

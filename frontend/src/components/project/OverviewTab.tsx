@@ -14,7 +14,7 @@ import { ITC_DEADLINE_LABEL } from "@/lib/mockData";
  * the selected pillar's factors. Land (index 0) is selected by default.
  */
 export function OverviewTab() {
-  const { project, scoreBandLabel, scoreNote, acquiredData } = useProject();
+  const { project, scoreBandLabel, scoreNote } = useProject();
   const [selected, setSelected] = useState(0);
   const pillar = project.pillars[selected];
 
@@ -37,7 +37,8 @@ export function OverviewTab() {
         </div>
       </div>
 
-      {/* Pillar grid */}
+      {/* Pillar grid — collapses on phones, where five ~50px columns
+          overflowed their card borders; five-across returns at lg. */}
       <div className="mb-[14px] grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
         {project.pillars.map((p, i) => (
           <button
@@ -84,62 +85,6 @@ export function OverviewTab() {
           </motion.div>
         </AnimatePresence>
       </div>
-
-      {/* Acquired data — research packs the agent run scraped (absent for
-          mocks and reports with none) */}
-      {acquiredData && acquiredData.length > 0 && (
-        <div className="mt-[14px] rounded-[11px] border border-hairline bg-canvas p-[16px_18px]">
-          <div className="mb-3 text-sm font-semibold text-ink">Acquired data</div>
-          {acquiredData.map((pack, i) => (
-            <div
-              key={`${pack.component}-${i}`}
-              className="mt-3 border-t border-hairline pt-3 first:mt-0 first:border-t-0 first:pt-0"
-            >
-              <div className="text-[13px] font-semibold text-ink">
-                {pack.component.replace(/_/g, " ")}
-              </div>
-              <ul className="list-disc pl-4">
-                {pack.dataPoints.map((point, j) => (
-                  <li key={j} className="text-[12.5px] leading-[1.5] text-muted">
-                    {point}
-                  </li>
-                ))}
-              </ul>
-              {pack.sources.length > 0 && (
-                <div className="mt-1 flex flex-wrap gap-1.5">
-                  {pack.sources.map((source, j) =>
-                    /^https?:\/\//.test(source) ? (
-                      <a
-                        key={j}
-                        href={source}
-                        target="_blank"
-                        rel="noreferrer"
-                        title={source}
-                        className="max-w-64 truncate rounded-full bg-surface-2 px-2 py-0.5 text-[11px] text-faint underline-offset-2 hover:text-ink hover:underline"
-                      >
-                        {source}
-                      </a>
-                    ) : (
-                      <span
-                        key={j}
-                        title={source}
-                        className="max-w-64 truncate rounded-full bg-surface-2 px-2 py-0.5 text-[11px] text-faint"
-                      >
-                        {source}
-                      </span>
-                    ),
-                  )}
-                </div>
-              )}
-              {pack.stillMissing.length > 0 && (
-                <div className="mt-1.5 text-[12px] text-risk-ink">
-                  Still missing: {pack.stillMissing.join("; ")}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

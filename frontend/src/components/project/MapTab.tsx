@@ -108,8 +108,10 @@ export function MapTab() {
           </div>
         </div>
 
-        {/* Visual column */}
-        <div className="min-w-[320px] flex-[2_1_420px]">
+        {/* Visual column — min-w-0 on phones: 320px exceeds the card's
+            ~244px inner width at 360px viewports and poked out of the card;
+            the 320px floor returns at md. */}
+        <div className="min-w-0 flex-[2_1_420px] md:min-w-[320px]">
           <div className="relative h-[340px] overflow-hidden rounded-[5px] bg-surface-2">
             {/* Grid background */}
             <div

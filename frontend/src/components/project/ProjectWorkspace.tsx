@@ -29,7 +29,10 @@ export function ProjectWorkspace() {
     <div className="flex h-full">
       <div className="min-w-0 flex-1 overflow-y-auto">
         <div className="w-full px-4 pb-[60px] sm:px-8">
-          <div className="sticky top-0 z-[15] bg-canvas pb-[18px] pt-[26px]">
+          {/* Sticky only from md up: on phones the header + timeline + subnav
+              block is ~350px tall, and sticking it would leave half the small
+              viewport as permanent chrome. Desktop sticky behaviour unchanged. */}
+          <div className="z-[15] bg-canvas pb-[18px] pt-[26px] md:sticky md:top-0">
             <ProjectHeader onShare={() => setShareOpen(true)} />
             {/* The strip positions its dots absolutely by percentage — below
                 its design width the labels would collide, so on phones it
@@ -43,7 +46,7 @@ export function ProjectWorkspace() {
           </div>
 
           {tab === "overview" && <OverviewTab />}
-          {tab === "reports" && <ReportsTab onShare={() => setShareOpen(true)} />}
+          {tab === "reports" && <ReportsTab />}
           {tab === "documents" && <DocumentsTab />}
           {tab === "map" && <MapTab />}
         </div>

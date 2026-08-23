@@ -156,8 +156,10 @@ export default function FindingsPage() {
       {/* flex-wrap + a minimum lane width: when the content column is too
           narrow for queue rows beside the 380px pane (e.g. 1280px viewport
           with the Ask rail open), the pane drops below instead of clipping
-          the rows' fixed columns. */}
-      <div className="flex flex-wrap items-start gap-3">
+          the rows' fixed columns. On phones the 460px lanes overflow-x
+          scroll instead of forcing horizontal page scroll — the same
+          idiom as the timeline strip's min-width scroller. */}
+      <div className="flex flex-wrap items-start gap-3 overflow-x-auto">
         <div className="min-w-[460px] flex-1 space-y-3">
           {lanes.length === 0 ? (
             <div className="rounded-[11px] border border-hairline bg-canvas px-5 py-[18px] text-sm text-faint shadow-card">

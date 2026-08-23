@@ -1,27 +1,18 @@
-"use client";
-
-import Link from "next/link";
 import { PortfolioShell } from "@/components/portfolio/PortfolioShell";
-import { PastRuns } from "@/components/home/PastRuns";
 import { StatusDonut, type DonutSegment } from "@/components/home/StatusDonut";
 import { ScoreBars, type ScoreBarRow } from "@/components/home/ScoreBars";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { clsx } from "@/lib/clsx";
-import { statusLabelText } from "@/lib/band";
-import { summarize, useLiveProjects } from "@/lib/agent/useLiveProjects";
+import { statusLabelText, statusToBand } from "@/lib/band";
+import { portfolioSummary, projects, recentActivity } from "@/lib/mockData";
 
-/** "Solar Alpha — 250 MW solar + storage" -> "Solar Alpha" for compact labels. */
+/** "Project Alpha" → "Alpha" for the compact chart / stat labels. */
 function shortName(name: string): string {
-  return name.replace(/^Project\s+/, "").split("—")[0].trim();
+  return name.replace(/^Project\s+/, "");
 }
 
-/**
- * Home dashboard — every number and row is the live portfolio from the agent
- * backend (useLiveProjects). No mock projects, no fabricated activity.
- */
 export default function HomePage() {
-  const { projects, loading, failed } = useLiveProjects();
-  const summary = summarize(projects);
+  const summary = portfolioSummary();
 
   const needsReviewNames = projects
     .filter((p) => p.status === "needs-review")
@@ -30,18 +21,18 @@ export default function HomePage() {
   const stats = [
     {
       label: "Active projects",
-      value: loading ? "…" : summary.count,
+      value: summary.count,
       sub: "Across the current pipeline",
     },
     {
       label: "Portfolio activation",
-      value: loading ? "…" : summary.avgScore,
+      value: summary.avgScore,
       sub: "Average score out of 100",
     },
     {
       label: "Needs review",
-      value: loading ? "…" : summary.needsReview,
-      sub: needsReviewNames.join(", ") || "None",
+      value: summary.needsReview,
+      sub: needsReviewNames.join(", "),
     },
   ];
 
@@ -64,7 +55,9 @@ export default function HomePage() {
         Start a new project from the top bar, or check on recent activity across your pipeline.
       </p>
 
-      <div className="mb-[18px] grid grid-cols-1 gap-3 sm:grid-cols-3">
+      {/* Stacks on phones (three ~90px cards would truncate to nothing);
+          three-across from sm up, matching StatBoxes' existing idiom. */}
+      <div className="mb-[18px] grid gap-3 sm:grid-cols-3">
         {stats.map((s) => (
           <div
             key={s.label}
@@ -83,7 +76,9 @@ export default function HomePage() {
         ))}
       </div>
 
-      <div className="mb-[22px] grid grid-cols-1 gap-3 sm:grid-cols-2">
+      {/* Stacks on phones — the 110px donut svg + legend overflows a
+          half-width card below md. */}
+      <div className="mb-[22px] grid gap-3 md:grid-cols-2">
         <div className="rounded-[11px] border border-hairline bg-canvas px-5 py-[18px] shadow-card">
           <div className="mb-[14px] text-sm font-semibold text-ink">
             Portfolio status
@@ -95,60 +90,51 @@ export default function HomePage() {
           <div className="mb-[14px] text-sm font-semibold text-ink">
             Activation score by project
           </div>
-          {scoreRows.length > 0 ? (
-            <ScoreBars rows={scoreRows} />
-          ) : (
-            <div className="py-8 text-center text-[12.5px] text-faint">
-              {loading ? "Loading…" : "No projects yet"}
-            </div>
-          )}
+          <ScoreBars rows={scoreRows} />
         </div>
       </div>
 
       <div className="overflow-hidden rounded-[11px] border border-hairline bg-canvas shadow-card">
         <div className="border-b border-hairline px-5 py-[14px] text-sm font-semibold text-ink">
-          Current pipeline
+          Recent activity
         </div>
-        {failed && (
-          <div className="px-5 py-[13px] text-[12.5px] text-faint">
-            Portfolio backend unreachable — try again in a moment.
-          </div>
-        )}
-        {!failed && projects.length === 0 && (
-          <div className="px-5 py-[13px] text-[12.5px] text-faint">
-            {loading ? "Loading…" : "No projects yet — start one from the top bar."}
-          </div>
-        )}
-        {projects.map((p, i) => (
-          <Link
-            key={p.id}
-            href={`/projects/${p.id}`}
+        {recentActivity.map((a, i) => (
+          <div
+            key={`${a.name}-${a.time}`}
             className={clsx(
-              "flex items-center gap-[14px] px-5 py-[13px] transition-colors hover:bg-surface-2",
+              "flex items-center gap-[14px] px-5 py-[13px]",
               i > 0 && "border-t border-hairline",
             )}
           >
-            <div className="min-w-0 flex-1 truncate text-sm font-medium text-ink" title={p.name}>
-              {p.name}
+            <div className="min-w-0 flex-1 truncate text-sm font-medium text-ink" title={a.name}>
+              {a.name}
             </div>
-            <div className="w-20 shrink-0 text-[12.5px] text-faint">Project</div>
+            {/* kind column hidden on phones: with the 44px rail strip the row
+                only has ~284px, and 80+110+110px of fixed columns clipped the
+                time column off the card edge. */}
+            <div className="hidden w-20 shrink-0 text-[12.5px] text-faint sm:block">{a.kind}</div>
             <div className="w-[110px] shrink-0">
-              <StatusPill
-                band={p.band}
-                label={statusLabelText[p.status]}
-                size="sm"
-                dot={false}
-              />
+              {a.kind === "Project" && a.status ? (
+                <StatusPill
+                  band={statusToBand(a.status)}
+                  label={statusLabelText[a.status]}
+                  size="sm"
+                  dot={false}
+                />
+              ) : (
+                <span
+                  className="block truncate text-[12.5px] text-faint"
+                  title={a.project}
+                >
+                  {a.project}
+                </span>
+              )}
             </div>
-            <div className="w-[110px] shrink-0 truncate text-right text-[12.5px] text-faint" title={p.location}>
-              {p.location}
+            <div className="w-auto shrink-0 text-right text-[12.5px] text-faint sm:w-[110px]">
+              {a.time}
             </div>
-          </Link>
+          </div>
         ))}
-      </div>
-
-      <div className="mt-[22px]">
-        <PastRuns />
       </div>
     </PortfolioShell>
   );

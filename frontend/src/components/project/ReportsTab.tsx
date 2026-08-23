@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useProject } from "./ProjectContext";
-import { ReviewBar } from "./ReviewBar";
 import { bandColorVar } from "@/lib/band";
 
 /**
@@ -13,34 +12,17 @@ import { bandColorVar } from "@/lib/band";
  * actions, and a source-basis footnote. All copy comes from the project report
  * content; scores are built from `project.pillars`.
  */
-export function ReportsTab({ onShare }: { onShare?: () => void }) {
+export function ReportsTab() {
   const { project, report } = useProject();
   const [exportOpen, setExportOpen] = useState(false);
-  const [includeMap, setIncludeMap] = useState(true);
-
-  // The real export: the memo route renders a print-optimized document and
-  // opens the browser print dialog (Save as PDF) — no fake "generated" state.
-  const exportMemo = () => {
-    setExportOpen(false);
-    window.open(
-      `/projects/${project.id}/memo?print=1${includeMap ? "" : "&map=0"}`,
-      "_blank",
-    );
-  };
 
   const btnPill =
     "rounded-full border border-hairline bg-canvas px-[15px] py-2 text-sm font-medium text-muted cursor-pointer";
 
   return (
-    <div className="max-w-[820px]">
-      {/* Human review gate — sits directly above the findings the reviewer
-          is approving/rejecting. Renders nothing when the review endpoint
-          doesn't track this report (e.g. mock mode). */}
-      <ReviewBar />
-
-      <div className="rounded-[11px] border border-hairline bg-canvas p-[26px_28px] shadow-card">
+    <div className="max-w-[820px] rounded-[11px] border border-hairline bg-canvas p-[26px_28px] shadow-card">
       {/* Report header */}
-      <div className="mb-[18px] flex items-start justify-between border-b border-hairline pb-[18px]">
+      <div className="mb-[18px] flex flex-wrap items-start justify-between gap-3 border-b border-hairline pb-[18px]">
         <div>
           <div className="mb-[9px] inline-block rounded-full border border-hairline bg-surface-2 px-[11px] py-1 text-[12.5px] font-semibold text-muted">
             {report.badge}
@@ -57,7 +39,7 @@ export function ReportsTab({ onShare }: { onShare?: () => void }) {
           >
             Export PDF
           </button>
-          <button type="button" className={btnPill} onClick={onShare}>
+          <button type="button" className={btnPill}>
             Share
           </button>
 
@@ -68,7 +50,7 @@ export function ReportsTab({ onShare }: { onShare?: () => void }) {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
                 transition={{ duration: 0.15 }}
-                className="absolute right-0 top-[42px] z-20 w-[300px] rounded-[5px] border border-hairline bg-canvas p-4 shadow-pop"
+                className="absolute right-0 top-[42px] z-20 w-[300px] max-w-[calc(100vw-72px)] rounded-[5px] border border-hairline bg-canvas p-4 shadow-pop"
               >
                 <div className="mb-1.5 text-sm font-semibold text-ink">
                   Export this memo?
@@ -78,12 +60,7 @@ export function ReportsTab({ onShare }: { onShare?: () => void }) {
                   draft — it won&apos;t be sent to anyone, only saved for you to share
                   manually.
                   <label className="mt-2.5 flex cursor-pointer items-center gap-[7px]">
-                    <input
-                      type="checkbox"
-                      checked={includeMap}
-                      onChange={(e) => setIncludeMap(e.target.checked)}
-                    />{" "}
-                    Include site details
+                    <input type="checkbox" defaultChecked /> Include site map snapshot
                   </label>
                 </div>
                 <div className="flex gap-2">
@@ -96,7 +73,7 @@ export function ReportsTab({ onShare }: { onShare?: () => void }) {
                   </button>
                   <button
                     type="button"
-                    onClick={exportMemo}
+                    onClick={() => setExportOpen(false)}
                     className="flex-1 cursor-pointer rounded-[1px] border border-oxford bg-oxford p-2 text-[12.5px] text-white"
                   >
                     Export
@@ -121,6 +98,8 @@ export function ReportsTab({ onShare }: { onShare?: () => void }) {
         <div className="mb-[10px] text-[12.5px] font-semibold text-faint">
           Scores by component
         </div>
+        {/* Collapses on phones (same five-column crush as the overview
+            pillar grid); five-across returns at lg. */}
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
           {project.pillars.map((p) => (
             <div
@@ -184,7 +163,6 @@ export function ReportsTab({ onShare }: { onShare?: () => void }) {
       <div>
         <div className="mb-[10px] text-[12.5px] font-semibold text-faint">Source basis</div>
         <div className="text-[12.5px] leading-[1.65] text-faint">{report.sourceBasis}</div>
-      </div>
       </div>
     </div>
   );

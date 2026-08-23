@@ -46,7 +46,9 @@ export function PortfolioSummary({
   projects: Project[];
 }) {
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-[1.3fr_1fr_1fr_1fr]">
+    // Collapses on small screens (the 64px ring + text crushes a ~110px
+    // column); the four-across split returns at lg, unchanged on desktop.
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1fr]">
       <RingCard
         score={summary.avgScore}
         band={summary.avgBand}

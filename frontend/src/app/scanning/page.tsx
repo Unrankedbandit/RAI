@@ -9,7 +9,6 @@ import { ScanProgress } from "@/components/scanning/ScanProgress";
 import { AgentStatusGrid } from "@/components/scanning/AgentStatusGrid";
 import { ReasoningTrail } from "@/components/scanning/ReasoningTrail";
 import { SubAgentTrail } from "@/components/scanning/SubAgentTrail";
-import { SourcesPanel } from "@/components/scanning/SourcesPanel";
 import { GapReviewCard } from "@/components/scanning/GapReviewCard";
 import { useScanStream, type ScanStreamState } from "@/lib/scan/useScanStream";
 import { createMockScanSource, type MockScenario } from "@/lib/scan/mockScanSource";
@@ -80,16 +79,6 @@ function AgentActivity({
         </div>
       </details>
     </>
-  );
-}
-
-/** Pipeline-mode badge for the header; null state.mode → no badge at all. */
-function ModeBadge({ mode }: { mode: "fast" | "deep" | null }) {
-  if (!mode) return null;
-  return (
-    <span className="ml-2 inline-block rounded-full bg-surface-2 px-2.5 py-1 text-[12px] font-medium text-muted ring-1 ring-hairline">
-      {mode === "deep" ? "Deep diligence" : "Fast scan"}
-    </span>
   );
 }
 
@@ -202,10 +191,7 @@ function ScanningView() {
     return (
       <PageContainer className="max-w-3xl">
         <div className="mb-6">
-          <div className="flex items-center">
-            <p className="text-sm text-vista">New project</p>
-            <ModeBadge mode={state.mode} />
-          </div>
+          <p className="text-sm text-vista">New project</p>
           <h1 className="mt-1 text-2xl font-semibold text-ink">
             Analysis complete
           </h1>
@@ -232,8 +218,6 @@ function ScanningView() {
           <div className="mt-5 border-t border-hairline pt-4">
             <SubAgentTrail subAgents={state.subAgents} done />
           </div>
-
-          <SourcesPanel sources={state.sources} />
         </Card>
 
         <div className="mt-5 flex items-center justify-between gap-4">
@@ -255,12 +239,9 @@ function ScanningView() {
   return (
     <PageContainer className="max-w-3xl">
       <div className="mb-6">
-        <div className="flex items-center">
-          <p className="text-sm text-vista">
-            {jobId ? "Live agent run" : "New project"}
-          </p>
-          <ModeBadge mode={state.mode} />
-        </div>
+        <p className="text-sm text-vista">
+          {jobId ? "Live agent run" : "New project"}
+        </p>
         <h1 className="mt-1 text-2xl font-semibold text-ink">
           Reading the document set
         </h1>
@@ -303,8 +284,6 @@ function ScanningView() {
         <div className="mt-5 border-t border-hairline pt-4">
           <SubAgentTrail subAgents={state.subAgents} done={false} />
         </div>
-
-        <SourcesPanel sources={state.sources} />
       </Card>
     </PageContainer>
   );

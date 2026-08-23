@@ -29,19 +29,13 @@ export interface AnalyzeRequest {
   location: string;
   /** Document filenames the pipeline should read. */
   docs: string[];
-  /** Per-run pipeline lane; omitted = the backend's PIPELINE_MODE env decides. */
-  mode?: "fast" | "deep";
 }
 
 export interface PortfolioRow {
-  /** The run's jobId — the report's permalink key. */
-  id: string;
   project: string;
   location: string;
   readiness: number;
   decision: string;
-  /** hackathon login that started the run (null on pre-tagged reports) */
-  user?: string | null;
   dimensions: { name: string; rag: string; score: number; flags: string[] }[];
 }
 
@@ -89,108 +83,6 @@ export function analyze(body: AnalyzeRequest): Promise<{ jobId: string }> {
 
 export function getReport(jobId: string): Promise<AgentReport> {
   return request<AgentReport>(`/api/reports/${jobId}`);
-}
-
-/* ---------- Human review (approve / reject a finished report) ---------- */
-
-export type ReviewStatus =
-  | "AWAITING_REVIEW"
-  | "APPROVED"
-  | "REJECTED"
-  | "NOT_TRACKED";
-
-export interface ReviewRecord {
-  status: ReviewStatus;
-  reviewedBy: string | null;
-  /** ISO timestamp, null until decided. */
-  reviewedAt: string | null;
-  rationale: string | null;
-}
-
-/**
- * Thrown on HTTP 409 — the report was already decided. Carries the existing
- * record when the server includes one in the error body, so the UI can say
- * "already decided by X" without a second round-trip.
- */
-export class ReviewConflictError extends AgentApiError {
-  constructor(
-    message: string,
-    readonly existing?: ReviewRecord,
-  ) {
-    super(message, 409);
-    this.name = "ReviewConflictError";
-  }
-}
-
-/**
- * Fetches the review state for a report. Returns null — rather than throwing —
- * when the endpoint is unreachable or the report is unknown (404), so the
- * review UI simply hides itself, mirroring the mock-data degradation policy.
- */
-export async function getReview(reportId: string): Promise<ReviewRecord | null> {
-  try {
-    return await request<ReviewRecord>(`/api/reports/${reportId}/review`);
-  } catch (error) {
-    if (
-      error instanceof AgentApiError &&
-      (error.status === undefined || error.status === 404)
-    ) {
-      return null;
-    }
-    throw error;
-  }
-}
-
-/**
- * Records a human decision on a report. Pass `override: true` to replace an
- * existing decision (server returns 409 without it). Throws
- * ReviewConflictError on 409 so callers can offer the override affordance.
- */
-export async function submitReview(
-  reportId: string,
-  decision: "APPROVED" | "REJECTED",
-  reviewer: string,
-  rationale?: string,
-  override?: boolean,
-): Promise<ReviewRecord> {
-  let response: Response;
-  try {
-    response = await fetch(apiUrl(`/api/reports/${reportId}/review`), {
-      method: "POST",
-      credentials: "include",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        decision,
-        reviewer,
-        ...(rationale ? { rationale } : {}),
-        ...(override ? { override: true } : {}),
-      }),
-    });
-  } catch {
-    throw new AgentApiError(`agent backend unreachable at ${AGENT_API}`, undefined);
-  }
-
-  if (response.status === 409) {
-    // The conflict body may carry the existing record; parse leniently.
-    let existing: ReviewRecord | undefined;
-    try {
-      const body = (await response.json()) as Partial<ReviewRecord>;
-      if (typeof body.status === "string") existing = body as ReviewRecord;
-    } catch {
-      // No usable body — the caller falls back to a plain conflict message.
-    }
-    throw new ReviewConflictError(
-      `POST /api/reports/${reportId}/review failed: 409`,
-      existing,
-    );
-  }
-  if (!response.ok) {
-    throw new AgentApiError(
-      `POST /api/reports/${reportId}/review failed: ${response.status}`,
-      response.status,
-    );
-  }
-  return (await response.json()) as ReviewRecord;
 }
 
 export function listProjects(): Promise<PortfolioRow[]> {
@@ -248,8 +140,6 @@ export type JobStatus =
       msg: string;
       level?: string;
       eventKind?: string;
-      /** Structured payload passthrough (e.g. job.mode's {"mode": "deep"}). */
-      data?: Record<string, unknown>;
     }
   | { kind: "gate_review"; gaps: GateGap[]; timeoutS: number }
   | { kind: "gate_resolved"; mode: "approved" | "timeout"; approved: string[] }
@@ -272,9 +162,12 @@ type TraceFrame = {
     level?: unknown;
     agent?: unknown;
     phase?: unknown;
-    /** Gate frames carry gaps/timeoutS/mode/approved (parseGateFrame narrows);
-     *  any other frame's payload rides along as an open record. */
-    data?: Record<string, unknown>;
+    data?: {
+      gaps?: unknown;
+      timeoutS?: unknown;
+      mode?: unknown;
+      approved?: unknown;
+    };
   };
 };
 
@@ -393,7 +286,6 @@ export function streamJob(
           msg: ev.msg,
           level: typeof ev.level === "string" ? ev.level : undefined,
           eventKind: typeof ev.kind === "string" ? ev.kind : undefined,
-          data: typeof ev.data === "object" && ev.data !== null ? (ev.data as Record<string, unknown>) : undefined,
         });
       }
       return;
