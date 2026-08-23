@@ -76,6 +76,7 @@ export function IntakeDropzone({
   const [dragging, setDragging] = useState(false);
   const [status, setStatus] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<"fast" | "deep">("fast");
 
   const busy = phase === "starting";
   const canStart =
@@ -127,6 +128,7 @@ export function IntakeDropzone({
         name: trimmedName,
         location: trimmedLocation,
         docs,
+        mode,
       });
       router.push(`/scanning?job=${jobId}&project=${slugify(trimmedName)}`);
       // Fire-and-forget: let the host modal close itself after routing.
@@ -382,6 +384,23 @@ export function IntakeDropzone({
               className="w-full rounded-[7px] bg-canvas px-3 py-2 text-[13.5px] text-ink outline-none ring-1 ring-hairline placeholder:text-faint focus:ring-2 focus:ring-vista disabled:opacity-40"
             />
           </label>
+        </div>
+
+        <div className="mt-4">
+          <span className="mb-1 block text-[11px] font-medium text-faint">Diligence depth</span>
+          <div role="radiogroup" aria-label="Diligence depth" className="inline-flex rounded-full bg-surface-2 p-[3px] ring-1 ring-hairline">
+            {(["fast", "deep"] as const).map((m) => (
+              <button key={m} type="button" role="radio" aria-checked={mode === m} disabled={busy}
+                onClick={() => setMode(m)}
+                className={clsx("rounded-full px-4 py-1.5 text-[12.5px] font-medium transition-colors",
+                  mode === m ? "bg-oxford text-white" : "text-muted hover:text-ink")}>
+                {m === "fast" ? "Fast" : "Deep"}
+              </button>
+            ))}
+          </div>
+          {mode === "deep" && (
+            <p className="mt-1.5 text-[12px] text-faint">gap review + live data scouts</p>
+          )}
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-2">

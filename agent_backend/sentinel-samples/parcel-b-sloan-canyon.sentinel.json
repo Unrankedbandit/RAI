@@ -464,6 +464,40 @@
     ],
     "sourceBasis": "0 source documents + 2 acquired research packs"
   },
+  "acquiredData": [
+    {
+      "component": "federal_law",
+      "dataPoints": [
+        "PL 107-282 (2002) established NCA \u2014 16 U.S.C. \u00a7460qqq",
+        "PL 119-91 (May 19, 2026) REAL: NCA now 57,728 acres",
+        "2024 Western Solar Plan ROD: ~131M acres excluded, NCAs categorical, variance eliminated",
+        "Sloan Utility & Transportation Corridor withdrawal (1,043.57 ac, Jan 2025) shows only corridors tolerated"
+      ],
+      "sources": [
+        "uscode.house.gov",
+        "govinfo.gov PLAW-119publ91",
+        "89 FR 105623",
+        "90 FR 3911"
+      ],
+      "stillMissing": [
+        "Parcel-level GIS overlay vs new boundary"
+      ]
+    },
+    {
+      "component": "resite",
+      "dataPoints": [
+        "Eldorado Valley: >1 GW operating complex adjacent to viable parcel",
+        "Dry Lake SEZ: 5,717 developable acres, 500-kV corridors in-zone",
+        "Dry Lake East DLA: 1,635 ac, ROW issued Aug 2024",
+        "Amargosa Valley SEZ: 8,479 ac, 138-kV today"
+      ],
+      "sources": [
+        "blmsolar.anl.gov SEZ pages",
+        "BLM press"
+      ],
+      "stillMissing": []
+    }
+  ],
   "map": {
     "parcelSize": "\u2014",
     "toggles": [

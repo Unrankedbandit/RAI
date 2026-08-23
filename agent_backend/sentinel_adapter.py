@@ -326,6 +326,11 @@ def to_sentinel(report: Report, project_id: str, lat: float = 0, lon: float = 0,
             "sourceBasis": (f"{len(documents)} source documents + "
                             f"{len(report.acquired_data)} acquired research packs"),
         },
+        # Conditional key: the parity harness uses strict deepEqual against the
+        # TS adapter — emit acquiredData only when non-empty, in lockstep.
+        **({"acquiredData": [{"component": a.component, "dataPoints": a.data_points,
+                              "sources": a.sources, "stillMissing": a.still_missing}
+                             for a in report.acquired_data]} if report.acquired_data else {}),
         "map": {
             "parcelSize": "—",
             "toggles": [

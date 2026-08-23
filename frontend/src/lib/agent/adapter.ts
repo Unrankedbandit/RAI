@@ -418,6 +418,18 @@ export function toSentinel(report: AgentReport, meta: SentinelMeta): ProjectDeta
       recommendedActions: report.action_pack.conditions_precedent.slice(0, 5),
       sourceBasis: `${seen.size} source documents + ${report.acquired_data.length} acquired research packs`,
     },
+    // Conditional key: the parity harness uses strict deepEqual against the
+    // Python adapter — emit acquiredData only when non-empty, in lockstep.
+    ...(report.acquired_data.length
+      ? {
+          acquiredData: report.acquired_data.map((a) => ({
+            component: a.component,
+            dataPoints: a.data_points,
+            sources: a.sources,
+            stillMissing: a.still_missing,
+          })),
+        }
+      : {}),
     map: {
       parcelSize: "—",
       toggles: [

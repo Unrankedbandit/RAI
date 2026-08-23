@@ -199,6 +199,15 @@ export type ReportContent = {
   sourceBasis: string;
 };
 
+/** One component's acquired research pack (live agent runs; optional — mocks
+ *  and pre-contract backends omit it). */
+export type AcquiredPack = {
+  component: string;
+  dataPoints: string[];
+  sources: string[];
+  stillMissing: string[];
+};
+
 export type MapData = {
   parcelSize: string;
   toggles: MapToggle[];
@@ -224,6 +233,8 @@ export type ProjectDetail = {
   suggestedQuestions: ScriptedQA[];
   chatHistory: ChatMessage[];
   report: ReportContent;
+  /** Acquired research packs from the agent run; absent when empty/none. */
+  acquiredData?: AcquiredPack[];
   map: MapData;
   teamMembers: TeamMember[];
 };

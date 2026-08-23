@@ -935,6 +935,52 @@
     ],
     "sourceBasis": "7 source documents + 3 acquired research packs"
   },
+  "acquiredData": [
+    {
+      "component": "zoning",
+      "dataPoints": [
+        "Solano 2015 Solar Ordinance (ZT 12-04): commercial solar prohibited in ALL agricultural districts",
+        "BESS Ordinance 2025-1864: batteries prohibited on ag land",
+        "CEC AB 205 Opt-In: solar >=50 MW + storage >=200 MWh eligible; 270-day decision; preempts local permits",
+        "Corby BESS (NextEra) using Opt-In in Solano now (Docket 24-OPT-05)"
+      ],
+      "sources": [
+        "research/solar-alpha-component-research.md",
+        "energy.ca.gov Opt-In program"
+      ],
+      "stillMissing": [
+        "Parcel-level zoning printouts"
+      ]
+    },
+    {
+      "component": "ecology",
+      "dataPoints": [
+        "Solano = core Swainson's hawk breeding range; TAC protocol 0.5-mi surveys; blackout Apr 21-Jun 10",
+        "Buffers 0.25-0.5 mi Mar 1-Sep 15; foraging mitigation 1:1 within 1 mi of nest",
+        "Burrowing owl CESA candidate since Oct 2024 \u2014 full take protection"
+      ],
+      "sources": [
+        "CDFW survey protocols",
+        "fgc.ca.gov/CESA"
+      ],
+      "stillMissing": [
+        "Protocol survey results for the site"
+      ]
+    },
+    {
+      "component": "materials",
+      "dataPoints": [
+        "Real GSU lead times 128-144 weeks (Wood Mac 2025) \u2014 worse than the 62-week flag",
+        "~30% national power-transformer supply deficit; prices +60-95% since 2019"
+      ],
+      "sources": [
+        "Wood Mackenzie transformer survey Aug 2025"
+      ],
+      "stillMissing": [
+        "Executed transformer PO"
+      ]
+    }
+  ],
   "map": {
     "parcelSize": "\u2014",
     "toggles": [

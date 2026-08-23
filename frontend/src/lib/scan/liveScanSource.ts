@@ -107,6 +107,42 @@ export function createLiveScanSource(
         count += 1;
         onEvent({ type: "progress", percent: approximateProgress(count) });
 
+        // Structured frames ride the trace channel too. `data` is only
+        // present on newer backends — when it's absent the guards below no-op
+        // and the frame drops through to the agent/ambient split unchanged.
+        const d = event.data ?? {};
+        const url = typeof d.url === "string" ? d.url : undefined;
+        if (
+          event.eventKind === "job.mode" &&
+          (d.mode === "fast" || d.mode === "deep")
+        ) {
+          onEvent({ type: "run_mode", mode: d.mode });
+          return;
+        }
+        if (url && event.eventKind?.startsWith("scraper.")) {
+          // One row per scraped/searched URL. scraper.repair maps to
+          // "fetching" (a repair render re-fetch is in flight); repaired
+          // counts as repaired even with stale markers — content came back.
+          const chars = typeof d.chars === "number" ? d.chars : undefined;
+          const status =
+            event.eventKind === "scraper.fetch.start" ? "fetching"
+            : event.eventKind === "scraper.fetch.done" ? "fetched"
+            : event.eventKind === "scraper.repaired" ? "repaired"
+            : event.eventKind === "scraper.failed" ? "failed"
+            : event.eventKind === "scraper.skipped" ? "skipped"
+            : "fetching";
+          onEvent({ type: "source_update", url, status, agent: event.agent, chars });
+          // failed/repair fall through deliberately so the run log keeps the
+          // message; start/done/skipped return here to keep log noise down.
+          if (
+            event.eventKind === "scraper.fetch.start" ||
+            event.eventKind === "scraper.fetch.done" ||
+            event.eventKind === "scraper.skipped"
+          ) {
+            return;
+          }
+        }
+
         // Frames naming an agent map onto that agent's box, same as the
         // "[Name] ..." narration; anything else is ambient run-log material.
         if (event.agent) {

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { PortfolioShell } from "@/components/portfolio/PortfolioShell";
+import { PastRuns } from "@/components/home/PastRuns";
 import { StatusDonut, type DonutSegment } from "@/components/home/StatusDonut";
 import { ScoreBars, type ScoreBarRow } from "@/components/home/ScoreBars";
 import { StatusPill } from "@/components/ui/StatusPill";
@@ -144,6 +145,10 @@ export default function HomePage() {
             </div>
           </Link>
         ))}
+      </div>
+
+      <div className="mt-[22px]">
+        <PastRuns />
       </div>
     </PortfolioShell>
   );
