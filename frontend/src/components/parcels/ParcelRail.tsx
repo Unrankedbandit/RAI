@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useState, type JSX, type ReactNode } from "react";
+import { useEffect, useState, type JSX, type ReactNode } from "react";
 
 import { ViabilityPreview } from "@/components/parcels/ViabilityPreview";
 import { clsx } from "@/lib/clsx";
