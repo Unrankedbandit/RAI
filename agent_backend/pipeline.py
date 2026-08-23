@@ -170,21 +170,39 @@ async def run_pipeline(
         )
         findings = [core_findings]
         if contradictions.needs_more_research:
-            # The CrossExaminer ran concurrently with findings=[] and the
-            # follow-up fan-out only exists in deep mode — without this its
-            # needs_more_research vanished silently. Fast lane can't fan out:
-            # the bridge burst budget is 100 reqs/5min (see .env) and a
-            # researcher per question would spend it. Record the questions as
-            # coverage gaps instead so they surface in the report's
-            # missing_info.
-            contradictions.coverage_gaps.extend(
-                r.question for r in contradictions.needs_more_research
+            # Fast lane follow-up fan-out (2026-08-23): the old "record as
+            # coverage gaps" path dated from the public-bridge burst-budget era
+            # — the bridge is local now with transport retries, and flash-tier
+            # scouts (deepseek-flash) are fast and cheap. Chase the top 5
+            # follow-up questions in parallel; only questions a scout could NOT
+            # answer stay on the report as coverage gaps.
+            follow_ups = contradictions.needs_more_research[:5]
+            on_status(
+                f"[pipeline] fast lane — {len(follow_ups)} follow-up question(s) → flash scouts"
             )
+            chased: list[AcquiredData] = list(await asyncio.gather(*[
+                _degrade(
+                    _agent(
+                        f"DataScout:followup-{i + 1}", DATA_SCOUT, AcquiredData,
+                        "data_scout", on_status, trace,
+                    ).run(
+                        f"Acquire this missing diligence data: {r.question}"
+                        + (f"\nWhy it matters: {r.why_it_matters}" if getattr(r, "why_it_matters", None) else ""),
+                        {"project": profile.model_dump(),
+                         "source_hint": getattr(r, "source_hint", None)},
+                    ),
+                    AcquiredData(component=f"followup-{i + 1}", still_missing=[r.question]),
+                    on_status, f"DataScout:followup-{i + 1}",
+                )
+                for i, r in enumerate(follow_ups)
+            ]))
+            acquired.extend(chased)
+            still = [q for a in chased for q in a.still_missing]
+            contradictions.coverage_gaps.extend(still)
             trace.event(
                 "phase",
-                f"fast lane: {len(contradictions.needs_more_research)} follow-up "
-                "question(s) recorded as coverage gaps — no follow-up fan-out "
-                "in fast lane (bridge burst budget)",
+                f"fast lane: scouts chased {len(follow_ups)} follow-ups "
+                f"({len(follow_ups) - len(still)} answered, {len(still)} still missing)",
                 phase="cross_examine",
             )
     else:
