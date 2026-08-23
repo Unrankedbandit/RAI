@@ -266,7 +266,8 @@ h6 {
    slow throbbing glow in the brand color */
 .run-badge {
   position: fixed;
-  right: 18px;
+  left: 50%;
+  transform: translateX(-50%);
   bottom: 18px;
   z-index: 90;
   display: flex;
