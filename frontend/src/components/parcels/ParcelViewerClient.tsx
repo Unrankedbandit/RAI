@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { MapIntroPopup } from "./MapIntroPopup";
 
 /**
  * Client-only entry for the parcel viewer. MapLibre needs the browser, so the
@@ -17,6 +18,7 @@ export function ParcelViewerClient() {
   return (
     <div className="relative h-full w-full">
       <ParcelViewer />
+      <MapIntroPopup />
     </div>
   );
 }

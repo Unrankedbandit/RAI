@@ -1,199 +1,134 @@
 "use client";
 
+import Link from "next/link";
+import { motion } from "framer-motion";
 import { PortfolioShell } from "@/components/portfolio/PortfolioShell";
-import { StatusDonut, type DonutSegment } from "@/components/home/StatusDonut";
-import { ScoreBars, type ScoreBarRow } from "@/components/home/ScoreBars";
-import { StatusPill } from "@/components/ui/StatusPill";
-import { OfflineBanner } from "@/components/ui/OfflineBanner";
-import { clsx } from "@/lib/clsx";
-import { statusLabelText, statusToBand } from "@/lib/band";
-import {
-  summarizeProjects,
-  useLiveProjects,
-} from "@/lib/agent/useLiveProjects";
-import { projects as mockProjects, recentActivity } from "@/lib/mockData";
-import type { RecentActivity } from "@/lib/types";
 
-/** "Project Alpha" → "Alpha" for the compact chart / stat labels. */
-function shortName(name: string): string {
-  return name.replace(/^Project\s+/, "");
-}
-
-export default function HomePage() {
-  const live = useLiveProjects();
-
-  // Neutral loading state — mock data must never flash while the backend
-  // answer is still in flight.
-  if (live.status === "loading") {
-    return (
-      <PortfolioShell>
-        <div className="text-2xl font-semibold text-ink">Home</div>
-        <p className="mt-1 mb-[22px] text-[15px] text-muted">
-          Checking the backend for live portfolio data…
-        </p>
-        <div className="mb-[18px] grid gap-3 sm:grid-cols-3">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="h-[86px] animate-pulse rounded-[5px] border border-hairline bg-surface-2"
-            />
-          ))}
-        </div>
-        <div className="mb-[22px] grid gap-3 md:grid-cols-2">
-          {[0, 1].map((i) => (
-            <div
-              key={i}
-              className="h-[180px] animate-pulse rounded-[11px] border border-hairline bg-surface-2"
-            />
-          ))}
-        </div>
-        <div className="h-[240px] animate-pulse rounded-[11px] border border-hairline bg-surface-2" />
-      </PortfolioShell>
-    );
-  }
-
-  const offline = live.status === "offline";
-  // Live rows only when the backend answered; mock solely as the labelled
-  // offline placeholder — the two are never merged.
-  const projects = offline ? mockProjects : live.projects;
-  const summary = summarizeProjects(projects);
-
-  const needsReviewNames = projects
-    .filter((p) => p.status === "needs-review")
-    .map((p) => shortName(p.name));
-
-  const stats = [
-    {
-      label: "Active projects",
-      value: summary.count,
-      sub: "Across the current pipeline",
-    },
-    {
-      label: "Portfolio activation",
-      value: summary.avgScore,
-      sub: "Average score out of 100",
-    },
-    {
-      label: "Needs review",
-      value: summary.needsReview,
-      sub: needsReviewNames.join(", ") || "None",
-    },
-  ];
-
-  const donutSegments: DonutSegment[] = [
-    { label: "On track", value: summary.onTrack, band: "strong" },
-    { label: "Needs review", value: summary.needsReview, band: "watch" },
-    { label: "At risk", value: summary.atRisk, band: "risk" },
-  ];
-
-  const scoreRows: ScoreBarRow[] = projects.map((p) => ({
-    id: p.id,
-    name: shortName(p.name),
-    score: p.activationScore,
-    band: p.band,
-  }));
-
-  // When live, the feed lists the real pipeline rows (the backend exposes no
-  // timestamps, so the time column shows "—"). Mock feed only when offline.
-  const activity: RecentActivity[] = offline
-    ? recentActivity
-    : projects.map((p) => ({
-        name: p.name,
-        kind: "Project" as const,
-        status: p.status,
-        time: "—",
-      }));
-
+/**
+ * Public landing — what RAI is, what it saves, and one door in: Get started
+ * drops the user on the parcel map (/parcels), where a one-time intro popup
+ * explains the rest. The old portfolio home is stashed at /dashboard.
+ */
+export default function LandingPage() {
   return (
     <PortfolioShell>
-      <div className="text-2xl font-semibold text-ink">Home</div>
-      <p className="mt-1 mb-[22px] text-[15px] text-muted">
-        Start a new project from the top bar, or check on recent activity across your pipeline.
-      </p>
-
-      {offline && <OfflineBanner />}
-
-      {/* Stacks on phones (three ~90px cards would truncate to nothing);
-          three-across from sm up, matching StatBoxes' existing idiom. */}
-      <div className="mb-[18px] grid gap-3 sm:grid-cols-3">
-        {stats.map((s) => (
-          <div
-            key={s.label}
-            className="rounded-[5px] border border-hairline bg-canvas px-[18px] py-4 shadow-card"
-          >
-            <div className="mb-1.5 text-[12.5px] font-medium text-faint">
-              {s.label}
-            </div>
-            <div className="text-[24px] font-semibold text-ink tabular-nums">
-              {s.value}
-            </div>
-            <div className="mt-[3px] truncate text-[12.5px] text-muted" title={s.sub}>
-              {s.sub}
-            </div>
+      <div className="mx-auto max-w-[760px] pt-6 sm:pt-14">
+        {/* Hero */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: "easeOut" }}
+        >
+          <div className="mb-3 inline-block rounded-full border border-hairline bg-select px-3 py-1 text-[11.5px] font-semibold text-ink">
+            Solar due diligence, automated
           </div>
-        ))}
-      </div>
+          <h1 className="text-[30px] font-semibold leading-[1.2] text-ink sm:text-[40px]">
+            Weeks of analyst work,
+            <br />
+            compressed into one run.
+          </h1>
+          <p className="mt-4 max-w-[600px] text-[15px] leading-[1.7] text-muted">
+            RAI reads a solar project&apos;s entire diligence package the way no
+            reviewer can: every document cross-examined against every other,
+            every missing piece chased down from public record, every finding
+            cited back to its source — and a readiness score at the end you can
+            defend in committee.
+          </p>
 
-      {/* Stacks on phones — the 110px donut svg + legend overflows a
-          half-width card below md. */}
-      <div className="mb-[22px] grid gap-3 md:grid-cols-2">
-        <div className="rounded-[11px] border border-hairline bg-canvas px-5 py-[18px] shadow-card">
-          <div className="mb-[14px] text-sm font-semibold text-ink">
-            Portfolio status
+          <div className="mt-7 flex items-center gap-3">
+            <Link
+              href="/parcels"
+              className="inline-flex items-center gap-2 rounded-full bg-oxford px-6 py-3 text-[14px] font-semibold text-white transition-opacity hover:opacity-90"
+            >
+              Get started
+              <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+                <path d="M3 8h10M9 4l4 4-4 4" />
+              </svg>
+            </Link>
+            <span className="text-[12.5px] text-faint">
+              Opens the California parcel map — no signup.
+            </span>
           </div>
-          <StatusDonut segments={donutSegments} />
-        </div>
+        </motion.div>
 
-        <div className="rounded-[11px] border border-hairline bg-canvas px-5 py-[18px] shadow-card">
-          <div className="mb-[14px] text-sm font-semibold text-ink">
-            Activation score by project
+        {/* Time + cost band */}
+        <motion.div
+          className="mt-10 rounded-[11px] border border-hairline bg-canvas p-5 shadow-card sm:p-6"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: "easeOut", delay: 0.12 }}
+        >
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Stat
+              big="Weeks → minutes"
+              text="A senior analyst needs weeks per project dossier. RAI's agent pipeline returns a scored report in minutes."
+            />
+            <Stat
+              big="Dollars, not thousands"
+              text="Manual diligence bills tens of thousands in expert hours per project. A RAI run costs a few dollars of compute."
+            />
+            <Stat
+              big="Nothing missed"
+              text="Cross-document contradictions and absent studies are where bad deals hide. The pipeline is built to catch exactly those."
+            />
           </div>
-          <ScoreBars rows={scoreRows} />
-        </div>
-      </div>
+        </motion.div>
 
-      <div className="overflow-hidden rounded-[11px] border border-hairline bg-canvas shadow-card">
-        <div className="border-b border-hairline px-5 py-[14px] text-sm font-semibold text-ink">
-          {offline ? "Recent activity" : "Pipeline activity"}
-        </div>
-        {activity.map((a, i) => (
-          <div
-            key={`${a.name}-${a.time}-${i}`}
-            className={clsx(
-              "flex items-center gap-[14px] px-5 py-[13px]",
-              i > 0 && "border-t border-hairline",
-            )}
-          >
-            <div className="min-w-0 flex-1 truncate text-sm font-medium text-ink" title={a.name}>
-              {a.name}
-            </div>
-            {/* kind column hidden on phones: with the 44px rail strip the row
-                only has ~284px, and 80+110+110px of fixed columns clipped the
-                time column off the card edge. */}
-            <div className="hidden w-20 shrink-0 text-[12.5px] text-faint sm:block">{a.kind}</div>
-            <div className="w-[110px] shrink-0">
-              {a.kind === "Project" && a.status ? (
-                <StatusPill
-                  band={statusToBand(a.status)}
-                  label={statusLabelText[a.status]}
-                  size="sm"
-                  dot={false}
-                />
-              ) : (
-                <span
-                  className="block truncate text-[12.5px] text-faint"
-                  title={a.project}
-                >
-                  {a.project}
-                </span>
-              )}
-            </div>
-            <div className="w-auto shrink-0 text-right text-[12.5px] text-faint sm:w-[110px]">
-              {a.time}
-            </div>
+        {/* How it works */}
+        <motion.div
+          className="mt-8 pb-4"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: "easeOut", delay: 0.22 }}
+        >
+          <div className="mb-3 text-[12.5px] font-semibold text-faint">
+            How it works
           </div>
-        ))}
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Step n={1} title="Pick a parcel">
+              Click any parcel on the map — get its attributes and an instant,
+              honest viability estimate from public land data.
+            </Step>
+            <Step n={2} title="Run full diligence">
+              Specialist agents extract every claim from the documents,
+              cross-examine them, and pull the missing numbers from public sources.
+            </Step>
+            <Step n={3} title="Get the report">
+              Readiness score, red flags, contradictions, critical path, and a
+              memo you can export and share by link.
+            </Step>
+          </div>
+        </motion.div>
       </div>
     </PortfolioShell>
+  );
+}
+
+function Stat({ big, text }: { big: string; text: string }) {
+  return (
+    <div>
+      <div className="text-[17px] font-semibold text-ink">{big}</div>
+      <p className="mt-1 text-[12.5px] leading-[1.6] text-muted">{text}</p>
+    </div>
+  );
+}
+
+function Step({
+  n,
+  title,
+  children,
+}: {
+  n: number;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-[11px] border border-hairline bg-canvas p-5 shadow-card">
+      <div className="mb-2.5 flex h-[26px] w-[26px] items-center justify-center rounded-full bg-oxford text-[12.5px] font-semibold text-white">
+        {n}
+      </div>
+      <div className="mb-1 text-sm font-semibold text-ink">{title}</div>
+      <p className="text-[12.5px] leading-[1.6] text-muted">{children}</p>
+    </div>
   );
 }

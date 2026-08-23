@@ -2,16 +2,17 @@
 
 import { clsx } from "@/lib/clsx";
 
-export type ProjectTab = "overview" | "reports" | "documents" | "map";
+export type ProjectTab = "overview" | "findings" | "reports" | "documents" | "map";
 
 const tabs: { id: ProjectTab; label: string }[] = [
   { id: "overview", label: "Overview" },
+  { id: "findings", label: "Findings" },
   { id: "reports", label: "Reports" },
   { id: "documents", label: "Documents" },
   { id: "map", label: "Map" },
 ];
 
-/** Pill-group sub-nav (Overview / Reports / Documents / Map). */
+/** Pill-group sub-nav (Overview / Findings / Reports / Documents / Map). */
 export function SubNav({
   active,
   onChange,

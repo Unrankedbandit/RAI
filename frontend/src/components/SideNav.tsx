@@ -33,11 +33,8 @@ export const links = [
       <path d="M2.5 4.5a1 1 0 0 1 1-1h3l1.5 2h5.5a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-10a1 1 0 0 1-1-1z" strokeLinejoin="round" />
     ),
   },
-  {
-    href: "/findings",
-    label: "Findings",
-    icon: <path d="M3 13.5v-11h3l7 3-7 3H3" strokeLinejoin="round" />,
-  },
+  // Findings left the global nav — findings live per-project now (the
+  // project's own Findings tab); /findings the route still answers deep links.
   {
     href: "/settings",
     label: "Settings",
