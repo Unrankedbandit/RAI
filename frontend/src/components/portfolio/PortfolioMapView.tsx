@@ -229,6 +229,12 @@ export default function PortfolioMapView({
           <div className="mt-[2px] text-[11.5px] text-faint">
             {hoveredResearch.location}
           </div>
+          <a
+            href={`/projects/${hoveredResearch.id}`}
+            className="mt-2 inline-block rounded-full bg-oxford px-3 py-1 text-[11px] font-semibold text-white hover:opacity-90"
+          >
+            View report →
+          </a>
         </Popup>
       )}
 

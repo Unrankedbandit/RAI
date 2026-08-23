@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type JSX, type ReactNode } from "react";
+import { useEffect, useState, useState, type JSX, type ReactNode } from "react";
 
 import { ViabilityPreview } from "@/components/parcels/ViabilityPreview";
 import { clsx } from "@/lib/clsx";
@@ -22,6 +22,23 @@ import {
  * parent positions/sizes the rail (absolute right, w-[360px]); this fills
  * it and scrolls as a single column.
  */
+const digits = (s: string) => s.replace(/\D/g, "");
+function matchReportId(
+  parcel: ParcelResult | null,
+  researched: { id: string; name: string }[],
+): string | null {
+  if (!parcel) return null;
+  const apn = digits(parcel.apn ?? "");
+  const addr = (parcel.address ?? "").toLowerCase();
+  for (const r of researched) {
+    const rd = digits(r.name);
+    if (apn.length >= 6 && rd.includes(apn)) return r.id;
+    if (rd.length >= 6 && apn.includes(rd)) return r.id;
+    if (addr && r.name.toLowerCase().includes(addr)) return r.id;
+  }
+  return null;
+}
+
 export function ParcelRail(props: {
   selected: ParcelResult | null;
   panelStatus: "idle" | "loading" | "found" | "empty" | "error";
@@ -30,6 +47,19 @@ export function ParcelRail(props: {
   onFlyTo: (lng: number, lat: number) => void;
 }): JSX.Element {
   const { selected, panelStatus, onCloseSelected, onResearch, onFlyTo } = props;
+  const [researched, setResearched] = useState<{ id: string; name: string }[]>([]);
+  useEffect(() => {
+    let live = true;
+    void import("@/lib/agent/researched").then((m) =>
+      m.loadResearchedParcels().then((rows) => {
+        if (live) setResearched(rows.map((r) => ({ id: r.id, name: r.name })));
+      }),
+    );
+    return () => {
+      live = false;
+    };
+  }, []);
+  const reportId = matchReportId(selected, researched);
   const watching = useWatching();
   const recent = useRecent();
   const [justWatched, setJustWatched] = useState(false);
@@ -83,6 +113,7 @@ export function ParcelRail(props: {
           {panelStatus === "found" && selected && (
             <SelectedParcel
               parcel={selected}
+            reportId={reportId}
               justWatched={justWatched}
               onWatch={handleWatch}
               onResearch={onResearch}
@@ -125,11 +156,13 @@ function SelectedParcel({
   justWatched,
   onWatch,
   onResearch,
+  reportId,
 }: {
   parcel: ParcelResult;
   justWatched: boolean;
   onWatch: () => void;
   onResearch: (p: ParcelResult) => void;
+  reportId?: string | null;
 }) {
   const title = parcel.address ?? parcel.apn ?? "Unnamed parcel";
   return (
@@ -163,6 +196,14 @@ function SelectedParcel({
 
       <ViabilityPreview parcel={parcel} />
 
+      {reportId && (
+        <a
+          href={`/projects/${reportId}`}
+          className="mt-3 block w-full rounded-full border border-brand py-2 text-center text-[12.5px] font-semibold text-brand hover:bg-brand/5"
+        >
+          View report → (already researched)
+        </a>
+      )}
       <button
         type="button"
         onClick={() => onResearch(parcel)}
