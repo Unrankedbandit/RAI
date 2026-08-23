@@ -1,4 +1,5 @@
 import { severityToFlagColor } from "@/lib/findings";
+import { SourceLink, isExternalUrl } from "@/components/ui/SourceLink";
 import type { Finding } from "@/lib/types";
 
 /**
@@ -76,7 +77,11 @@ export function EvidencePanels({ finding }: { finding: Finding }) {
               className="mono truncate text-[12.5px] font-medium text-ink"
               title={side.source}
             >
-              {side.source}
+              {isExternalUrl(side.source) ? (
+                <SourceLink url={side.source} label={side.source} />
+              ) : (
+                side.source
+              )}
             </div>
             {side.excerpt && (
               <blockquote className="mt-2 border-l-2 border-hairline pl-3 text-sm leading-[1.6] text-muted">

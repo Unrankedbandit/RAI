@@ -75,7 +75,49 @@ approvals, construction start, financial close, interconnection, the ITC deadlin
 an ISO YYYY-MM-DD date (estimate from the record when no exact date exists — an undated
 element never renders), kind (milestone or deadline), a one-line detail, and severity
 (critical/high for dated conflicts that can kill the deal, low for secured items).
-Be specific: name the real agency and the real program."""
+Be specific: name the real agency and the real program.
+
+Timeline dates must be REALISTIC — grounded in these verified public benchmarks
+(source URL in parentheses; all fetched and current as of Aug 2026):
+- CAISO interconnection: GIDAP 'typical' cluster runs ~9 months window→Phase I and
+  ~19 months window→Phase II results, but recent clusters overran badly — Cluster 15
+  (April 2023 window) delivered study/restudy results only ~3 years later (May 2026).
+  LBNL puts median request→COD at over 5 years and rising. FERC Order 2023 mandates a
+  150-day cluster study with penalties. Never schedule a new CAISO queue entry to
+  interconnection agreement in under ~2 years.
+  (https://www.caiso.com/generation-transmission/generation/generator-interconnection/interconnection-request-study ;
+  https://emp.lbl.gov/queues ; https://www.ferc.gov/explainer-interconnection-final-rule)
+- CEQA environmental review: statutory cap 1 year for an EIR from accepted application
+  (14 CCR §15108) and 180 days for a Negative Declaration (§15107) — but empirically full
+  EIRs average ~2.5 years (CA Legislative Analyst's Office). A county CUP with EIR runs
+  ~10-12 months processing (Kern County guide); the Permit Streamlining Act then allows
+  180 days after EIR certification for the decision (Gov. Code §65950). CEC AB 205 Opt-In
+  Certification compresses this to a 270-day decision for eligible projects (solar ≥50 MW,
+  storage ≥200 MWh).
+  (https://www.law.cornell.edu/regulations/california/14-CCR-15108 ;
+  https://www.law.cornell.edu/regulations/california/14-CCR-15107 ;
+  https://lao.ca.gov/reports/2015/finance/housing-costs/housing-costs.pdf ;
+  https://kernplanning.com/informational-guides/info-guide-conditional-use-permit/ ;
+  https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=65950.&lawCode=GOV ;
+  https://www.energy.ca.gov/programs-and-topics/topics/power-plants/opt-certification-program)
+- Federal tax credits (post-OBBBA, P.L. 119-21): wind/solar facilities whose construction
+  begins after July 4, 2026 lose §45Y/§48E eligibility unless PLACED IN SERVICE by
+  December 31, 2027. Facilities with documented beginning-of-construction by July 4, 2026
+  keep eligibility under the continuity safe harbor (placed in service by end of the 4th
+  calendar year after BOC). Standalone energy storage is exempt from the wind/solar
+  termination: full credit for construction begun through 2033, then 75% (2034), 50%
+  (2035), 0% (from 2036). For a solar or solar+storage deal evaluated today, the binding
+  ITC deadline is 2027-12-31 unless the record shows pre-July-4-2026 BOC evidence.
+  (https://www.irs.gov/irb/2025-36_IRB ;
+  https://www.irs.gov/credits-deductions/clean-electricity-investment-credit)
+
+For EVERY timeline entry: set ground_truth to one line naming the benchmark you used and
+how the date sits against it (e.g. 'CEQA EIR — statutory 1 yr, empirical ~2.5 yrs (LAO);
+date assumes 18 months: between the two'), and set source_url to the benchmark URL above
+or a URL that appears VERBATIM in the findings/acquired research in your context. Never
+invent or guess a URL — if you have no source, leave source_url null; the UI marks such
+entries 'unverified' and that honesty is the product. A plausible date with no grounding
+is worse than an honest range."""
 
 ANALYST = """You are the diligence analyst answering questions about a project that has
 already been analyzed. The finished report is in your context: readiness score, dimension

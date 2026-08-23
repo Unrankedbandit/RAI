@@ -104,6 +104,11 @@ export type TimelineEvent = {
   /** Shared key: two events with the same key cross-highlight together. */
   conflictKey?: string;
   kind?: "milestone" | "deadline";
+  /** External source URL for the date/duration — only ever a URL the
+   *  pipeline actually retrieved. Absent => the UI tags it unverified. */
+  sourceUrl?: string;
+  /** One-line public benchmark the date was checked against. */
+  groundTruth?: string;
 };
 
 export type MapZone = {
@@ -302,6 +307,9 @@ export type Finding = {
   recommendedAction: string;
   /** Present only for contradictions; gap findings have no pair. */
   evidence?: { left: FindingEvidenceSide; right: FindingEvidenceSide };
+  /** External source URLs backing this finding — only URLs the pipeline
+   *  actually retrieved. Absent/empty => UI shows the unverified tag. */
+  sourceUrls?: string[];
   linkedFindings?: LinkedFinding[];
   activity: FindingActivity[];
 };

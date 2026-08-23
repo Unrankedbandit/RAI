@@ -116,12 +116,24 @@ class TimelineEntry(BaseModel):
     The frontend renders these verbatim as milestone dots / deadline markers,
     so dates must be ISO YYYY-MM-DD — estimate from the record when an exact
     date is absent (an undated element is useless to the strip).
+
+    source_url / ground_truth are the audit trail for the date: which public
+    benchmark the duration was grounded in, and a link to it. Both optional —
+    reports written before this contract still validate; the UI marks entries
+    without a source_url as unverified rather than showing a fake link.
     """
     label: str
     date: str  # ISO YYYY-MM-DD
     kind: Literal["milestone", "deadline"] = "milestone"
     detail: str = ""
     severity: Severity = "medium"
+    # External source for the date/duration — a URL a tool actually returned
+    # or a benchmark URL from the LIAISON prompt. Never an invented URL.
+    source_url: str | None = None
+    # One-line note: the public benchmark this date was checked against
+    # (e.g. "CEC Opt-In statutory 270-day decision") and how this entry sits
+    # against it ("at benchmark", "aggressive vs ~2.5-yr empirical EIR").
+    ground_truth: str | None = None
 
 
 class ActionPack(BaseModel):

@@ -30,7 +30,18 @@ function slugify(name: string): string {
     .replace(/^-|-$/g, "");
 }
 import type { AgentReport } from "./report";
-const ITC_DEADLINE = "2030-12-31";
+// Pinned fallback ITC deadline. Ground truth (fetched 2026-08-23): under OBBBA
+// (P.L. 119-21, enacted 2025-07-04), wind/solar facilities whose construction
+// begins after 2026-07-04 lose §45Y/§48E eligibility unless placed in service
+// by 2027-12-31 (IRS Notice 2025-42, IRB 2025-36). The old 2030-12-31 pin
+// predated OBBBA. Keep in lockstep with agent_backend/sentinel_adapter.py.
+const ITC_DEADLINE = "2027-12-31";
+const ITC_SOURCE_URL = "https://www.irs.gov/irb/2025-36_IRB";
+const ITC_GROUND_TRUTH =
+  "OBBBA §48E(e)(4): solar/wind placed in service after Dec 31, 2027 loses " +
+  "the 30% ITC unless construction began by Jul 4, 2026 (4-yr continuity " +
+  "safe harbor then applies). Standalone storage exempt; full credit for " +
+  "BOC through 2033.";
 
 const COMPONENT_TO_PILLAR: Record<string, PillarName> = {
   land: "Land", zoning: "Land", permitting: "Land", community: "Land",
@@ -339,6 +350,8 @@ export function toSentinel(report: AgentReport, meta: SentinelMeta): ProjectDeta
     shortLabel?: string;
     dateDisplay?: string;
     description?: string;
+    sourceUrl?: string;
+    groundTruth?: string;
     band?: RiskBand;
   }[] = [];
   for (const t of report.action_pack.timeline ?? []) {
@@ -353,6 +366,8 @@ export function toSentinel(report: AgentReport, meta: SentinelMeta): ProjectDeta
         band: SEV_TO_BAND[t.severity] ?? "watch",
       };
       if (t.detail) entry.description = t.detail;
+      if (t.source_url) entry.sourceUrl = t.source_url;
+      if (t.ground_truth) entry.groundTruth = t.ground_truth;
       rawTimeline.push(entry);
     }
   }
@@ -362,7 +377,14 @@ export function toSentinel(report: AgentReport, meta: SentinelMeta): ProjectDeta
       if (iso) rawTimeline.push({ label: `${a.agency} — ${a.action}`.slice(0, 80), date: iso, kind: "milestone" });
     }
   }
-  rawTimeline.push({ label: "ITC deadline", date: ITC_DEADLINE, kind: "deadline" });
+  rawTimeline.push({
+    label: "ITC deadline",
+    date: ITC_DEADLINE,
+    kind: "deadline",
+    description: ITC_GROUND_TRUTH,
+    sourceUrl: ITC_SOURCE_URL,
+    groundTruth: ITC_GROUND_TRUTH,
+  });
   rawTimeline.sort((x, y) => x.date.localeCompare(y.date));
 
   const b = band(report.readiness);
@@ -381,6 +403,8 @@ export function toSentinel(report: AgentReport, meta: SentinelMeta): ProjectDeta
     if (e.shortLabel !== undefined) ev.shortLabel = e.shortLabel;
     if (e.dateDisplay !== undefined) ev.dateDisplay = e.dateDisplay;
     if (e.description !== undefined) ev.description = e.description;
+    if (e.sourceUrl !== undefined) ev.sourceUrl = e.sourceUrl;
+    if (e.groundTruth !== undefined) ev.groundTruth = e.groundTruth;
     return ev;
   });
 

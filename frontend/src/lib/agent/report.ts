@@ -42,6 +42,11 @@ export interface AgentTimelineEntry {
   kind: "milestone" | "deadline";
   detail: string;
   severity: "critical" | "high" | "medium" | "low";
+  /** External source for the date — a URL a tool actually returned or a
+   *  benchmark URL from the liaison prompt. Null => UI marks unverified. */
+  source_url?: string | null;
+  /** One-line note: the public benchmark this date was checked against. */
+  ground_truth?: string | null;
 }
 
 export interface AgentActionPack {

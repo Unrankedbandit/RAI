@@ -8,6 +8,7 @@ import { EvidencePanels } from "@/components/findings/detail/EvidencePanels";
 import { FieldGrid } from "@/components/findings/detail/FieldGrid";
 import { LinkedFindings } from "@/components/findings/detail/LinkedFindings";
 import { AskLauncher } from "@/components/ui/AskLauncher";
+import { SourceAttribution } from "@/components/ui/SourceLink";
 import { getFinding } from "@/lib/mockData";
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -78,6 +79,13 @@ export default function FindingDetailPage() {
           <section className="px-6 py-5">
             <SectionTitle>Evidence</SectionTitle>
             <EvidencePanels finding={finding} />
+          </section>
+
+          <section className="px-6 py-5">
+            <SectionTitle>External sources</SectionTitle>
+            <div className="text-sm">
+              <SourceAttribution sources={finding.sourceUrls ?? []} />
+            </div>
           </section>
 
           <section className="px-6 py-5">

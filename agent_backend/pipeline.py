@@ -336,7 +336,10 @@ async def run_pipeline(
     )
 
     trace.event("phase", "drafting RFIs and agency actions", phase="liaison")
-    # 5. Liaison artifacts
+    # 5. Liaison artifacts. The liaison now carries the sourced evidence too
+    # (red-flag sources + acquired research URLs): its timeline entries must
+    # cite a real source_url when one exists, and it cannot cite URLs it
+    # never saw — so it has to see them.
     actions: ActionPack = await _degrade(
         _agent("Liaison", LIAISON, ActionPack, "liaison", on_status, trace).run(
             "Produce the liaison action pack for the deal team.",
@@ -345,6 +348,8 @@ async def run_pipeline(
                 "contradictions": contradictions.model_dump(),
                 "gaps": [g for f in fact_sets for g in f.gaps] + contradictions.coverage_gaps,
                 "score": score.model_dump(),
+                "findings": [f.model_dump() for f in findings],
+                "acquired": acquired_ctx,
             },
         ),
         ActionPack(),

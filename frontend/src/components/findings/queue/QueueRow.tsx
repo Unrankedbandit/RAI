@@ -37,6 +37,15 @@ export function QueueRow({ finding, selected, onSelect }: QueueRowProps) {
           title={finding.title}
         >
           {finding.title}
+          {finding.sourceUrls && finding.sourceUrls.length > 0 && (
+            <span
+              className="ml-1 align-middle text-[11px] text-brand"
+              title={`${finding.sourceUrls.length} external source${finding.sourceUrls.length > 1 ? "s" : ""}`}
+              aria-label="has external source"
+            >
+              ↗
+            </span>
+          )}
         </span>
         <span
           className="mt-[2px] block truncate text-[12.5px] text-faint"

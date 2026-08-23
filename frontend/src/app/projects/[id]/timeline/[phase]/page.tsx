@@ -9,6 +9,7 @@ import { getReport } from "@/lib/agent/client";
 import type { AgentReport } from "@/lib/agent/report";
 import { bandColorVar, bandPillClass, bandLabel } from "@/lib/band";
 import { clsx } from "@/lib/clsx";
+import { SourceLink, UnverifiedTag } from "@/components/ui/SourceLink";
 import type { TimelineEvent } from "@/lib/types";
 
 /**
@@ -179,6 +180,19 @@ function PhaseHeader({ phase }: { phase: TimelineEvent }) {
       </h1>
       <div className="mt-1 text-[12.5px] text-muted">
         {phase.dateDisplay ?? phase.date}
+      </div>
+      {phase.groundTruth && (
+        <p className="mt-2 text-[12px] leading-[1.55] text-muted">
+          <span className="font-semibold text-ink">Ground truth: </span>
+          {phase.groundTruth}
+        </p>
+      )}
+      <div className="mt-2 text-[12px]">
+        {phase.sourceUrl ? (
+          <SourceLink url={phase.sourceUrl} label="source" />
+        ) : (
+          <UnverifiedTag />
+        )}
       </div>
     </div>
   );

@@ -75,7 +75,7 @@ export default function ProjectsPage() {
             </span>
             <span>
               <span className="font-semibold text-ink">{summary.count}</span>{" "}
-              active projects · flagged before the 2030 ITC deadline
+              active projects · flagged before the 2027 ITC deadline
             </span>
           </div>
         </div>

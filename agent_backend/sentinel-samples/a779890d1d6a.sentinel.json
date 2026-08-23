@@ -706,7 +706,7 @@
       "date": "2027-01-01",
       "kind": "milestone",
       "band": "watch",
-      "position": 5.9
+      "position": 20.2
     },
     {
       "id": "tl-6",
@@ -714,15 +714,18 @@
       "date": "2027-01-01",
       "kind": "milestone",
       "band": "watch",
-      "position": 5.9
+      "position": 20.2
     },
     {
       "id": "tl-7",
       "label": "ITC deadline",
-      "date": "2030-12-31",
+      "date": "2027-12-31",
       "kind": "deadline",
       "band": "watch",
-      "position": 100.0
+      "position": 100.0,
+      "description": "OBBBA \u00a748E(e)(4): solar/wind placed in service after Dec 31, 2027 loses the 30% ITC unless construction began by Jul 4, 2026 (4-yr continuity safe harbor then applies). Standalone storage exempt; full credit for BOC through 2033.",
+      "sourceUrl": "https://www.irs.gov/irb/2025-36_IRB",
+      "groundTruth": "OBBBA \u00a748E(e)(4): solar/wind placed in service after Dec 31, 2027 loses the 30% ITC unless construction began by Jul 4, 2026 (4-yr continuity safe harbor then applies). Standalone storage exempt; full credit for BOC through 2033."
     }
   ],
   "documents": [],

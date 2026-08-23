@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
+import { SourceAttribution } from "@/components/ui/SourceLink";
 import type { Finding } from "@/lib/types";
 import { OwnerAvatars, SeverityFlag, StatusLozenge } from "./FindingBits";
 
@@ -131,6 +132,15 @@ export function QuickLookPane({
         <p className="text-sm leading-[1.55] text-muted">
           {finding.whyItMatters}
         </p>
+      </div>
+
+      {/* External sourcing — a real link when the pipeline has one, the
+          honesty tag when it doesn't. */}
+      <div className="mt-4">
+        <SectionLabel>Sources</SectionLabel>
+        <div className="text-[12.5px]">
+          <SourceAttribution sources={finding.sourceUrls ?? []} />
+        </div>
       </div>
 
       {/* Actions (mock-local state) */}

@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useProject } from "./ProjectContext";
 import { StatusPill } from "@/components/ui/StatusPill";
+import { SourceAttribution } from "@/components/ui/SourceLink";
 import { findingAnchorId } from "@/lib/agent/siteGeo";
 import type { Factor, PillarScore } from "@/lib/types";
 
@@ -77,7 +78,10 @@ export function FindingsTab() {
                   ))}
                 </div>
               )}
-              <div className="mt-1.5 text-[11px] text-faint">{e.confidence}</div>
+              <div className="mt-1.5 flex items-center gap-2 text-[11px] text-faint">
+                <span>{e.confidence}</span>
+                <SourceAttribution sources={e.sources.map((s) => s.title)} />
+              </div>
             </div>
           ))}
         </div>
@@ -122,11 +126,9 @@ function FactorRow({ factor, divider }: { factor: Factor; divider: boolean }) {
           <p className="mt-0.5 text-[12.5px] leading-[1.6] text-muted">
             {factor.evidence}
           </p>
-          {factor.sources.length > 0 && (
-            <div className="mt-1 text-[11px] text-faint">
-              Source: {factor.sources.join(" · ")}
-            </div>
-          )}
+          <div className="mt-1 text-[11px] text-faint">
+            <SourceAttribution sources={factor.sources} />
+          </div>
         </div>
       </div>
     </div>

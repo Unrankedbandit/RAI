@@ -8,7 +8,7 @@ so the frontend can swap mockData for live agent output without touching the UI.
 Conventions matched to frontend/src/lib/mockData.ts:
 - band: >=70 strong | 40-69 watch | <40 risk; statusLabel Cleared/Watch/Flagged
 - severity critical|high -> risk/Flagged; medium|low -> watch/Watch
-- timeline dates ISO; ITC deadline pinned to 2030-12-31 (frontend constant)
+- timeline dates ISO; ITC deadline pinned to 2027-12-31 (frontend constant)
 """
 from __future__ import annotations
 
@@ -16,7 +16,19 @@ import re
 
 from .schemas import Report
 
-ITC_DEADLINE = "2030-12-31"
+# Pinned fallback ITC deadline. Ground truth (fetched 2026-08-23): under OBBBA
+# (P.L. 119-21, enacted 2025-07-04), wind/solar facilities whose construction
+# begins after 2026-07-04 lose §45Y/§48E eligibility unless placed in service
+# by 2027-12-31 (IRS Notice 2025-42, IRB 2025-36). The old 2030-12-31 pin
+# predated OBBBA. A deal with documented pre-2026-07-04 BOC keeps the 4-year
+# continuity safe harbor instead — the liaison's own timeline entry then wins
+# (agent-emitted critical path takes precedence over this pin downstream).
+ITC_DEADLINE = "2027-12-31"
+ITC_SOURCE_URL = "https://www.irs.gov/irb/2025-36_IRB"
+ITC_GROUND_TRUTH = ("OBBBA §48E(e)(4): solar/wind placed in service after "
+                    "Dec 31, 2027 loses the 30% ITC unless construction began "
+                    "by Jul 4, 2026 (4-yr continuity safe harbor then applies). "
+                    "Standalone storage exempt; full credit for BOC through 2033.")
 
 COMPONENT_TO_PILLAR = {
     "land": "Land", "zoning": "Land", "permitting": "Land", "community": "Land",
@@ -219,13 +231,21 @@ def to_sentinel(report: Report, project_id: str, lat: float = 0, lon: float = 0,
             }
             if t.detail:
                 entry["description"] = t.detail
+            if t.source_url:
+                entry["sourceUrl"] = t.source_url
+            if t.ground_truth:
+                entry["groundTruth"] = t.ground_truth
             raw_timeline.append(entry)
     if not raw_timeline:
         for a in report.action_pack.agency_actions:
             iso = _iso_from(a.deadline)
             if iso:
                 raw_timeline.append({"label": f"{a.agency} — {a.action}"[:80], "date": iso, "kind": "milestone"})
-    raw_timeline.append({"label": "ITC deadline", "date": ITC_DEADLINE, "kind": "deadline"})
+    raw_timeline.append({
+        "label": "ITC deadline", "date": ITC_DEADLINE, "kind": "deadline",
+        "description": ITC_GROUND_TRUTH,
+        "sourceUrl": ITC_SOURCE_URL, "groundTruth": ITC_GROUND_TRUTH,
+    })
     raw_timeline.sort(key=lambda e: e["date"])
 
     from datetime import date as _date
@@ -239,7 +259,7 @@ def to_sentinel(report: Report, project_id: str, lat: float = 0, lon: float = 0,
             "band": e.get("band", b),
             "position": 50 if mx == mn else int(((ords[i] - mn) / (mx - mn)) * 1000 + 0.5) / 10,
         }
-        for opt in ("shortLabel", "dateDisplay", "description"):
+        for opt in ("shortLabel", "dateDisplay", "description", "sourceUrl", "groundTruth"):
             if opt in e:
                 ev[opt] = e[opt]
         timeline.append(ev)

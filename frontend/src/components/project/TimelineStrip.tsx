@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { clsx } from "@/lib/clsx";
 import { bandColorVar } from "@/lib/band";
+import { SourceLink, UnverifiedTag } from "@/components/ui/SourceLink";
 import type { TimelineEvent } from "@/lib/types";
 import { useProject } from "./ProjectContext";
 
@@ -325,6 +326,19 @@ function Tooltip({
         </div>
       )}
       {event.description}
+      {event.groundTruth && (
+        <div className="mt-[6px] text-[11.5px] leading-[1.45] text-white/70">
+          <span className="font-semibold text-white/85">Ground truth: </span>
+          {event.groundTruth}
+        </div>
+      )}
+      <div className="mt-[6px] text-[11.5px]">
+        {event.sourceUrl ? (
+          <SourceLink url={event.sourceUrl} tone="dark" />
+        ) : (
+          <UnverifiedTag tone="dark" />
+        )}
+      </div>
       {event.conflictNote && (
         <div className="mt-[6px] border-t border-white/15 pt-[6px] text-[12.5px] font-medium text-[#FFD9A8]">
           {event.conflictNote}

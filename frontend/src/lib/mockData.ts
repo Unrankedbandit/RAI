@@ -18,8 +18,16 @@ import type {
   ScriptedQA,
 } from "./types";
 
-export const ITC_DEADLINE = "2030-12-31";
-export const ITC_DEADLINE_LABEL = "Deadline: Dec 31, 2030 · 30% ITC eligibility";
+// Ground truth (fetched 2026-08-23): under OBBBA (P.L. 119-21), wind/solar
+// facilities beginning construction after 2026-07-04 lose §45Y/§48E unless
+// placed in service by 2027-12-31 (IRS Notice 2025-42, IRB 2025-36).
+// Mirrors ITC_DEADLINE in agent_backend/sentinel_adapter.py and
+// src/lib/agent/adapter.ts.
+export const ITC_DEADLINE = "2027-12-31";
+export const ITC_DEADLINE_LABEL = "Deadline: Dec 31, 2027 · 30% ITC eligibility";
+export const ITC_SOURCE_URL = "https://www.irs.gov/irb/2025-36_IRB";
+export const ITC_GROUND_TRUTH =
+  "OBBBA §48E(e)(4): solar/wind placed in service after Dec 31, 2027 loses the 30% ITC unless construction began by Jul 4, 2026 (4-yr continuity safe harbor then applies). Standalone storage exempt; full credit for BOC through 2033.";
 
 export const riskFactorDefinitions: RiskFactorDefinition[] = [
   {
@@ -74,7 +82,7 @@ const projectAlpha: Project = {
   activationScore: 62,
   band: "watch",
   scoreReason:
-    "One open flag in Law and one in Finance put the December 31, 2030 deadline at risk.",
+    "One open flag in Law and one in Finance put the December 31, 2027 deadline at risk.",
   status: "needs-review",
   pillars: [
     {
@@ -239,7 +247,7 @@ const projectAlphaDetail: ProjectDetail = {
   runSummary: "7 documents + 3 sheets analyzed · run #A-1147",
   scoreBandLabel: "Activation Score — At Risk",
   scoreNote:
-    "One open flag in Law and one in Finance put the December 31, 2030 deadline at risk.",
+    "One open flag in Law and one in Finance put the December 31, 2027 deadline at risk.",
   evidence: {},
   timeline: [
     {
@@ -310,12 +318,14 @@ const projectAlphaDetail: ProjectDetail = {
       label: "Activation deadline",
       shortLabel: "Deadline",
       date: ITC_DEADLINE,
-      dateDisplay: "Dec 31, 2030",
+      dateDisplay: "Dec 31, 2027",
       description:
         "30% ITC eligibility expires after this date — everything on this timeline is racing against it.",
       band: "risk",
       position: 97,
       kind: "deadline",
+      sourceUrl: ITC_SOURCE_URL,
+      groundTruth: ITC_GROUND_TRUTH,
     },
   ],
   documents: [
@@ -377,7 +387,7 @@ const projectAlphaDetail: ProjectDetail = {
     title: "Due Diligence Memo — Project Alpha",
     preparedBy: "Prepared by RAI · Aug 14, 2026 · Run #A-1147",
     summary:
-      "Project Alpha carries an Activation Score of 62 (At Risk). Two open items — a permit-timeline conflict in Law and a CAPEX variance in Finance — put the December 31, 2030 subsidy deadline at risk. Land and Demand are fully cleared. Resolving both open items would raise the score to an estimated 83.",
+      "Project Alpha carries an Activation Score of 62 (At Risk). Two open items — a permit-timeline conflict in Law and a CAPEX variance in Finance — put the December 31, 2027 subsidy deadline at risk. Land and Demand are fully cleared. Resolving both open items would raise the score to an estimated 83.",
     findings: [
       {
         title: "Environmental permit timeline conflict",
@@ -605,7 +615,7 @@ function lightDetail(project: Project): ProjectDetail {
       { id: "permit", label: "Permit approval", shortLabel: "Permit", date: "2027-03-01", dateDisplay: "Mar 2027 (expected)", description: "Environmental permit decision.", band: "watch", position: 40, kind: "milestone" },
       { id: "close", label: "Financial close", shortLabel: "Financial close", date: "2027-06-01", dateDisplay: "Jun 2027 (projected)", description: "Debt and equity finalize.", band: "watch", position: 64, kind: "milestone" },
       { id: "cod", label: "Commercial operation date", shortLabel: "COD target", date: "2028-02-01", dateDisplay: "Feb 2028 (target)", description: "Commercial operation.", band: "strong", position: 86, kind: "milestone" },
-      { id: "deadline", label: "Activation deadline", shortLabel: "Deadline", date: ITC_DEADLINE, dateDisplay: "Dec 31, 2030", description: "30% ITC eligibility expires after this date.", band: "risk", position: 97, kind: "deadline" },
+      { id: "deadline", label: "Activation deadline", shortLabel: "Deadline", date: ITC_DEADLINE, dateDisplay: "Dec 31, 2027", description: "30% ITC eligibility expires after this date.", band: "risk", position: 97, kind: "deadline", sourceUrl: ITC_SOURCE_URL, groundTruth: ITC_GROUND_TRUTH },
     ],
     documents: [
       { id: `${project.id}-d1`, title: "feasibility_study.pdf", kind: "Feasibility study", size: "1.9 MB", pillars: ["Land", "Finance"] },
