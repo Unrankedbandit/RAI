@@ -13,9 +13,20 @@ import { bandColorVar } from "@/lib/band";
  * actions, and a source-basis footnote. All copy comes from the project report
  * content; scores are built from `project.pillars`.
  */
-export function ReportsTab() {
+export function ReportsTab({ onShare }: { onShare?: () => void }) {
   const { project, report } = useProject();
   const [exportOpen, setExportOpen] = useState(false);
+  const [includeMap, setIncludeMap] = useState(true);
+
+  // The real export: the memo route renders a print-optimized document and
+  // opens the browser print dialog (Save as PDF) — no fake "generated" state.
+  const exportMemo = () => {
+    setExportOpen(false);
+    window.open(
+      `/projects/${project.id}/memo?print=1${includeMap ? "" : "&map=0"}`,
+      "_blank",
+    );
+  };
 
   const btnPill =
     "rounded-full border border-hairline bg-canvas px-[15px] py-2 text-sm font-medium text-muted cursor-pointer";
@@ -46,7 +57,7 @@ export function ReportsTab() {
           >
             Export PDF
           </button>
-          <button type="button" className={btnPill}>
+          <button type="button" className={btnPill} onClick={onShare}>
             Share
           </button>
 
@@ -67,7 +78,12 @@ export function ReportsTab() {
                   draft — it won&apos;t be sent to anyone, only saved for you to share
                   manually.
                   <label className="mt-2.5 flex cursor-pointer items-center gap-[7px]">
-                    <input type="checkbox" defaultChecked /> Include site map snapshot
+                    <input
+                      type="checkbox"
+                      checked={includeMap}
+                      onChange={(e) => setIncludeMap(e.target.checked)}
+                    />{" "}
+                    Include site details
                   </label>
                 </div>
                 <div className="flex gap-2">
@@ -80,7 +96,7 @@ export function ReportsTab() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setExportOpen(false)}
+                    onClick={exportMemo}
                     className="flex-1 cursor-pointer rounded-[1px] border border-oxford bg-oxford p-2 text-[12.5px] text-white"
                   >
                     Export

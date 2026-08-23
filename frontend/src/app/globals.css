@@ -233,3 +233,31 @@ h6 {
       0 0 0 0 rgba(11, 8, 41, 0);
   }
 }
+
+/* --------------------------------------------------------------------------
+   Print — the memo export (/projects/<id>/memo). Only the memo card prints:
+   the visibility pattern hides the app shell without fighting its flex/
+   overflow layout, and the scroll containers un-clip so multi-page memos
+   paginate instead of truncating at one viewport.
+   -------------------------------------------------------------------------- */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #memo-print,
+  #memo-print * {
+    visibility: visible;
+  }
+  #memo-print {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    max-width: none;
+  }
+  html,
+  body,
+  body > * {
+    height: auto;
+    overflow: visible;
+  }
+}
