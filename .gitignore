@@ -20,3 +20,7 @@ data/
 venv/
 __pycache__/
 *.pyc
+
+# Backend runtime artifacts (share registry + generated memos)
+agent_backend/shares.json
+agent_backend/memos/

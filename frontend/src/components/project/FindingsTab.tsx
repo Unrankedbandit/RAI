@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
 import { useProject } from "./ProjectContext";
 import { StatusPill } from "@/components/ui/StatusPill";
+import { findingAnchorId } from "@/lib/agent/siteGeo";
 import type { Factor, PillarScore } from "@/lib/types";
 
 /**
@@ -13,6 +15,19 @@ import type { Factor, PillarScore } from "@/lib/types";
 export function FindingsTab() {
   const { project, evidence } = useProject();
   const pillars = project.pillars;
+
+  // Deep links from the Map tab land as `#finding-<slug>` — client-side
+  // navigation doesn't auto-scroll to hashes, so do it once on mount.
+  useEffect(() => {
+    const hash = window.location.hash.slice(1);
+    if (!hash) return;
+    const t = setTimeout(() => {
+      document
+        .getElementById(hash)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 60);
+    return () => clearTimeout(t);
+  }, []);
 
   const totalFactors = pillars.reduce((n, p) => n + p.factors.length, 0);
   const contradictions = Object.values(evidence).filter(
@@ -89,7 +104,12 @@ function PillarFindings({ pillar }: { pillar: PillarScore }) {
 
 function FactorRow({ factor, divider }: { factor: Factor; divider: boolean }) {
   return (
-    <div className={divider ? "border-t border-hairline px-5 py-[13px]" : "px-5 py-[13px]"}>
+    <div
+      // Stable anchor for the Map tab's "View finding" links; scroll-mt keeps
+      // the card clear of the sticky header block when jumped to.
+      id={findingAnchorId(factor.name)}
+      className={`scroll-mt-[200px] ${divider ? "border-t border-hairline px-5 py-[13px]" : "px-5 py-[13px]"}`}
+    >
       <div className="flex items-start gap-3">
         <StatusPill
           band={factor.band}

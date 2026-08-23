@@ -5,6 +5,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useProject } from "./ProjectContext";
 import { ScoreRing } from "./overview/ScoreRing";
 import { FactorCard } from "./overview/FactorCard";
+import { PropertyInfoCard } from "./overview/PropertyInfoCard";
+import { CountyCodesPanel } from "./overview/CountyCodesPanel";
+import { ActionChecklist } from "./overview/ActionChecklist";
 import { bandColorVar, bandFillClass } from "@/lib/band";
 import { ITC_DEADLINE_LABEL } from "@/lib/mockData";
 
@@ -35,6 +38,12 @@ export function OverviewTab() {
             {ITC_DEADLINE_LABEL}
           </span>
         </div>
+      </div>
+
+      {/* Property info + county code links, from the raw agent report. */}
+      <div className="mb-[14px] grid gap-[14px] lg:grid-cols-2">
+        <PropertyInfoCard />
+        <CountyCodesPanel />
       </div>
 
       {/* Pillar grid — collapses on phones, where five ~50px columns
@@ -85,6 +94,9 @@ export function OverviewTab() {
           </motion.div>
         </AnimatePresence>
       </div>
+
+      {/* Report action_pack as a persistent checklist; null on mock data. */}
+      <ActionChecklist />
     </div>
   );
 }

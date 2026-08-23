@@ -16,7 +16,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from . import review
+from . import memo, review, share
 from .agents.base import Agent
 from .agents.roles import ANALYST, ROLE_TOOLS
 from .gate import GapGate
@@ -66,6 +66,11 @@ app.add_middleware(
 # SigNoz/OpenTelemetry export. No-op unless SIGNOZ_INGESTION_KEY or
 # OTEL_EXPORTER_OTLP_ENDPOINT is set — see agent_backend/telemetry.py.
 init_telemetry(app)
+
+# Memo writer (W5) + public share links (W6) — routers live in their own
+# modules so this surface stays a thin composition root.
+app.include_router(memo.router)
+app.include_router(share.router)
 
 STORE = Path(__file__).resolve().parent / "reports"
 STORE.mkdir(exist_ok=True)

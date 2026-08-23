@@ -1,59 +1,77 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useProject } from "./ProjectContext";
-import type { TeamMember } from "@/lib/types";
+import { AgentApiError } from "@/lib/agent/client";
+import { createShare } from "@/lib/agent/shareApi";
+import { getLiveRun } from "@/lib/agent/liveStore";
 
-// Documents checked by default — mirrors the reference share modal.
-const DEFAULT_CHECKED = new Set([
-  "feasibility_study.pdf",
-  "vendor_proposal.pdf",
-  "geotech_report.pdf",
-]);
+type ShareState =
+  | { kind: "loading" }
+  | { kind: "ready"; url: string }
+  | { kind: "error"; message: string };
 
 /**
- * Share modal — faithful port of the reference `.modal-*` share dialog.
- * Add team members with an access level, and toggle which documents are
- * visible to shared members. No real send.
+ * Share modal — mints a public read-only link (POST /api/reports/{id}/share)
+ * while open, and offers it for copying. The browser's own job id wins
+ * (sessionStorage live run) so freshly-finished scans share correctly; a
+ * plain route id is POSTed as-is and a 404 surfaces honestly.
  */
 export function ShareModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { project, teamMembers, documents } = useProject();
-  const [members, setMembers] = useState<TeamMember[]>(teamMembers);
-  const [draft, setDraft] = useState("");
+  const { project } = useProject();
+  const [state, setState] = useState<ShareState>({ kind: "loading" });
   const [copied, setCopied] = useState(false);
-  const [checked, setChecked] = useState<Set<string>>(
-    () => new Set(documents.filter((d) => DEFAULT_CHECKED.has(d.title)).map((d) => d.id)),
-  );
 
-  // The project route is a permalink: useProjectDetail re-fetches the report
-  // from the backend when the opener's sessionStorage doesn't hold the run.
-  const shareLink =
-    typeof window === "undefined" ? "" : `${window.location.origin}/projects/${project.id}`;
-  const copyLink = async () => {
+  // Reset when the modal opens — the documented render-phase adjustment
+  // pattern; the effect-bodied equivalent is react-hooks/set-state-in-effect.
+  const [wasOpen, setWasOpen] = useState(false);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) {
+      setState({ kind: "loading" });
+      setCopied(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    // The route id is the slug for mock projects; the real backend job id
+    // only exists in sessionStorage when THIS browser ran the scan.
+    const jobId = getLiveRun(project.id)?.jobId ?? project.id;
+    createShare(jobId)
+      .then((link) => {
+        if (cancelled) return;
+        setState({ kind: "ready", url: `${window.location.origin}${link.url}` });
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        if (error instanceof AgentApiError && error.status === 404) {
+          // Mock projects have no backend report to share.
+          setState({ kind: "error", message: "Share is available for live reports." });
+        } else {
+          const status =
+            error instanceof AgentApiError && error.status !== undefined
+              ? ` — ${error.status}`
+              : "";
+          setState({ kind: "error", message: `Could not create a share link${status}` });
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, project.id]);
+
+  const copyLink = async (url: string) => {
     try {
-      await navigator.clipboard.writeText(shareLink);
+      await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
       // Clipboard API unavailable (insecure context) — the input is selectable.
     }
   };
-
-  const addMember = () => {
-    const val = draft.trim();
-    if (!val) return;
-    setMembers((prev) => [...prev, { name: val, email: "Pending invite", access: "limited" }]);
-    setDraft("");
-  };
-
-  const toggleDoc = (id: string) =>
-    setChecked((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
 
   return (
     <AnimatePresence>
@@ -93,104 +111,49 @@ export function ShareModal({ open, onClose }: { open: boolean; onClose: () => vo
               <div className="mb-[9px] text-[12.5px] font-semibold text-faint">
                 Public link — anyone with it can view this report
               </div>
-              <div className="mb-[18px] flex gap-2">
-                <input
-                  type="text"
-                  readOnly
-                  value={shareLink}
-                  onFocus={(e) => e.target.select()}
-                  className="flex-1 rounded-[1px] border border-hairline bg-surface-2 px-3 py-[9px] text-sm text-ink outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={copyLink}
-                  className="cursor-pointer rounded-full bg-oxford px-[15px] py-2 text-sm font-medium text-white"
-                >
-                  {copied ? "Copied" : "Copy"}
-                </button>
-              </div>
-
-              <div className="mb-[9px] text-[12.5px] font-semibold text-faint">
-                Add team members
-              </div>
-              <div className="mb-1 flex gap-2">
-                <input
-                  type="text"
-                  value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") addMember();
-                  }}
-                  placeholder="Name or email"
-                  className="flex-1 rounded-[1px] border border-hairline px-3 py-[9px] text-sm text-ink outline-none placeholder:text-faint"
-                />
-                <button
-                  type="button"
-                  onClick={addMember}
-                  className="cursor-pointer rounded-full border border-hairline bg-canvas px-[15px] py-2 text-sm font-medium text-muted"
-                >
-                  Add
-                </button>
-              </div>
-
-              {/* Member list */}
-              <div>
-                {members.map((m, i) => (
-                  <div
-                    key={`${m.email}-${i}`}
-                    className="flex items-center justify-between gap-[10px] border-t border-hairline py-[10px] first:border-t-0"
-                  >
-                    <div>
-                      <div className="text-sm font-medium text-ink">{m.name}</div>
-                      <div className="text-[12.5px] text-faint">{m.email}</div>
-                    </div>
-                    <select
-                      defaultValue={m.access === "full" ? "full" : "limited"}
-                      className="flex-none rounded-full border border-hairline bg-canvas px-[10px] py-[5px] text-[12.5px] text-muted"
-                    >
-                      <option value="full">Full access</option>
-                      <option value="limited">Limited documents</option>
-                    </select>
-                  </div>
-                ))}
-              </div>
-
-              {/* Document permissions */}
-              <div className="mb-[9px] mt-[18px] text-[12.5px] font-semibold text-faint">
-                Documents visible to shared members
-              </div>
-              <div className="rounded-[1px] border border-hairline px-3">
-                {documents.map((doc) => (
-                  <label
-                    key={doc.id}
-                    className="flex cursor-pointer items-center gap-[9px] border-t border-hairline py-[9px] text-sm text-muted first:border-t-0"
-                  >
+              {state.kind === "loading" && (
+                <div className="flex items-center gap-2 text-[12.5px] text-muted">
+                  <span className="h-3 w-3 animate-pulse rounded-full bg-surface-2" />
+                  Creating share link…
+                </div>
+              )}
+              {state.kind === "error" && (
+                <p className="text-[12.5px] leading-[1.6] text-muted">{state.message}</p>
+              )}
+              {state.kind === "ready" && (
+                <>
+                  <div className="flex gap-2">
                     <input
-                      type="checkbox"
-                      checked={checked.has(doc.id)}
-                      onChange={() => toggleDoc(doc.id)}
+                      type="text"
+                      readOnly
+                      value={state.url}
+                      onFocus={(e) => e.target.select()}
+                      className="flex-1 rounded-[5px] border border-hairline bg-surface-2 px-3 py-[9px] text-sm text-ink outline-none"
                     />
-                    {doc.title}
-                  </label>
-                ))}
-              </div>
+                    <button
+                      type="button"
+                      onClick={() => copyLink(state.url)}
+                      className="cursor-pointer rounded-full bg-oxford px-[15px] py-2 text-sm font-medium text-white"
+                    >
+                      {copied ? "Copied" : "Copy link"}
+                    </button>
+                  </div>
+                  <p className="mt-[9px] text-[12px] leading-[1.6] text-faint">
+                    Read-only. Teammates signed in through the gate also get a copy in
+                    their portfolio.
+                  </p>
+                </>
+              )}
             </div>
 
             {/* Footer */}
-            <div className="flex justify-end gap-2 border-t border-hairline p-[16px_20px]">
+            <div className="flex justify-end border-t border-hairline p-[16px_20px]">
               <button
                 type="button"
                 onClick={onClose}
                 className="cursor-pointer rounded-full border border-hairline bg-canvas px-[15px] py-2 text-sm font-medium text-muted"
               >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={onClose}
-                className="cursor-pointer rounded-full bg-oxford px-4 py-2 text-sm font-medium text-white"
-              >
-                Send invites
+                Close
               </button>
             </div>
           </motion.div>
