@@ -15,6 +15,7 @@ import { createMockScanSource, type MockScenario } from "@/lib/scan/mockScanSour
 import { createSseScanSource } from "@/lib/scan/sseScanSource";
 import { createLiveScanSource } from "@/lib/scan/liveScanSource";
 import type { ScanSource } from "@/lib/scan/scanEvents";
+import { setActiveRun, clearActiveRun } from "@/lib/activeRun";
 
 const STREAM_URL = process.env.NEXT_PUBLIC_SCAN_STREAM_URL;
 
@@ -98,6 +99,15 @@ function ScanningView() {
   }, [jobId, projectId, scenario]);
 
   const { state, cancel, retry, keepWaiting } = useScanStream(makeSource);
+
+  // Universal return badge: a live run marks itself; clears ONLY on
+  // completion — a transient stream error must not strand the user (the job
+  // still runs server-side; the replayable stream reconnects).
+  useEffect(() => {
+    if (!jobId) return;
+    setActiveRun(jobId);
+    if (state.phase === "complete") clearActiveRun();
+  }, [jobId, state.phase]);
 
   // Auto-advance to the real project once the scan completes.
   const advancedRef = useRef(false);

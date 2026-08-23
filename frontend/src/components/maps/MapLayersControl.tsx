@@ -294,17 +294,18 @@ export function MapLayersControl({
           the wrapper's transparent flex box takes the tap, desktop appearance
           is unchanged (same pattern as the marker hit areas in
           PortfolioMapView). */}
-      <div className="absolute right-3 top-3 z-10 flex h-11 items-center">
+      <div className="absolute bottom-3 left-3 z-10 flex items-center">
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
           aria-label="Map layers"
-          className="flex items-center gap-1.5 rounded-full border border-hairline bg-canvas/90 px-3 py-1 text-[11px] font-semibold text-ink shadow-card backdrop-blur transition-colors hover:bg-surface-2"
+          title="Map layers"
+          className="flex h-11 w-11 items-center justify-center rounded-[9px] border border-hairline bg-canvas/90 text-ink shadow-card backdrop-blur transition-colors hover:bg-surface-2"
         >
           <svg
             viewBox="0 0 16 16"
-            className="h-3.5 w-3.5"
+            className="h-5 w-5"
             fill="none"
             stroke="currentColor"
             strokeWidth="1.5"
@@ -316,7 +317,6 @@ export function MapLayersControl({
             <path d="M2.5 8L8 10.75 13.5 8" />
             <path d="M2.5 11.05L8 13.8l5.5-2.75" />
           </svg>
-          Layers
         </button>
       </div>
 
@@ -326,7 +326,7 @@ export function MapLayersControl({
         <div
           role="dialog"
           aria-label="Map layers"
-          className="absolute right-3 top-14 z-20 hidden w-[264px] rounded-[11px] border border-hairline bg-canvas p-3 shadow-card md:block"
+          className="absolute bottom-14 left-3 z-20 hidden w-[264px] rounded-[11px] border border-hairline bg-canvas p-3 shadow-card md:block"
         >
           <PanelContents state={state} idBase={`${idBase}-d`} />
           <CloseButton onClose={close} />
@@ -341,7 +341,7 @@ export function MapLayersControl({
         createPortal(
           <>
             <div
-              className="fixed inset-0 z-40 bg-ink/30"
+              className="fixed inset-0 z-40 bg-ink/30 md:hidden"
               onClick={close}
               aria-hidden="true"
             />
