@@ -37,12 +37,31 @@ const MAP_STYLE_LIGHT =
 const MAP_STYLE_DARK =
   "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
 
+// Satellite default (user call 2026-08-22): Esri World Imagery — keyless,
+// CORS-friendly raster tiles; attribution required and kept.
+const MAP_STYLE_SATELLITE = {
+  version: 8,
+  sources: {
+    satellite: {
+      type: "raster",
+      tiles: [
+        "https://server.arcgis-online.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      ],
+      tileSize: 256,
+      attribution: "Esri, Maxar, Earthstar Geographics",
+    },
+  },
+  layers: [{ id: "satellite", type: "raster", source: "satellite" }],
+} as const;
+
 export default function PortfolioMapView({
   projects,
 }: {
   projects: Project[];
 }) {
   const [selected, setSelected] = useState<Project | null>(null);
+  // Satellite is the default basemap (user call); the pill toggles vector.
+  const [satellite, setSatellite] = useState(true);
   const [hoveredResearch, setHoveredResearch] =
     useState<ResearchedParcel | null>(null);
   const mapRef = useRef<MapRef>(null);
@@ -87,13 +106,20 @@ export default function PortfolioMapView({
   }, [bounds]);
 
   return (
+    <div className="relative h-full w-full">
     <Map
       ref={mapRef}
       initialViewState={{
         bounds,
         fitBoundsOptions: { padding: 56, maxZoom: 6.5 },
       }}
-      mapStyle={theme === "dark" ? MAP_STYLE_DARK : MAP_STYLE_LIGHT}
+      mapStyle={
+        satellite
+          ? MAP_STYLE_SATELLITE
+          : theme === "dark"
+            ? MAP_STYLE_DARK
+            : MAP_STYLE_LIGHT
+      }
       style={{ width: "100%", height: "100%" }}
       attributionControl={{ compact: false }}
     >
@@ -259,6 +285,15 @@ export default function PortfolioMapView({
           </div>
         </Popup>
       )}
+      <button
+        type="button"
+        onClick={() => setSatellite((s) => !s)}
+        aria-pressed={satellite}
+        className="absolute right-3 top-3 z-10 rounded-full border border-hairline bg-canvas/90 px-3 py-1 text-[11px] font-semibold text-ink shadow-card backdrop-blur transition-colors hover:bg-surface-2"
+      >
+        {satellite ? "Map view" : "Satellite view"}
+      </button>
     </Map>
+    </div>
   );
 }
