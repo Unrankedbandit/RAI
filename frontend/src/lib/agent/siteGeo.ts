@@ -28,6 +28,16 @@ const NOMINATIM = "https://nominatim.openstreetmap.org/search";
 const geocodeCache = new Map<string, Promise<[number, number] | null>>();
 
 /** Geocodes a location string to [lng, lat], or null on any failure. */
+/** Geocodable form: drop " — parcel APN …" tails and "(…)" parentheticals —
+ *  Nominatim can't resolve APNs and a county-only fallback still zooms the
+ *  map to the site region instead of the failed wide-coast view. */
+function geocodeCandidates(location: string): string[] {
+  const full = location.trim();
+  const noParen = full.replace(/\s*\([^)]*\)/g, "").trim();
+  const toCounty = noParen.split(" — ")[0].split(" — ")[0].trim();
+  return [...new Set([full, noParen, toCounty])].filter(Boolean);
+}
+
 export function geocodeLocation(
   location: string,
 ): Promise<[number, number] | null> {
@@ -37,12 +47,16 @@ export function geocodeLocation(
 
   const promise = (async () => {
     try {
-      const res = await fetch(
-        `${NOMINATIM}?format=jsonv2&q=${encodeURIComponent(location)}&countrycodes=us&limit=1`,
-        { headers: { accept: "application/json" } },
-      );
-      if (!res.ok) return null;
-      const rows = (await res.json()) as { lat: string; lon: string }[];
+      let rows: { lat: string; lon: string }[] = [];
+      for (const q of geocodeCandidates(location)) {
+        const res = await fetch(
+          `${NOMINATIM}?format=jsonv2&q=${encodeURIComponent(q)}&countrycodes=us&limit=1`,
+          { headers: { accept: "application/json" } },
+        );
+        if (!res.ok) continue;
+        rows = (await res.json()) as { lat: string; lon: string }[];
+        if (rows.length) break;
+      }
       const first = rows[0];
       if (!first) return null;
       const lng = Number.parseFloat(first.lon);

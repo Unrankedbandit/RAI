@@ -147,7 +147,7 @@ export function SubmittalsTab() {
     ? getJurisdiction(county, state)
     : { pack: null, planningRoot: null };
 
-  const actions = report?.action_pack.agency_actions ?? [];
+  const actions = report?.action_pack?.agency_actions ?? [];
   const byPhase = new Map<SubmittalPhase, AgentAgencyAction[]>();
   const other: AgentAgencyAction[] = [];
   for (const action of actions) {
