@@ -3,11 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Map, { Marker, Popup } from "react-map-gl/maplibre";
-import type { StyleSpecification } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import { bandColorVar } from "@/lib/band";
-import { useTheme } from "@/lib/theme";
 import type { AgentReport } from "@/lib/agent/report";
 import {
   extractSiteFeatures,
@@ -15,11 +13,18 @@ import {
   positionForFeature,
   type AoIFeature,
 } from "@/lib/agent/siteGeo";
+import { BASEMAP_STYLES } from "@/components/maps/basemaps";
+import {
+  MapLayersControl,
+  useMapLayers,
+} from "@/components/maps/MapLayersControl";
 
 /**
- * Project site map: a satellite-default MapLibre view (identical basemap
- * approach to portfolio/PortfolioMapView.tsx — keyless Esri World Imagery
- * raster, CARTO vector fallback) zoomed to the report's site at ~14.5.
+ * Project site map: a satellite-default MapLibre view zoomed to the report's
+ * site at ~14.5. The basemap (keyless Esri World Imagery raster default,
+ * CARTO Positron/Dark Matter vector) and GIS overlay rasters are owned by
+ * the shared layers tool (components/maps/MapLayersControl) — basemap radio
+ * + overlay checkboxes, persisted per page under the "project-site" key.
  *
  * Layers, in increasing order of inference — each one renders only when the
  * underlying report text supports it:
@@ -39,27 +44,6 @@ import {
  * a "View finding" link into the Findings tab anchor for that finding.
  * Client-only — MapTab loads this via next/dynamic with ssr:false.
  */
-
-// Keyless vector basemaps + satellite style copied verbatim from
-// components/portfolio/PortfolioMapView.tsx (satellite is the default).
-const MAP_STYLE_LIGHT =
-  "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
-const MAP_STYLE_DARK =
-  "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
-const MAP_STYLE_SATELLITE: StyleSpecification = {
-  version: 8,
-  sources: {
-    satellite: {
-      type: "raster",
-      tiles: [
-        "https://server.arcgis-online.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-      ],
-      tileSize: 256,
-      attribution: "Esri, Maxar, Earthstar Geographics",
-    },
-  },
-  layers: [{ id: "satellite", type: "raster", source: "satellite" }],
-};
 
 interface PositionedFeature extends AoIFeature {
   longitude: number;
@@ -115,8 +99,9 @@ export default function SiteMapView({
   const center: [number, number] | "failed" | null =
     explicit ?? (location.trim() ? geocoded : "failed");
   const [selected, setSelected] = useState<PositionedFeature | null>(null);
-  const [satellite, setSatellite] = useState(true);
-  const theme = useTheme();
+  // Shared layers tool: basemap (satellite default) + GIS overlay toggles,
+  // persisted per page under this storage key.
+  const mapLayers = useMapLayers("project-site");
 
   const features = useMemo(() => extractSiteFeatures(report), [report]);
 
@@ -151,16 +136,11 @@ export default function SiteMapView({
               latitude: center[1],
               zoom: 14.5,
             }}
-            mapStyle={
-              satellite
-                ? MAP_STYLE_SATELLITE
-                : theme === "dark"
-                  ? MAP_STYLE_DARK
-                  : MAP_STYLE_LIGHT
-            }
+            mapStyle={BASEMAP_STYLES[mapLayers.basemap]}
             style={{ width: "100%", height: "100%", touchAction: "none" }}
             attributionControl={{ compact: false }}
           >
+            <MapLayersControl state={mapLayers} />
             {/* Site marker — the geocoded/explicit site point. */}
             <Marker longitude={center[0]} latitude={center[1]} anchor="center">
               <div className="flex items-center gap-2">
@@ -238,15 +218,6 @@ export default function SiteMapView({
                 </div>
               </Popup>
             )}
-
-            <button
-              type="button"
-              onClick={() => setSatellite((s) => !s)}
-              aria-pressed={satellite}
-              className="absolute right-3 top-3 z-10 rounded-full border border-hairline bg-canvas/90 px-3 py-1 text-[11px] font-semibold text-ink shadow-card backdrop-blur transition-colors hover:bg-surface-2"
-            >
-              {satellite ? "Map view" : "Satellite view"}
-            </button>
           </Map>
         )}
       </div>

@@ -4,12 +4,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import MapGL, { Layer, Source } from "react-map-gl/maplibre";
 import type { MapRef } from "react-map-gl/maplibre";
-import type { StyleSpecification } from "maplibre-gl";
 import type { Feature } from "geojson";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import { analyze } from "@/lib/agent/client";
 import { slugify } from "@/lib/agent/liveStore";
+import { BASEMAP_STYLES } from "@/components/maps/basemaps";
+import {
+  MapLayersControl,
+  useMapLayers,
+} from "@/components/maps/MapLayersControl";
 import { ParcelRail } from "@/components/parcels/ParcelRail";
 import { recordRecent, type SavedParcel } from "@/lib/parcels/watchlist";
 import {
@@ -27,36 +31,19 @@ import {
  * boundaries (zoom 13+), click-to-identify + APN/address text search against
  * the county open-GIS endpoints / CA DWR statewide mosaic (lib/parcels), the
  * selected parcel highlighted in brand orange, and the right-side ParcelRail
- * (selected parcel, watchlist, recent searches). Basemap toggle (Positron /
- * Esri satellite) in the top bar, and deep-linkable state: ?lat&lng&zoom
- * (&apn&county) replays on load, the address bar tracks the camera via
- * history.replaceState, and "Copy link" copies a parcel deep link.
+ * (selected parcel, watchlist, recent searches). Basemap switching (Positron
+ * / Esri satellite / dark) plus GIS overlay rasters are owned by the shared
+ * layers tool (components/maps/MapLayersControl) rendered inside the map,
+ * persisted under the "parcels" storage key; and deep-linkable state:
+ * ?lat&lng&zoom (&apn&county) replays on load, the address bar tracks the
+ * camera via history.replaceState, and "Copy link" copies a parcel deep link.
  * Client-only — ParcelViewerClient loads this via next/dynamic ssr:false.
  */
 
-// Keyless vector basemap, no watermark. Attribution stays visible (required).
-const MAP_STYLE =
-  "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
-
-// Satellite basemap: Esri World Imagery as an inline keyless raster style.
-// Swapping mapStyle re-mounts the child Sources/Layers onto the new style
-// (react-map-gl re-adds them automatically), so the Regrid overlay and the
-// selection highlight survive the toggle. Esri's attribution is carried by
-// the source and rendered by the map's attribution control.
-const SATELLITE_STYLE: StyleSpecification = {
-  version: 8,
-  sources: {
-    esri: {
-      type: "raster",
-      tiles: [
-        "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-      ],
-      tileSize: 256,
-      attribution: "Imagery © Esri, Maxar, Earthstar Geographics",
-    },
-  },
-  layers: [{ id: "esri", type: "raster", source: "esri" }],
-};
+// Basemap styles now live in the shared components/maps module (keyless,
+// attribution kept). Swapping mapStyle re-mounts the child Sources/Layers
+// onto the new style (react-map-gl re-adds them automatically), so the
+// Regrid overlay and the selection highlight survive a basemap switch.
 
 // Regrid nationwide parcel boundaries, served as ArcGIS raster tiles.
 const REGRID_TILES =
@@ -239,8 +226,9 @@ export default function ParcelViewer() {
   const [suggestLoading, setSuggestLoading] = useState(false);
   const [activeOption, setActiveOption] = useState(0);
   const suggestSeqRef = useRef(0);
-  // Basemap toggle: Positron vector style vs Esri imagery raster.
-  const [basemap, setBasemap] = useState<"map" | "satellite">("satellite"); // satellite default (user call)
+  // Shared layers tool: basemap (satellite default) + GIS overlay toggles,
+  // persisted per page under this storage key.
+  const mapLayers = useMapLayers("parcels");
   // "Copy link" confirmation — briefly swaps the button label to "Copied".
   const [copied, setCopied] = useState(false);
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -660,7 +648,7 @@ export default function ParcelViewer() {
           latitude: CA_CENTER[1],
           zoom: CA_ZOOM,
         }}
-        mapStyle={basemap === "satellite" ? SATELLITE_STYLE : MAP_STYLE}
+        mapStyle={BASEMAP_STYLES[mapLayers.basemap]}
         // touchAction:none on the react-map-gl container (wraps the canvas
         // AND the marker/popup children) so mobile pinch/drag anywhere on the
         // map drives MapLibre instead of pinch-zooming the page. Desktop
@@ -671,6 +659,10 @@ export default function ParcelViewer() {
         onClick={(e) => void handleMapClick(e.lngLat.lng, e.lngLat.lat)}
         onMoveEnd={handleMoveEnd}
       >
+        {/* Shared layers tool FIRST: its overlay rasters must draw below the
+            Regrid parcel boundaries and the selection highlight (react-map-gl
+            appends declarative layers in render order). */}
+        <MapLayersControl state={mapLayers} />
         {/* Parcel boundary overlay — only meaningful when zoomed in. */}
         <Source id="regrid-parcels" type="raster" tiles={[REGRID_TILES]} tileSize={256}>
           <Layer
@@ -731,32 +723,6 @@ export default function ParcelViewer() {
             ))}
           </select>
         </label>
-        <div
-          role="group"
-          aria-label="Basemap"
-          className="flex items-center rounded-full bg-canvas p-0.5 ring-1 ring-hairline"
-        >
-          {(
-            [
-              ["map", "Map"],
-              ["satellite", "Satellite"],
-            ] as const
-          ).map(([value, label]) => (
-            <button
-              key={value}
-              type="button"
-              aria-pressed={basemap === value}
-              onClick={() => setBasemap(value)}
-              className={`rounded-full px-3 py-1 text-[12px] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-vista ${
-                basemap === value
-                  ? "bg-ink text-white"
-                  : "text-muted hover:text-ink"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
         <form
           className="relative flex items-center"
           onSubmit={(e) => {

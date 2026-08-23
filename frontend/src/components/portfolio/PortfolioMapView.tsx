@@ -3,25 +3,31 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Map, { Marker, Popup, type MapRef } from "react-map-gl/maplibre";
-import type { StyleSpecification } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import { bandColorVar, statusLabelText } from "@/lib/band";
 import { clsx } from "@/lib/clsx";
-import { useTheme } from "@/lib/theme";
 import type { Project } from "@/lib/types";
 import {
   useResearchedParcels,
   verdictColorVar,
   type ResearchedParcel,
 } from "@/lib/agent/researched";
+import { BASEMAP_STYLES } from "@/components/maps/basemaps";
+import {
+  MapLayersControl,
+  useMapLayers,
+} from "@/components/maps/MapLayersControl";
 import { ProjectIntel } from "@/components/portfolio/ProjectIntel";
 
 /**
- * Real interactive portfolio map: keyless CARTO vector basemap (Positron in
- * light theme, Dark Matter in dark theme), one band-coloured marker per
- * project (true coordinates), and a design-system popup with the activation
- * score, status and per-project intel.
+ * Real interactive portfolio map: one band-coloured marker per project (true
+ * coordinates), and a design-system popup with the activation score, status
+ * and per-project intel. The old satellite/vector toggle pill is replaced by
+ * the shared layers tool (components/maps/MapLayersControl) — a basemap
+ * radio (satellite default, keyless Esri raster / CARTO Positron / Dark
+ * Matter) plus GIS overlay checkboxes, persisted per page under the
+ * "portfolio" storage key.
  *
  * On top of the project pins, every researched parcel from the agent backend
  * (GET /api/projects via lib/agent/researched.ts) drops a smaller
@@ -32,43 +38,20 @@ import { ProjectIntel } from "@/components/portfolio/ProjectIntel";
  * Client-only — PortfolioMap loads this via next/dynamic with ssr: false.
  */
 
-// Keyless vector basemaps, no watermark. Attribution stays visible (required).
-const MAP_STYLE_LIGHT =
-  "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
-const MAP_STYLE_DARK =
-  "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
-
-// Satellite default (user call 2026-08-22): Esri World Imagery — keyless,
-// CORS-friendly raster tiles; attribution required and kept.
-const MAP_STYLE_SATELLITE: StyleSpecification = {
-  version: 8,
-  sources: {
-    satellite: {
-      type: "raster",
-      tiles: [
-        "https://server.arcgis-online.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-      ],
-      tileSize: 256,
-      attribution: "Esri, Maxar, Earthstar Geographics",
-    },
-  },
-  layers: [{ id: "satellite", type: "raster", source: "satellite" }],
-};
-
 export default function PortfolioMapView({
   projects,
 }: {
   projects: Project[];
 }) {
   const [selected, setSelected] = useState<Project | null>(null);
-  // Satellite is the default basemap (user call); the pill toggles vector.
-  const [satellite, setSatellite] = useState(true);
+  // Shared layers tool: basemap (satellite default) + GIS overlay toggles,
+  // persisted per page under this storage key.
+  const mapLayers = useMapLayers("portfolio");
   const [hoveredResearch, setHoveredResearch] =
     useState<ResearchedParcel | null>(null);
   const mapRef = useRef<MapRef>(null);
-  // Reactive theme (lib/theme.ts): switching the mapStyle prop makes
-  // react-map-gl call setStyle internally — no remount, camera preserved.
-  const theme = useTheme();
+  // Switching the mapStyle prop (via the layers tool) makes react-map-gl
+  // call setStyle internally — no remount, camera preserved.
 
   // Researched parcels from the agent backend (geocoded, verdict-coloured).
   const researched = useResearchedParcels();
@@ -114,19 +97,14 @@ export default function PortfolioMapView({
         bounds,
         fitBoundsOptions: { padding: 56, maxZoom: 6.5 },
       }}
-      mapStyle={
-        satellite
-          ? MAP_STYLE_SATELLITE
-          : theme === "dark"
-            ? MAP_STYLE_DARK
-            : MAP_STYLE_LIGHT
-      }
+      mapStyle={BASEMAP_STYLES[mapLayers.basemap]}
       // touchAction:none on the react-map-gl container (wraps canvas +
       // markers + popups) so mobile pinch/drag on the map drives MapLibre
       // rather than pinch-zooming the page. Desktop is unaffected.
       style={{ width: "100%", height: "100%", touchAction: "none" }}
       attributionControl={{ compact: false }}
     >
+      <MapLayersControl state={mapLayers} />
       {projects.map((p) => {
         const pulsing = selected?.id === p.id || p.status === "at-risk";
         return (
@@ -295,14 +273,6 @@ export default function PortfolioMapView({
           </div>
         </Popup>
       )}
-      <button
-        type="button"
-        onClick={() => setSatellite((s) => !s)}
-        aria-pressed={satellite}
-        className="absolute right-3 top-3 z-10 rounded-full border border-hairline bg-canvas/90 px-3 py-1 text-[11px] font-semibold text-ink shadow-card backdrop-blur transition-colors hover:bg-surface-2"
-      >
-        {satellite ? "Map view" : "Satellite view"}
-      </button>
     </Map>
     </div>
   );
