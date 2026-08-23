@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { clsx } from "@/lib/clsx";
 
 type DrawerProps = {
@@ -21,15 +21,17 @@ type DrawerProps = {
 
 /** Live matchMedia listener — false until mounted, then tracks the query. */
 function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(false);
-  useEffect(() => {
-    const mql = window.matchMedia(query);
-    setMatches(mql.matches);
-    const onChange = (e: MediaQueryListEvent) => setMatches(e.matches);
-    mql.addEventListener("change", onChange);
-    return () => mql.removeEventListener("change", onChange);
-  }, [query]);
-  return matches;
+  // useSyncExternalStore: the codebase's mount-read idiom (see lib/theme.ts) —
+  // react-hooks/purity rejects setState-in-effect.
+  return useSyncExternalStore(
+    (onChange) => {
+      const mql = window.matchMedia(query);
+      mql.addEventListener("change", onChange);
+      return () => mql.removeEventListener("change", onChange);
+    },
+    () => window.matchMedia(query).matches,
+    () => false,
+  );
 }
 
 /** Right-side slide-in panel. Used for the evidence drawer. */
