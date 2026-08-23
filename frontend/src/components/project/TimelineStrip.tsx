@@ -258,6 +258,11 @@ function TimelineGantt({
     return { min, span: Math.max(max - min, 86_400_000) };
   }, [rows, dlines]);
 
+  // Hooks must precede the early return below (rules-of-hooks) — the useState
+  // initializer samples Date.now() once per mount, so the render stays pure
+  // (react-hooks/purity flags Date.now() in render).
+  const [today] = useState(() => Date.now());
+
   if (!range || rows.length === 0) {
     return (
       <div className="py-5 text-center text-[12.5px] text-faint">
@@ -280,9 +285,6 @@ function TimelineGantt({
     return after ?? start + range.span * 0.05;
   });
 
-  // useState initializer: sampled once per mount — render stays pure
-  // (react-hooks/purity flags Date.now() in render).
-  const [today] = useState(() => Date.now());
   const todayPct =
     today > range.min && today < range.min + range.span ? pct(today) : null;
 

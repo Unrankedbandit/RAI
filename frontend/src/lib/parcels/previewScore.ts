@@ -61,6 +61,11 @@ const NLCD_WMS_URL = (lon: number, lat: number) => {
 const NLCD_OPEN = new Set([31, 52, 71, 81, 82]); // barren, scrub, herbaceous, hay/pasture, cultivated
 /** NLCD developed classes (any intensity). */
 const NLCD_DEVELOPED = new Set([21, 22, 23, 24]);
+/** NLCD classes where utility-scale solar is effectively unbuildable:
+ *  open water (11) and wetlands (90 woody / 95 emergent herbaceous) — a
+ *  permitting kill-shot, not a "medium". Forest (41–43) stays 0.5: clearing
+ *  is expensive but lawful. */
+const NLCD_UNBUILDABLE = new Set([11, 90, 95]);
 
 /** ~80 m sampling offsets for the EPQS slope estimate. */
 const SLOPE_OFFSET_M = 80;
@@ -87,7 +92,10 @@ async function epqsElevation(lon: number, lat: number): Promise<number> {
   if (!res.ok) throw new Error(`EPQS HTTP ${res.status}`);
   const data = (await res.json()) as { value?: unknown };
   const v = Number(data?.value);
-  if (!Number.isFinite(v)) throw new Error("EPQS returned no elevation value");
+  // EPQS answers its no-data sentinel (-1000000) with HTTP 200 — without this
+  // guard a coverage-edge sample reads as a million-percent "gradient".
+  if (!Number.isFinite(v) || Math.abs(v) > 100_000)
+    throw new Error("EPQS returned no elevation value");
   return v;
 }
 
@@ -145,6 +153,9 @@ function landUseOpenSpaceProxy(landUse: string): number {
   return 0.4;
 }
 
+// NOTE: duplicated in scoreRamp.ts (scoreVerdict) for chips/legend — the two
+// MUST stay identical. (Not imported: this file is executed directly by Node
+// test harnesses, which need explicit extensions on value imports.)
 function verdictFor(score: number): string {
   if (score <= 0) return "No-go";
   if (score < 25) return "Poor";
@@ -190,7 +201,11 @@ async function computePreview(
   let openSpace: number;
   if (nlcd.status === "fulfilled") {
     const cls = nlcd.value;
-    openSpace = NLCD_OPEN.has(cls) ? 1 : NLCD_DEVELOPED.has(cls) ? 0 : 0.5;
+    openSpace = NLCD_OPEN.has(cls)
+      ? 1
+      : NLCD_DEVELOPED.has(cls) || NLCD_UNBUILDABLE.has(cls)
+        ? 0
+        : 0.5;
     sources.push("NLCD land cover");
     usableSignals += 1;
   } else if (parcel.landUse) {
@@ -249,6 +264,12 @@ export async function previewScore(
   const cached = previewCache.get(key);
   if (cached) return cached;
   const pending = computePreview(parcel, centroid).catch(() => null);
-  previewCache.set(key, pending);
-  return pending;
+  // A null (one bad network moment) must not poison the cache — evict it so
+  // re-selecting the parcel retries instead of showing "unavailable" forever.
+  const guarded = pending.then((result) => {
+    if (result === null) previewCache.delete(key);
+    return result;
+  });
+  previewCache.set(key, guarded);
+  return guarded;
 }
