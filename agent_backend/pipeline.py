@@ -79,7 +79,11 @@ async def run_pipeline(
     trace: Trace | None = None,
     gap_gate: GapGate | None = None,
     user: str | None = None,
+    mode: str | None = None,
 ) -> Report:
+    # Read the module global at call time, not import time, so a monkeypatched
+    # PIPELINE_MODE (scripts/test-gap-gate.py) still drives the lane branch.
+    mode = mode or PIPELINE_MODE
     trace = trace or Trace()
     trace.event(
         "job.input", f"{project_name} @ {location}",
@@ -113,7 +117,7 @@ async def run_pipeline(
         )
         for d in docs
     ]))
-    if PIPELINE_MODE == "fast":
+    if mode == "fast":
         # Fast lane: skip gap analysis and the scout fan-out entirely. The
         # consolidated researcher and the cross-examiner only need the extracted
         # facts, so they run CONCURRENTLY (the cross-examiner does its own

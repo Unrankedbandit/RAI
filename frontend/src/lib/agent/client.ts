@@ -29,6 +29,8 @@ export interface AnalyzeRequest {
   location: string;
   /** Document filenames the pipeline should read. */
   docs: string[];
+  /** Per-run pipeline lane; omitted = the backend's PIPELINE_MODE env decides. */
+  mode?: "fast" | "deep";
 }
 
 export interface PortfolioRow {
@@ -143,6 +145,8 @@ export type JobStatus =
       msg: string;
       level?: string;
       eventKind?: string;
+      /** Structured payload passthrough (e.g. job.mode's {"mode": "deep"}). */
+      data?: Record<string, unknown>;
     }
   | { kind: "gate_review"; gaps: GateGap[]; timeoutS: number }
   | { kind: "gate_resolved"; mode: "approved" | "timeout"; approved: string[] }
@@ -165,12 +169,9 @@ type TraceFrame = {
     level?: unknown;
     agent?: unknown;
     phase?: unknown;
-    data?: {
-      gaps?: unknown;
-      timeoutS?: unknown;
-      mode?: unknown;
-      approved?: unknown;
-    };
+    /** Gate frames carry gaps/timeoutS/mode/approved (parseGateFrame narrows);
+     *  any other frame's payload rides along as an open record. */
+    data?: Record<string, unknown>;
   };
 };
 
@@ -289,6 +290,7 @@ export function streamJob(
           msg: ev.msg,
           level: typeof ev.level === "string" ? ev.level : undefined,
           eventKind: typeof ev.kind === "string" ? ev.kind : undefined,
+          data: typeof ev.data === "object" && ev.data !== null ? (ev.data as Record<string, unknown>) : undefined,
         });
       }
       return;

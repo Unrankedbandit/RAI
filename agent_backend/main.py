@@ -9,6 +9,7 @@ import re
 import traceback
 import uuid
 from pathlib import Path
+from typing import Literal
 
 from fastapi import BackgroundTasks, FastAPI, File, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -76,6 +77,9 @@ class AnalyzeRequest(BaseModel):
     name: str
     location: str
     docs: list[str]
+    # Per-run pipeline lane. None = fall back to the PIPELINE_MODE env var,
+    # so old clients (e2e.py posts only name/location/docs) keep env behavior.
+    mode: Literal["fast", "deep"] | None = None
 
 
 class AskRequest(BaseModel):
@@ -131,6 +135,10 @@ async def analyze(req: AnalyzeRequest, x_hax_user: str | None = Header(None)):
         "http.request", "POST /api/projects/analyze",
         project=req.name, location=req.location, documents=req.docs,
     )
+    # The one SSE frame that names the lane — the dashboard badges off this.
+    # Explicit request mode wins; the env default fills in for old clients.
+    mode = req.mode or os.getenv("PIPELINE_MODE", "fast")
+    trace.event("job.mode", f"pipeline mode: {mode}", mode=mode)
     trace.event("job.created", f"job {job_id} queued")
     reporter.start(req.name, req.location, req.docs)
 
@@ -161,7 +169,7 @@ async def analyze(req: AnalyzeRequest, x_hax_user: str | None = Header(None)):
             report = await asyncio.wait_for(
                 run_pipeline(
                     req.name, req.location, req.docs, on_status=status, trace=trace,
-                    gap_gate=gate, user=x_hax_user,
+                    gap_gate=gate, user=x_hax_user, mode=mode,
                 ),
                 timeout=PIPELINE_TIMEOUT,
             )
