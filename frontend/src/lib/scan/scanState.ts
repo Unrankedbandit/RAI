@@ -12,12 +12,66 @@ import {
   type ScanEvent,
 } from "./scanEvents";
 
-/** One agent's live box: name, lifecycle status, latest one-line activity. */
+/** One agent instance's live box: name, lifecycle status, latest activity. */
 export type AgentBox = {
   name: string;
   status: AgentStatus;
   activity: string;
 };
+
+/**
+ * A core agent and every one of its instances, grouped for the status grid.
+ * The backend names sub-instances "<Core>:<suffix>" ("Extractor:doc1",
+ * "DataScout:4"); the core is the name up to the first ":".
+ */
+export type AgentCoreGroup = {
+  /** Core name ("DataScout:4" → "DataScout"). */
+  core: string;
+  /** Worst-of the instances: any error → error, else any working → working,
+   *  else any waiting → waiting, else done. */
+  status: AgentStatus;
+  /** The core box's line: the status-driving instance's latest narration. */
+  activity: string;
+  /** Every instance of this core, in first-seen order. */
+  instances: AgentBox[];
+};
+
+const STATUS_RANK: Record<AgentStatus, number> = {
+  error: 0,
+  working: 1,
+  waiting: 2,
+  done: 3,
+};
+
+/**
+ * Group the flat instance list (every agent instance is kept — no dedupe by
+ * core name) into core boxes for the grid. Group order follows first-seen
+ * instance order; a core's status is the worst of its instances.
+ */
+export function groupAgentsByCore(agents: AgentBox[]): AgentCoreGroup[] {
+  const groups: AgentCoreGroup[] = [];
+  const byCore = new Map<string, AgentCoreGroup>();
+  for (const box of agents) {
+    const core = box.name.split(":")[0];
+    let group = byCore.get(core);
+    if (!group) {
+      group = { core, status: box.status, activity: "", instances: [] };
+      byCore.set(core, group);
+      groups.push(group);
+    }
+    group.instances.push(box);
+    if (STATUS_RANK[box.status] < STATUS_RANK[group.status]) {
+      group.status = box.status;
+    }
+  }
+  for (const group of groups) {
+    const driver =
+      group.instances.find((i) => i.status === group.status) ??
+      group.instances[group.instances.length - 1];
+    group.activity = driver?.activity ?? "";
+  }
+  return groups;
+}
 
 export type TrailKind = "read" | "flag" | "score" | "subagent" | "gate";
 
