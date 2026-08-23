@@ -3,18 +3,21 @@
 import { useState } from "react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { IntakeModal } from "@/components/intake/IntakeModal";
+import { MobileNav } from "@/components/MobileNav";
 
 /**
  * Slim top bar: navigation moved to the left sidebar, so the top strip carries
  * only the theme switch and the app's primary action — start a new project
- * (opens the staged intake modal; no navigation).
+ * (opens the staged intake modal; no navigation). Below md the sidebar is
+ * hidden, so the strip leads with the MobileNav hamburger.
  */
 export function TopBar() {
   const [open, setOpen] = useState(false);
 
   return (
     <>
-      <div className="flex h-[57px] flex-none items-center justify-end gap-3 border-b border-hairline bg-canvas px-8">
+      <div className="flex h-[57px] flex-none items-center justify-between gap-3 border-b border-hairline bg-canvas px-4 sm:px-8 md:justify-end">
+        <MobileNav />
         <ThemeToggle />
         <button
           type="button"

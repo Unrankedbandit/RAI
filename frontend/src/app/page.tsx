@@ -64,7 +64,7 @@ export default function HomePage() {
         Start a new project from the top bar, or check on recent activity across your pipeline.
       </p>
 
-      <div className="mb-[18px] grid grid-cols-3 gap-3">
+      <div className="mb-[18px] grid grid-cols-1 gap-3 sm:grid-cols-3">
         {stats.map((s) => (
           <div
             key={s.label}
@@ -83,7 +83,7 @@ export default function HomePage() {
         ))}
       </div>
 
-      <div className="mb-[22px] grid grid-cols-2 gap-3">
+      <div className="mb-[22px] grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="rounded-[11px] border border-hairline bg-canvas px-5 py-[18px] shadow-card">
           <div className="mb-[14px] text-sm font-semibold text-ink">
             Portfolio status

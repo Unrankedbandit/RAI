@@ -38,7 +38,7 @@ export function OverviewTab() {
       </div>
 
       {/* Pillar grid */}
-      <div className="mb-[14px] grid grid-cols-5 gap-2">
+      <div className="mb-[14px] grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
         {project.pillars.map((p, i) => (
           <button
             key={p.name}

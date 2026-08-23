@@ -17,7 +17,7 @@ export function PortfolioShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-full">
       <div className="min-w-0 flex-1 overflow-y-auto">
-        <div className="w-full px-8 pb-[60px] pt-[26px]">{children}</div>
+        <div className="w-full px-4 pb-[60px] pt-[26px] sm:px-8">{children}</div>
       </div>
       <PortfolioRail
         collapsed={collapsed}
