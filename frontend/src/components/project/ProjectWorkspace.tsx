@@ -43,7 +43,7 @@ export function ProjectWorkspace() {
           </div>
 
           {tab === "overview" && <OverviewTab />}
-          {tab === "reports" && <ReportsTab />}
+          {tab === "reports" && <ReportsTab onShare={() => setShareOpen(true)} />}
           {tab === "documents" && <DocumentsTab />}
           {tab === "map" && <MapTab />}
         </div>
