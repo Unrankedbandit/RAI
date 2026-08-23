@@ -7,6 +7,7 @@ import { TimelineStrip } from "./TimelineStrip";
 import { AskRail } from "./AskRail";
 import { ShareModal } from "./ShareModal";
 import { OverviewTab } from "./OverviewTab";
+import { FindingsTab } from "./FindingsTab";
 import { ReportsTab } from "./ReportsTab";
 import { DocumentsTab } from "./DocumentsTab";
 import { MapTab } from "./MapTab";
@@ -46,6 +47,7 @@ export function ProjectWorkspace() {
           </div>
 
           {tab === "overview" && <OverviewTab />}
+          {tab === "findings" && <FindingsTab />}
           {tab === "reports" && <ReportsTab />}
           {tab === "documents" && <DocumentsTab />}
           {tab === "map" && <MapTab />}
