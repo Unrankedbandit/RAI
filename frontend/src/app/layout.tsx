@@ -4,6 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 import { SideNav } from "@/components/SideNav";
 import { TopBar } from "@/components/TopBar";
+import { RunBadge } from "@/components/RunBadge";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -51,6 +52,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <div className="flex min-w-0 flex-1 flex-col">
           <TopBar />
           <main className="min-h-0 flex-1">{children}</main>
+          <RunBadge />
         </div>
       </body>
     </html>

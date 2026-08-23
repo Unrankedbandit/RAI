@@ -16,6 +16,7 @@ import { createMockScanSource, type MockScenario } from "@/lib/scan/mockScanSour
 import { createSseScanSource } from "@/lib/scan/sseScanSource";
 import { createLiveScanSource } from "@/lib/scan/liveScanSource";
 import type { ScanSource } from "@/lib/scan/scanEvents";
+import { setActiveRun, clearActiveRun } from "@/lib/activeRun";
 
 const STREAM_URL = process.env.NEXT_PUBLIC_SCAN_STREAM_URL;
 
@@ -114,6 +115,14 @@ function ScanningView() {
   }, [jobId, projectId, scenario]);
 
   const { state, cancel, retry, keepWaiting } = useScanStream(makeSource);
+
+  // Universal badge: a live run marks itself so every other page can offer the
+  // way back; terminal states clear it (complete also auto-advances below).
+  useEffect(() => {
+    if (!jobId) return;
+    setActiveRun(jobId);
+    if (state.phase === "complete" || state.phase === "error") clearActiveRun();
+  }, [jobId, state.phase]);
 
   // Auto-advance to the real project once the scan completes.
   const advancedRef = useRef(false);
