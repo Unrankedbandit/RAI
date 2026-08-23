@@ -28,7 +28,7 @@ export function SubNav({
   onChange: (tab: ProjectTab) => void;
 }) {
   return (
-    <div className="mb-[22px] flex w-fit gap-1 rounded-full bg-surface-2 p-1">
+    <div className="mb-[22px] flex w-fit max-w-full gap-1 overflow-x-auto rounded-full bg-surface-2 p-1">
       {tabs.map((tab) => {
         const isActive = tab.id === active;
         return (
