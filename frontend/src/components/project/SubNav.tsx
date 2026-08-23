@@ -2,13 +2,20 @@
 
 import { clsx } from "@/lib/clsx";
 
-export type ProjectTab = "overview" | "findings" | "reports" | "documents" | "map";
+export type ProjectTab =
+  | "overview"
+  | "findings"
+  | "reports"
+  | "documents"
+  | "submittals"
+  | "map";
 
 const tabs: { id: ProjectTab; label: string }[] = [
   { id: "overview", label: "Overview" },
   { id: "findings", label: "Findings" },
   { id: "reports", label: "Reports" },
   { id: "documents", label: "Documents" },
+  { id: "submittals", label: "Submittals" },
   { id: "map", label: "Map" },
 ];
 

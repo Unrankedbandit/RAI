@@ -11,6 +11,7 @@ import { OverviewTab } from "./OverviewTab";
 import { FindingsTab } from "./FindingsTab";
 import { ReportsTab } from "./ReportsTab";
 import { DocumentsTab } from "./DocumentsTab";
+import { SubmittalsTab } from "./SubmittalsTab";
 import { MapTab } from "./MapTab";
 
 const PROJECT_TABS: ProjectTab[] = [
@@ -80,6 +81,7 @@ function ProjectWorkspaceBody() {
           {tab === "findings" && <FindingsTab />}
           {tab === "reports" && <ReportsTab />}
           {tab === "documents" && <DocumentsTab />}
+          {tab === "submittals" && <SubmittalsTab />}
           {tab === "map" && <MapTab />}
         </div>
       </div>
