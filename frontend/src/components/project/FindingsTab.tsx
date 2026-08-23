@@ -80,7 +80,7 @@ export function FindingsTab() {
               )}
               <div className="mt-1.5 flex items-center gap-2 text-[11px] text-faint">
                 <span>{e.confidence}</span>
-                <SourceAttribution sources={e.sources.map((s) => s.url ?? s.title)} />
+                <SourceAttribution sources={e.sources.map((s) => s.title)} />
               </div>
             </div>
           ))}
