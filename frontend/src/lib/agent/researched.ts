@@ -54,7 +54,6 @@ export function decisionVerdict(decision: string): Verdict {
 /** The API row shape — PortfolioRow plus the id/coordinate fields the
  *  backend includes (and may one day populate). */
 interface ResearchedRow extends PortfolioRow {
-  id?: string;
   latitude?: number;
   longitude?: number;
   lat?: number;
