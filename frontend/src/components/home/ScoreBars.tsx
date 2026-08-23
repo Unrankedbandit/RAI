@@ -5,6 +5,8 @@ import { bandColorVar } from "@/lib/band";
 import type { RiskBand } from "@/lib/types";
 
 export type ScoreBarRow = {
+  /** React key — required because live project names are not unique. */
+  id?: string;
   /** Short project name shown under the bar, e.g. "Alpha". */
   name: string;
   score: number;
@@ -23,7 +25,7 @@ export function ScoreBars({ rows }: { rows: ScoreBarRow[] }) {
         const pct = Math.max(0, Math.min(100, row.score));
         return (
           <div
-            key={row.name}
+            key={row.id ?? row.name}
             className="flex h-full flex-1 flex-col items-center justify-end gap-2"
           >
             <div className="text-[12.5px] font-medium text-muted tabular-nums">

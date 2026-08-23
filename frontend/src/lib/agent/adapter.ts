@@ -14,11 +14,14 @@ import type {
   PillarName,
   PillarScore,
   PriorityAction,
+  Project,
   ProjectDetail,
   RiskBand,
   StatusLabel,
   TimelineEvent,
 } from "../types";
+import type { PortfolioRow } from "./client";
+import { slugify } from "./liveStore";
 import type { AgentReport } from "./report";
 const ITC_DEADLINE = "2030-12-31";
 
@@ -94,6 +97,64 @@ function statusTextFor(score: number, factors: Factor[]): string {
   if (nRisk > 0) return `${nRisk} flag${nRisk > 1 ? "s" : ""} open`;
   const nWatch = factors.filter((f) => f.band === "watch").length;
   return `${nWatch} in watch`;
+}
+
+/** First capacity mention in a project name ("… 180 MWac …" → 180), else 0. */
+function capacityFromName(name: string): number {
+  const m = /(\d+(?:\.\d+)?)\s*MW/i.exec(name);
+  return m ? Number.parseFloat(m[1]) : 0;
+}
+
+/**
+ * Convert one GET /api/projects row into the Project view model the
+ * portfolio pages render. Band comes from the readiness score, status from
+ * the decision string — the same split toSentinel uses for full reports, so
+ * a list row and its detail page never disagree. Rows carry no coordinates
+ * today: latitude/longitude are zeroed and callers must suppress map pins
+ * (the researched-parcel layer in ./researched owns live map dots).
+ */
+export function toPortfolioProject(row: PortfolioRow): Project {
+  const readiness = Math.round(row.readiness);
+  const b = band(readiness);
+  const dims = new Map(
+    (row.dimensions ?? []).map((d) => [d.name.trim().toLowerCase(), d]),
+  );
+  const pillars: PillarScore[] = PILLARS.map((name) => {
+    const dim = dims.get(name.toLowerCase());
+    const score = Math.round(dim?.score ?? 0);
+    const pb = band(score);
+    const factors: Factor[] = (dim?.flags ?? []).map((text, i) => ({
+      id: `${name.toLowerCase()}-flag-${i}`,
+      name: text.slice(0, 90),
+      band: pb,
+      statusLabel:
+        pb === "strong" ? "Cleared" : pb === "watch" ? "Watch" : "Flagged",
+      evidence: text,
+      sources: [],
+    }));
+    return {
+      name,
+      score,
+      band: pb,
+      unlocked: score >= 70,
+      statusText: statusTextFor(score, factors),
+      subAgents: PILLAR_AGENTS[name],
+      factors,
+    };
+  });
+  return {
+    id: row.id ?? slugify(row.project),
+    name: row.project,
+    location: row.location,
+    capacityMW: capacityFromName(row.project),
+    latitude: 0,
+    longitude: 0,
+    activationScore: readiness,
+    band: b,
+    scoreReason: `Decision: ${row.decision}`,
+    status: status(row.decision),
+    pillars,
+  };
 }
 
 function pillarFor(component: string): PillarName {

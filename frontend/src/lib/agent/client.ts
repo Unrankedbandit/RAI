@@ -4,8 +4,10 @@
 // https://rai-api.josephbissell.com, which authenticates every request. Auth
 // travels as a `token` query param on each call (EventSource cannot set
 // headers, so a header-based scheme would leave the job stream out), with
-// `credentials: "include"` on fetches as the SSO-cookie fallback. Point
-// NEXT_PUBLIC_AGENT_API elsewhere (e.g. http://localhost:8000) for local dev.
+// `credentials: "include"` on fetches as the SSO-cookie fallback. The backend
+// whitelists https://rai.josephbissell.com for CORS; other origins (local
+// verification, previews) are blocked — point NEXT_PUBLIC_AGENT_API elsewhere
+// (e.g. http://localhost:8000) for local dev.
 
 import type { AgentReport } from "./report";
 
@@ -62,7 +64,14 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     response = await fetch(apiUrl(path), {
       credentials: "include",
       ...init,
-      headers: { "content-type": "application/json", ...init?.headers },
+      // Only JSON-body requests declare content-type: a GET that sends it
+      // triggers a CORS preflight, and the hackathon gate answers OPTIONS
+      // with Access-Control-Allow-Origin: * — which browsers reject for
+      // credentialed requests, so the GET would never be sent. Bodyless
+      // GETs stay CORS-safelisted "simple requests" and pass the gate.
+      headers: init?.body
+        ? { "content-type": "application/json", ...init?.headers }
+        : { ...init?.headers },
     });
   } catch {
     // Backend not running is the common case in local dev, and it must not be

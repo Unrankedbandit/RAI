@@ -51,8 +51,8 @@ export function decisionVerdict(decision: string): Verdict {
   return "hold";
 }
 
-/** The API row shape — PortfolioRow plus the id/coordinate fields the
- *  backend includes (and may one day populate). */
+/** The API row shape — PortfolioRow plus the coordinate fields the
+ *  backend may one day populate. */
 interface ResearchedRow extends PortfolioRow {
   latitude?: number;
   longitude?: number;
@@ -115,13 +115,13 @@ function geocodeLocation(location: string): Promise<[number, number] | null> {
 async function resolveAll(): Promise<ResearchedParcel[]> {
   const rows = (await listProjects()) as ResearchedRow[];
   const resolved = await Promise.all(
-    rows.map(async (row, i): Promise<ResearchedParcel | null> => {
+    rows.map(async (row): Promise<ResearchedParcel | null> => {
       const coords =
         explicitCoords(row) ??
         (row.location ? await geocodeLocation(row.location) : null);
       if (!coords) return null;
       return {
-        id: row.id ?? `row-${i}`,
+        id: row.id,
         name: row.project,
         location: row.location,
         readiness: row.readiness,

@@ -1,10 +1,18 @@
+"use client";
+
 import { PortfolioShell } from "@/components/portfolio/PortfolioShell";
 import { StatusDonut, type DonutSegment } from "@/components/home/StatusDonut";
 import { ScoreBars, type ScoreBarRow } from "@/components/home/ScoreBars";
 import { StatusPill } from "@/components/ui/StatusPill";
+import { OfflineBanner } from "@/components/ui/OfflineBanner";
 import { clsx } from "@/lib/clsx";
 import { statusLabelText, statusToBand } from "@/lib/band";
-import { portfolioSummary, projects, recentActivity } from "@/lib/mockData";
+import {
+  summarizeProjects,
+  useLiveProjects,
+} from "@/lib/agent/useLiveProjects";
+import { projects as mockProjects, recentActivity } from "@/lib/mockData";
+import type { RecentActivity } from "@/lib/types";
 
 /** "Project Alpha" → "Alpha" for the compact chart / stat labels. */
 function shortName(name: string): string {
@@ -12,7 +20,43 @@ function shortName(name: string): string {
 }
 
 export default function HomePage() {
-  const summary = portfolioSummary();
+  const live = useLiveProjects();
+
+  // Neutral loading state — mock data must never flash while the backend
+  // answer is still in flight.
+  if (live.status === "loading") {
+    return (
+      <PortfolioShell>
+        <div className="text-2xl font-semibold text-ink">Home</div>
+        <p className="mt-1 mb-[22px] text-[15px] text-muted">
+          Checking the backend for live portfolio data…
+        </p>
+        <div className="mb-[18px] grid gap-3 sm:grid-cols-3">
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="h-[86px] animate-pulse rounded-[5px] border border-hairline bg-surface-2"
+            />
+          ))}
+        </div>
+        <div className="mb-[22px] grid gap-3 md:grid-cols-2">
+          {[0, 1].map((i) => (
+            <div
+              key={i}
+              className="h-[180px] animate-pulse rounded-[11px] border border-hairline bg-surface-2"
+            />
+          ))}
+        </div>
+        <div className="h-[240px] animate-pulse rounded-[11px] border border-hairline bg-surface-2" />
+      </PortfolioShell>
+    );
+  }
+
+  const offline = live.status === "offline";
+  // Live rows only when the backend answered; mock solely as the labelled
+  // offline placeholder — the two are never merged.
+  const projects = offline ? mockProjects : live.projects;
+  const summary = summarizeProjects(projects);
 
   const needsReviewNames = projects
     .filter((p) => p.status === "needs-review")
@@ -32,7 +76,7 @@ export default function HomePage() {
     {
       label: "Needs review",
       value: summary.needsReview,
-      sub: needsReviewNames.join(", "),
+      sub: needsReviewNames.join(", ") || "None",
     },
   ];
 
@@ -43,10 +87,22 @@ export default function HomePage() {
   ];
 
   const scoreRows: ScoreBarRow[] = projects.map((p) => ({
+    id: p.id,
     name: shortName(p.name),
     score: p.activationScore,
     band: p.band,
   }));
+
+  // When live, the feed lists the real pipeline rows (the backend exposes no
+  // timestamps, so the time column shows "—"). Mock feed only when offline.
+  const activity: RecentActivity[] = offline
+    ? recentActivity
+    : projects.map((p) => ({
+        name: p.name,
+        kind: "Project" as const,
+        status: p.status,
+        time: "—",
+      }));
 
   return (
     <PortfolioShell>
@@ -54,6 +110,8 @@ export default function HomePage() {
       <p className="mt-1 mb-[22px] text-[15px] text-muted">
         Start a new project from the top bar, or check on recent activity across your pipeline.
       </p>
+
+      {offline && <OfflineBanner />}
 
       {/* Stacks on phones (three ~90px cards would truncate to nothing);
           three-across from sm up, matching StatBoxes' existing idiom. */}
@@ -96,11 +154,11 @@ export default function HomePage() {
 
       <div className="overflow-hidden rounded-[11px] border border-hairline bg-canvas shadow-card">
         <div className="border-b border-hairline px-5 py-[14px] text-sm font-semibold text-ink">
-          Recent activity
+          {offline ? "Recent activity" : "Pipeline activity"}
         </div>
-        {recentActivity.map((a, i) => (
+        {activity.map((a, i) => (
           <div
-            key={`${a.name}-${a.time}`}
+            key={`${a.name}-${a.time}-${i}`}
             className={clsx(
               "flex items-center gap-[14px] px-5 py-[13px]",
               i > 0 && "border-t border-hairline",

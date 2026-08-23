@@ -85,6 +85,10 @@ async def run_pipeline(
     # PIPELINE_MODE (scripts/test-gap-gate.py) still drives the lane branch.
     mode = mode or PIPELINE_MODE
     trace = trace or Trace()
+    # The request's `name` (address / APN / lot id) IS the project identity,
+    # end to end. Normalize it once here: trim whitespace; fall back to the
+    # location, then a placeholder, only when the caller sent nothing.
+    project_name = (project_name or "").strip() or (location or "").strip() or "Untitled parcel"
     trace.event(
         "job.input", f"{project_name} @ {location}",
         documents=docs, documentCount=len(docs),
@@ -103,6 +107,12 @@ async def run_pipeline(
         ProjectProfile(name=project_name, capacity_mw=0, county=location),
         on_status, "Orchestrator",
     )
+    # Pin the profile name to the request: the Orchestrator may describe the
+    # project (technology, capacity, county) but must never rename it —
+    # Report.project and every downstream agent context carry the caller's
+    # parcel/APN verbatim. Without this, the LLM's invented profile name
+    # (e.g. "RAI Solar A — 180 MWac …") replaced the submitted lot id.
+    profile.name = project_name
 
     trace.event("phase", "parallel document extraction", phase="extract")
     # 2. Extract: one extractor per doc, parallel — then gap analysis needs the facts

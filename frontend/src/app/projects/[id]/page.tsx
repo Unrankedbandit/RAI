@@ -8,7 +8,17 @@ import { ProjectWorkspace } from "@/components/project/ProjectWorkspace";
 
 export default function ProjectPage() {
   const params = useParams<{ id: string }>();
-  const { detail } = useProjectDetail(params.id);
+  const { detail, loading } = useProjectDetail(params.id);
+
+  // Neutral loading state while a live report fetch is in flight — never a
+  // premature "not found" for real portfolio ids.
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-md px-8 py-16 text-center">
+        <p className="animate-pulse text-muted">Loading project…</p>
+      </div>
+    );
+  }
 
   if (!detail) {
     return (

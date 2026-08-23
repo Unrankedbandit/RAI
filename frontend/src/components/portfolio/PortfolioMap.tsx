@@ -13,6 +13,11 @@ import { RiskFactorLegend } from "./RiskFactorLegend";
  * Portfolio map card: a working Map/List toggle, a real geolocated MapLibre
  * map (client-only) with one pin per project coloured by risk band, and the
  * risk-factor legend beneath.
+ *
+ * `mapProjects` defaults to `projects`. Live portfolio rows carry no
+ * coordinates, so the page passes mapProjects={[]} when live — the map then
+ * shows only the real researched-parcel dots (lib/agent/researched) instead
+ * of pins stacked at 0,0 — while the List view still lists every project.
  */
 
 // MapLibre needs the browser — the dynamic() + ssr:false pair must live in
@@ -24,9 +29,13 @@ const PortfolioMapView = dynamic(() => import("./PortfolioMapView"), {
 
 export function PortfolioMap({
   projects,
+  mapProjects,
   factors,
 }: {
   projects: Project[];
+  /** Pins drawn on the map. Defaults to `projects`; pass [] to suppress
+   *  coordinate-less rows (the researched-parcel layer still renders). */
+  mapProjects?: Project[];
   factors: RiskFactorDefinition[];
 }) {
   const [view, setView] = useState<"map" | "list">("map");
@@ -44,7 +53,7 @@ export function PortfolioMap({
 
       {view === "map" ? (
         <div className="relative h-[360px] overflow-hidden rounded-[5px] bg-surface-2">
-          <PortfolioMapView projects={projects} />
+          <PortfolioMapView projects={mapProjects ?? projects} />
         </div>
       ) : (
         <div className="h-[360px] overflow-y-auto rounded-[5px] border border-hairline">

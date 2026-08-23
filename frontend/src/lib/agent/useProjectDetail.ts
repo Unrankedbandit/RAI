@@ -13,14 +13,21 @@ export type DetailSource = "live" | "mock" | "missing";
 export interface ProjectDetailState {
   detail: ProjectDetail | undefined;
   source: DetailSource;
+  /** True while a backend report fetch for this id is still in flight —
+   *  the page shows a neutral loading state, never a premature "not found". */
+  loading: boolean;
 }
 
 /**
  * Resolves the ProjectDetail for a route.
  *
- * A live agent report for this id wins; otherwise the curated mock entry is
- * used. The fallback is deliberate — the demo must survive the backend being
- * down, and every seeded project still renders.
+ * Precedence: a live agent report for this id in sessionStorage (a scan that
+ * just finished) wins; then a live fetch of the backend's stored report —
+ * portfolio ids are job ids, and the route id may also be the project slug,
+ * so match both (this makes /projects/<slug> a public permalink on the
+ * public deployment); the curated mock entry is the final fallback. That
+ * fallback is deliberate — the demo must survive the backend being down,
+ * and every seeded project still renders.
  *
  * The live run is read through useSyncExternalStore rather than an effect:
  * sessionStorage is an external store that does not exist during the server
@@ -35,37 +42,46 @@ export function useProjectDetail(id: string | undefined): ProjectDetailState {
     () => null, // server: never live
   );
 
+  const mock = id ? getProjectDetail(id) : undefined;
+  const shouldFetch = Boolean(id && !raw && !mock);
+
   // Share-link path: a report this browser didn't run isn't in sessionStorage.
-  // Fetch it from the backend — portfolio ids are job ids, and the route id is
-  // the project slug, so match both. Makes /projects/<slug> a public permalink
-  // on the public deployment (the API lane there is unauthenticated).
-  const [fetched, setFetched] = useState<{ forId: string; detail: ProjectDetail } | null>(null);
+  // detail=null records that the fetch SETTLED without a live report, so the
+  // page can leave the loading state.
+  const [fetched, setFetched] = useState<{
+    forId: string;
+    detail: ProjectDetail | null;
+  } | null>(null);
   useEffect(() => {
-    if (!id || raw || getProjectDetail(id)) return;
+    if (!id || !shouldFetch) return;
     let cancelled = false;
     (async () => {
       const rows = await listProjects();
       const row = rows.find((r) => r.id === id || slugify(r.project) === id);
-      if (!row) return;
+      if (!row) {
+        if (!cancelled) setFetched({ forId: id, detail: null });
+        return;
+      }
       const report = await getReport(row.id);
       if (cancelled) return;
       setFetched({ forId: id, detail: toSentinel(report, { id }) });
     })().catch(() => {
       // No backend entry — the mock/missing fallback stands.
+      if (!cancelled) setFetched({ forId: id, detail: null });
     });
     return () => {
       cancelled = true;
     };
-  }, [id, raw]);
+  }, [id, raw, shouldFetch]);
 
   // A stale fetch result for a previous route id is ignored at read time, so
   // the effect never needs to synchronously reset state (react-hooks rule).
-  const fetchedDetail = fetched && fetched.forId === id ? fetched.detail : null;
+  const settled = fetched && fetched.forId === id ? fetched : null;
+  const fetchedDetail = settled ? settled.detail : null;
 
   return useMemo(() => {
-    if (!id) return { detail: undefined, source: "missing" as const };
-
-    const mock = getProjectDetail(id);
+    if (!id)
+      return { detail: undefined, source: "missing" as const, loading: false };
 
     if (raw) {
       try {
@@ -81,14 +97,25 @@ export function useProjectDetail(id: string | undefined): ProjectDetailState {
             uploadedAt: live.finishedAt.slice(0, 10),
           }),
           source: "live" as const,
+          loading: false,
         };
       } catch {
         // Corrupt entry: fall through to the mock rather than blanking the page.
       }
     }
 
-    if (fetchedDetail) return { detail: fetchedDetail, source: "live" as const };
+    if (fetchedDetail)
+      return { detail: fetchedDetail, source: "live" as const, loading: false };
 
-    return { detail: mock, source: mock ? ("mock" as const) : ("missing" as const) };
-  }, [id, raw, fetchedDetail]);
+    if (mock)
+      return { detail: mock, source: "mock" as const, loading: false };
+
+    // No session run, no mock, no fetched report: still waiting on the
+    // backend when this id is fetchable, otherwise honestly missing.
+    return {
+      detail: undefined,
+      source: "missing" as const,
+      loading: shouldFetch && !settled,
+    };
+  }, [id, raw, mock, fetchedDetail, shouldFetch, settled]);
 }
