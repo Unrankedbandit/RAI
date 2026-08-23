@@ -119,18 +119,28 @@ export default function PortfolioMapView({
               });
             }}
           >
+            {/* 44×44 hit area (WCAG target size) around the 14px visual dot —
+                a tap registers the same selection as a mouse click; desktop
+                appearance is unchanged because the padding is transparent. */}
             <div
-              className={clsx("rai-marker-dot", pulsing && "rai-marker-pulse")}
-              style={{ backgroundColor: bandColorVar[p.band] }}
-              title={p.name}
-            />
+              className="flex h-11 w-11 cursor-pointer items-center justify-center"
+              role="button"
+              aria-label={`Select project ${p.name}`}
+            >
+              <div
+                className={clsx("rai-marker-dot", pulsing && "rai-marker-pulse")}
+                style={{ backgroundColor: bandColorVar[p.band] }}
+                title={p.name}
+              />
+            </div>
           </Marker>
         );
       })}
 
       {/* Researched parcels — smaller verdict-coloured dots; hover reveals
-          name + readiness + decision. Not clickable (no detail page), so the
-          map click-through behaviour stays with the project pins. */}
+          name + readiness + decision, and on touch the same 44px hit area
+          toggles the popup on tap. No detail page, so the map click-through
+          behaviour stays with the project pins. */}
       {researched.map((r) => (
         <Marker
           key={`res-${r.id}`}
@@ -139,16 +149,26 @@ export default function PortfolioMapView({
           anchor="center"
         >
           <div
-            className="rai-marker-dot"
-            style={{
-              backgroundColor: verdictColorVar[r.verdict],
-              width: 11,
-              height: 11,
-            }}
+            className="flex h-11 w-11 cursor-pointer items-center justify-center"
+            role="button"
+            aria-label={`Researched parcel ${r.name}: ${r.decision}`}
             title={r.name}
             onMouseEnter={() => setHoveredResearch(r)}
             onMouseLeave={() => setHoveredResearch(null)}
-          />
+            onClick={(e) => {
+              e.stopPropagation();
+              setHoveredResearch((cur) => (cur?.id === r.id ? null : r));
+            }}
+          >
+            <div
+              className="rai-marker-dot"
+              style={{
+                backgroundColor: verdictColorVar[r.verdict],
+                width: 11,
+                height: 11,
+              }}
+            />
+          </div>
         </Marker>
       ))}
 

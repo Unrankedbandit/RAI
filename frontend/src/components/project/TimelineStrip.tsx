@@ -7,7 +7,11 @@ import type { TimelineEvent } from "@/lib/types";
 import { useProject } from "./ProjectContext";
 
 /**
- * Critical-path timeline strip — lean redesign.
+ * Critical-path timeline — Gantt by default, strip as the alternate view.
+ *
+ * The section header carries a [Gantt | Strip] toggle. The Gantt (default)
+ * draws one %-positioned bar per item against the min/max dates of the data;
+ * the strip is the lean redesign below.
  *
  * Each milestone is a dot on the baseline plus ONE compact date chip
  * ("Oct 14") beneath it. The phase label, full date and description live
@@ -52,6 +56,10 @@ function dateChip(iso: string): string {
 export function TimelineStrip() {
   const { timeline } = useProject();
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
+  // Default view is the Gantt; the strip stays as the alternate. Session-only
+  // state — the choice is intentionally not persisted across navigation,
+  // matching the rails' "not persisted on purpose" convention.
+  const [view, setView] = useState<"gantt" | "strip">("gantt");
 
   const milestones = useMemo(
     () =>
@@ -103,29 +111,293 @@ export function TimelineStrip() {
 
   return (
     <div className="relative mb-4 overflow-visible rounded-[5px] border border-hairline bg-canvas px-5 pb-4 pt-3 shadow-card">
-      <div className="mb-2 text-[12px] font-medium text-faint">
-        Critical path to activation — hover a point for details
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <div className="text-[12px] font-medium text-faint">
+          Critical path to activation — hover a{" "}
+          {view === "gantt" ? "bar" : "point"} for details
+        </div>
+        <div className="flex gap-1.5" role="group" aria-label="Timeline view">
+          <ViewButton active={view === "gantt"} onClick={() => setView("gantt")}>
+            Gantt
+          </ViewButton>
+          <ViewButton active={view === "strip"} onClick={() => setView("strip")}>
+            Strip
+          </ViewButton>
+        </div>
       </div>
-      <div ref={stripRef} className="relative mx-1 h-[54px] overflow-visible">
-        <div className="absolute inset-x-0 top-[23px] h-[2px] bg-hairline" />
 
-        {milestones.map((event) => (
-          <MilestoneItem
-            key={event.id}
-            event={event}
-            isCurrent={event.id === currentId}
-            showChip={visibleChips.has(event.id)}
-            active={!!event.conflictKey && event.conflictKey === hoveredKey}
-            onEnter={() =>
-              event.conflictKey && setHoveredKey(event.conflictKey)
-            }
-            onLeave={() => setHoveredKey(null)}
+      {view === "gantt" ? (
+        <TimelineGantt
+          milestones={milestones}
+          deadlines={deadlines}
+          hoveredKey={hoveredKey}
+          onEnterKey={setHoveredKey}
+          onLeaveKey={() => setHoveredKey(null)}
+        />
+      ) : (
+        <div ref={stripRef} className="relative mx-1 h-[54px] overflow-visible">
+          <div className="absolute inset-x-0 top-[23px] h-[2px] bg-hairline" />
+
+          {milestones.map((event) => (
+            <MilestoneItem
+              key={event.id}
+              event={event}
+              isCurrent={event.id === currentId}
+              showChip={visibleChips.has(event.id)}
+              active={!!event.conflictKey && event.conflictKey === hoveredKey}
+              onEnter={() =>
+                event.conflictKey && setHoveredKey(event.conflictKey)
+              }
+              onLeave={() => setHoveredKey(null)}
+            />
+          ))}
+
+          {deadlines.map((event) => (
+            <DeadlineMarker key={event.id} event={event} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ViewButton({
+  active = false,
+  onClick,
+  children,
+}: {
+  active?: boolean;
+  onClick?: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={clsx(
+        "rounded-full px-3 py-1.5 text-xs font-medium",
+        active ? "bg-oxford text-white" : "bg-surface-2 text-muted",
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+/* --------------------------------------------------------------------------
+ * Gantt view — one horizontal bar per timeline item, hand-rolled divs.
+ *
+ * Items are point milestones, so each phase bar runs from the item's date to
+ * the next item's date (the final item runs to the deadline when one exists,
+ * else gets a short stub). Bar geometry is %-positioned against the min/max
+ * dates of everything shown (milestones + deadlines), so no chart library is
+ * needed and the bars scale with the card width.
+ *
+ * Text never overlaps bars: phase labels live in a fixed-width left column
+ * (truncated), and the compact duration label sits outside the bar — after
+ * the bar end when there is room, before the bar start as a fallback, and
+ * omitted entirely when neither side has space (the hover tooltip always
+ * carries the full detail, same as the strip).
+ * ------------------------------------------------------------------------ */
+
+/** Fixed phase-label column width; the bar lane is the remaining flex space. */
+const GANTT_LABEL_PX = 160;
+
+/** "Aug 2026"-style axis label from epoch ms. */
+function axisLabel(time: number): string {
+  const d = new Date(time);
+  return `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+/** Compact duration for the label next to a bar, e.g. "10 wks", "3.5 yrs". */
+function formatDuration(ms: number): string {
+  const days = Math.round(ms / 86_400_000);
+  if (days < 14) return `${days}d`;
+  if (days < 75) return `${Math.round(days / 7)} wks`;
+  if (days < 550) return `${Math.round(days / 30.4)} mos`;
+  return `${(days / 365.25).toFixed(1)} yrs`;
+}
+
+/** Lane-relative position for a % within the bar lane, past the label column. */
+function laneLeft(pctPos: number): string {
+  return `calc(${GANTT_LABEL_PX}px + (100% - ${GANTT_LABEL_PX}px) * ${pctPos / 100})`;
+}
+
+function TimelineGantt({
+  milestones,
+  deadlines,
+  hoveredKey,
+  onEnterKey,
+  onLeaveKey,
+}: {
+  milestones: TimelineEvent[];
+  deadlines: TimelineEvent[];
+  hoveredKey: string | null;
+  onEnterKey: (key: string) => void;
+  onLeaveKey: () => void;
+}) {
+  const rows = useMemo(
+    () =>
+      milestones
+        .filter((e) => !Number.isNaN(Date.parse(e.date)))
+        .slice()
+        .sort((a, b) => Date.parse(a.date) - Date.parse(b.date)),
+    [milestones],
+  );
+  const dlines = useMemo(
+    () => deadlines.filter((e) => !Number.isNaN(Date.parse(e.date))),
+    [deadlines],
+  );
+
+  const range = useMemo(() => {
+    const all = [...rows, ...dlines].map((e) => Date.parse(e.date));
+    if (all.length === 0) return null;
+    const min = Math.min(...all);
+    const max = Math.max(...all);
+    return { min, span: Math.max(max - min, 86_400_000) };
+  }, [rows, dlines]);
+
+  if (!range || rows.length === 0) {
+    return (
+      <div className="py-5 text-center text-[12.5px] text-faint">
+        No dated milestones to chart.
+      </div>
+    );
+  }
+
+  const pct = (t: number) => ((t - range.min) / range.span) * 100;
+
+  // Bar end for each row: the next milestone's date; for the last row the
+  // first deadline after it, else a short stub so the bar stays visible.
+  const ends = rows.map((e, i) => {
+    const start = Date.parse(e.date);
+    if (i + 1 < rows.length) return Date.parse(rows[i + 1].date);
+    const after = dlines
+      .map((d) => Date.parse(d.date))
+      .filter((t) => t > start)
+      .sort((a, b) => a - b)[0];
+    return after ?? start + range.span * 0.05;
+  });
+
+  const today = Date.now();
+  const todayPct =
+    today > range.min && today < range.min + range.span ? pct(today) : null;
+
+  return (
+    <div className="select-none" aria-label="Project timeline Gantt chart">
+      {/* Axis: min/max dates + the deadline caption, aligned with the lane. */}
+      <div className="flex">
+        <div style={{ width: GANTT_LABEL_PX }} className="flex-none" />
+        <div className="relative h-[14px] flex-1 text-[10.5px] leading-[14px] text-faint">
+          <span className="absolute left-0">{axisLabel(range.min)}</span>
+          <span className="absolute right-0">
+            {axisLabel(range.min + range.span)}
+          </span>
+          {dlines.map((d) => {
+            const p = pct(Date.parse(d.date));
+            // Near the range edge the caption would collide with the max
+            // date label — the red line + hover tooltip carry it there.
+            if (p > 85) return null;
+            return (
+              <span
+                key={d.id}
+                className="absolute whitespace-nowrap font-semibold text-risk"
+                style={
+                  p > 60
+                    ? { right: `${100 - p + 0.75}%` }
+                    : { left: `${p + 0.75}%` }
+                }
+              >
+                Deadline
+              </span>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Rows, with the deadline verticals + today line overlaid across them. */}
+      <div className="relative">
+        {rows.map((event, i) => {
+          const start = Date.parse(event.date);
+          const end = ends[i];
+          const startPct = pct(start);
+          const endPct = pct(end);
+          const duration = formatDuration(Math.max(end - start, 0));
+          const active =
+            !!event.conflictKey && event.conflictKey === hoveredKey;
+          return (
+            <div
+              key={event.id}
+              className="group/tl relative flex h-[30px] items-center"
+              onMouseEnter={() =>
+                event.conflictKey && onEnterKey(event.conflictKey)
+              }
+              onMouseLeave={onLeaveKey}
+            >
+              <div
+                className="flex-none truncate pr-3 text-[12px] font-medium text-ink"
+                style={{ width: GANTT_LABEL_PX }}
+                title={event.label}
+              >
+                {event.label}
+              </div>
+              <div className="relative h-full min-w-0 flex-1">
+                <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-hairline" />
+                <div
+                  className={clsx(
+                    "absolute top-1/2 h-[10px] min-w-[3px] -translate-y-1/2 cursor-pointer rounded-full transition-[box-shadow] duration-150",
+                    active
+                      ? "shadow-[0_0_0_3px_rgba(255,132,0,0.22)]"
+                      : "group-hover/tl:shadow-[0_0_0_3px_rgba(255,132,0,0.22)]",
+                  )}
+                  style={{
+                    left: `${startPct}%`,
+                    width: `${Math.max(endPct - startPct, 0)}%`,
+                    backgroundColor: bandColorVar[event.band],
+                  }}
+                >
+                  <Tooltip event={event} placement="above" />
+                </div>
+                {/* Duration label — always OUTSIDE the bar, never on it. */}
+                {endPct <= 78 ? (
+                  <span
+                    className="absolute top-1/2 -translate-y-1/2 whitespace-nowrap pl-[7px] text-[10.5px] text-faint"
+                    style={{ left: `${endPct}%` }}
+                  >
+                    {duration}
+                  </span>
+                ) : startPct >= 24 ? (
+                  <span
+                    className="absolute top-1/2 -translate-y-1/2 whitespace-nowrap pr-[7px] text-[10.5px] text-faint"
+                    style={{ right: `${100 - startPct}%` }}
+                  >
+                    {duration}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+          );
+        })}
+
+        {dlines.map((d) => (
+          <div
+            key={d.id}
+            className="group/tl absolute bottom-0 top-0 z-[2] w-[10px] -translate-x-1/2 cursor-pointer"
+            style={{ left: laneLeft(pct(Date.parse(d.date))) }}
+          >
+            <div className="absolute bottom-0 left-1/2 top-0 w-[2px] -translate-x-1/2 bg-risk" />
+            <Tooltip event={d} placement="below" />
+          </div>
+        ))}
+
+        {todayPct !== null && (
+          <div
+            className="pointer-events-none absolute bottom-0 top-0 w-[1px] bg-brand opacity-70"
+            style={{ left: laneLeft(todayPct) }}
+            aria-hidden
           />
-        ))}
-
-        {deadlines.map((event) => (
-          <DeadlineMarker key={event.id} event={event} />
-        ))}
+        )}
       </div>
     </div>
   );
