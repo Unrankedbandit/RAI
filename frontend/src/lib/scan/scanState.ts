@@ -113,6 +113,13 @@ export type TrailLine = {
   kind: TrailKind;
 };
 
+export type SourceRow = {
+  url: string;
+  status: "fetching" | "fetched" | "repaired" | "failed" | "skipped";
+  agent?: string;
+  chars?: number;
+};
+
 export type ScanResult = {
   projectId: string;
   activationScore: number;
@@ -120,6 +127,7 @@ export type ScanResult = {
 
 /** The accumulated data (phase is derived separately, in the hook). */
 export type ScanData = {
+  sources: SourceRow[];
   percent: number;
   currentFile: string | null;
   trail: TrailLine[];
@@ -141,6 +149,7 @@ export type ScanData = {
 };
 
 export const initialScanData: ScanData = {
+  sources: [],
   percent: 0,
   currentFile: null,
   trail: [],
