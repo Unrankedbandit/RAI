@@ -45,7 +45,7 @@ export function ReasoningTrail({ lines, compact = false }: ReasoningTrailProps) 
     <div
       className={clsx(
         "overflow-y-auto rounded-[5px] bg-surface-2 p-4",
-        compact ? "h-40" : "h-72",
+        compact ? "h-40" : "h-56 md:h-72",
       )}
     >
       <ol className="space-y-2.5">
@@ -64,9 +64,11 @@ export function ReasoningTrail({ lines, compact = false }: ReasoningTrailProps) 
                 style={{ backgroundColor: dotColor[line.kind] }}
               />
               {line.kind === "subagent" ? (
-                <span className="mono text-faint">{line.text}</span>
+                <span className="mono min-w-0 break-words text-faint">
+                  {line.text}
+                </span>
               ) : (
-                <span className="text-ink">
+                <span className="min-w-0 break-words text-ink">
                   {kindLabel[line.kind] && (
                     <span className="mr-1.5 text-risk-ink">
                       {kindLabel[line.kind]}

@@ -143,9 +143,9 @@ function CoreRow({ group, onSelect }: CoreRowProps) {
     activity: group.activity,
   };
   return (
-    <li className="flex items-stretch gap-1">
+    <li className="flex flex-wrap items-stretch justify-center gap-1">
       <AgentTile box={coreBox} label={group.core} onSelect={onSelect} />
-      <ul className="flex items-stretch gap-1 border-l border-hairline pl-1">
+      <ul className="flex flex-wrap items-stretch justify-center gap-1 border-l border-hairline pl-1">
         {group.instances.map((instance) => (
           <AgentTile
             key={instance.name}
@@ -171,8 +171,9 @@ type AgentFeedDrawerProps = {
 /**
  * The tile pop-up: the codebase's Drawer idiom showing the selected agent's
  * live feed — every trace/status frame the stream attributed to it — with a
- * status header, auto-scrolling as new frames land. Reads the same scan
- * state as the grid; no second backend connection.
+ * status header, auto-scrolling as new frames land. On phones the drawer
+ * docks as a bottom sheet (the app's mobile idiom) with large touch targets.
+ * Reads the same scan state as the grid; no second backend connection.
  */
 function AgentFeedDrawer({
   selected,
@@ -216,6 +217,7 @@ function AgentFeedDrawer({
       title={selected ?? ""}
       subtitle={box ? `Status: ${statusLabel[box.status]}` : undefined}
       width={420}
+      bottomSheetOnMobile
     >
       {lines.length === 0 ? (
         <p className="text-sm text-faint">No feed lines yet for this agent.</p>
@@ -228,7 +230,9 @@ function AgentFeedDrawer({
                 className="mt-1.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full"
                 style={{ backgroundColor: feedDotColor[line.status] }}
               />
-              <span className="mono text-xs text-muted">{line.text}</span>
+              <span className="mono min-w-0 break-words text-xs text-muted">
+                {line.text}
+              </span>
             </li>
           ))}
           <div ref={endRef} />
@@ -247,10 +251,11 @@ type AgentStatusGridProps = {
 
 /**
  * The hero of the live run view: a header counter ("N active · M total")
- * above a wrap of tiny square agent tiles — one per core, with sub-instance
- * tiles nested beside it. Tiles carry only a bot glyph, a short name, and a
- * status border/glow; clicking any tile opens that agent's live feed in a
- * drawer. New tiles fade in, then only borders/glows change.
+ * above a centered wrap of tiny square agent tiles — one per core, with
+ * sub-instance tiles nested beside it. Tiles carry only a bot glyph, a short
+ * name, and a status border/glow; clicking any tile opens that agent's live
+ * feed in a drawer (a bottom sheet on phones). New tiles fade in, then only
+ * borders/glows change.
  */
 export function AgentStatusGrid({ agents, feeds }: AgentStatusGridProps) {
   const groups = groupAgentsByCore(agents);
@@ -259,13 +264,16 @@ export function AgentStatusGrid({ agents, feeds }: AgentStatusGridProps) {
 
   return (
     <>
-      <div className="mb-2 flex items-center justify-between">
+      <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
         <p className="text-xs text-faint">Agents</p>
         <p className="mono text-xs text-faint tabular-nums">
           {active} active · {agents.length} total
         </p>
       </div>
-      <ul className="flex flex-wrap gap-x-3 gap-y-2">
+      <ul
+        data-grid="agent-tiles-mobile-v1"
+        className="flex flex-wrap justify-center gap-x-3 gap-y-2"
+      >
         {groups.map((group) => (
           <CoreRow key={group.core} group={group} onSelect={setSelected} />
         ))}

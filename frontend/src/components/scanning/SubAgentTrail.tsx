@@ -28,7 +28,7 @@ export function SubAgentTrail({ subAgents, done }: SubAgentTrailProps) {
             return (
               <span
                 key={name}
-                className="inline-flex items-center gap-1.5 rounded-full bg-vista-soft px-2.5 py-1 text-xs font-medium text-ink"
+                className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-vista-soft px-2.5 py-1 text-xs font-medium text-ink"
               >
                 <span
                   aria-hidden
@@ -38,7 +38,7 @@ export function SubAgentTrail({ subAgents, done }: SubAgentTrailProps) {
                   )}
                   style={{ backgroundColor: "var(--color-vista)" }}
                 />
-                <span className="mono">{name}</span>
+                <span className="mono break-all">{name}</span>
               </span>
             );
           })}

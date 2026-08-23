@@ -30,12 +30,16 @@ function statusText(stage: StageState): string {
  *              status "done"
  *
  * Desktop lays the boxes out as a horizontal stepper with a connecting line
- * (green behind finished stretches); under md it stacks into a list.
+ * (green behind finished stretches); under md it stacks into a clean vertical
+ * list — one full-width row per stage (title left, status right) and the
+ * green completion fill sweeps top→bottom to match the list's reading
+ * direction (desktop keeps the left→right sweep).
  */
 export function ScanProgress({ stages, done }: ScanProgressProps) {
   return (
     <ol
       aria-label="Pipeline stages"
+      data-tracker="staging-tracker-mobile-v1"
       className="flex flex-col gap-2 md:flex-row md:items-stretch"
     >
       {stages.map((stage, i) => {
@@ -64,12 +68,21 @@ export function ScanProgress({ stages, done }: ScanProgressProps) {
               />
             )}
 
-            <div className="relative h-full overflow-hidden rounded-md border border-hairline bg-surface-2 px-2 py-2">
-              {/* Green fill — sweeps left→right when the stage completes and
-                  drains back out if the stage re-runs. */}
+            <div className="relative h-full overflow-hidden rounded-md border border-hairline bg-surface-2 px-3 py-2.5 md:px-2 md:py-2">
+              {/* Green fill — sweeps when the stage completes and drains back
+                  out if the stage re-runs. Direction follows the layout:
+                  top→bottom in the mobile list, left→right in the desktop
+                  stepper. */}
               <motion.span
                 aria-hidden
-                className="absolute inset-0 origin-left bg-go"
+                className="absolute inset-0 origin-top bg-go md:hidden"
+                initial={false}
+                animate={{ scaleY: isDone ? 1 : 0 }}
+                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              />
+              <motion.span
+                aria-hidden
+                className="absolute inset-0 hidden origin-left bg-go md:block"
                 initial={false}
                 animate={{ scaleX: isDone ? 1 : 0 }}
                 transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
@@ -89,9 +102,9 @@ export function ScanProgress({ stages, done }: ScanProgressProps) {
                 />
               )}
 
-              <div className="relative">
+              <div className="relative flex items-baseline justify-between gap-3 md:block">
                 <p
-                  className={`text-[11px] font-medium leading-tight ${
+                  className={`min-w-0 text-[11px] font-medium leading-tight ${
                     isDone
                       ? "text-oxford"
                       : isWorking
@@ -102,7 +115,7 @@ export function ScanProgress({ stages, done }: ScanProgressProps) {
                   {stage.label}
                 </p>
                 <p
-                  className={`mt-0.5 text-[10px] leading-tight ${
+                  className={`shrink-0 text-right text-[10px] leading-tight md:mt-0.5 md:text-left ${
                     isDone
                       ? "text-oxford"
                       : isWorking

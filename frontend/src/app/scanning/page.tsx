@@ -47,7 +47,7 @@ function AgentActivity({
   if (agents.length === 0) {
     return (
       <div className="mt-5">
-        <div className="mb-2 flex items-center justify-between">
+        <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
           <p className="text-xs text-faint">Live reasoning</p>
           <p className="text-xs text-faint tabular-nums">
             {flagCount > 0 ? `${flagCount} flagged` : idleLabel}
@@ -133,7 +133,7 @@ function ScanningView() {
           <p className="mt-3 text-sm text-muted">
             Continuing with the demo scan in a few seconds…
           </p>
-          <div className="mt-5 flex items-center gap-3">
+          <div className="mt-5 flex flex-wrap items-center gap-3">
             <Button
               variant="primary"
               onClick={() => router.push("/scanning")}
@@ -163,7 +163,7 @@ function ScanningView() {
             RAI is still working, but nothing has come back for a while. You can
             keep waiting or stop here and come back later.
           </p>
-          <div className="mt-5 flex items-center gap-3">
+          <div className="mt-5 flex flex-wrap items-center gap-3">
             <Button variant="primary" onClick={() => keepWaiting()}>
               Keep waiting
             </Button>
@@ -211,7 +211,7 @@ function ScanningView() {
           </div>
         </Card>
 
-        <div className="mt-5 flex items-center justify-between gap-4">
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
           <p className="text-sm text-muted">Opening the project.</p>
           <Button
             variant="primary"
@@ -229,7 +229,7 @@ function ScanningView() {
 
   return (
     <PageContainer className="max-w-3xl">
-      <div className="mb-6">
+      <div className="mb-6" data-scan-view="run-page-mobile-v1">
         <p className="text-sm text-vista">
           {jobId ? "Live agent run" : "New project"}
         </p>

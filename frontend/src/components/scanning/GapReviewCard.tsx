@@ -143,7 +143,7 @@ export function GapReviewCard({
       aria-label="Gap review"
       className="rounded-[11px] border border-hairline bg-surface-2 p-4"
     >
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <p className="text-sm font-medium text-ink">
           Review the gaps before the next step
         </p>
@@ -214,7 +214,7 @@ export function GapReviewCard({
         </AnimatePresence>
       </ul>
 
-      <div className="mt-4 flex items-center justify-between gap-4">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <p className="text-xs text-faint">
           {expired
             ? "Time expired — waiting for the run to resume…"
