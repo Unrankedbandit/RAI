@@ -1,13 +1,23 @@
+"use client";
+
 import { PortfolioShell } from "@/components/portfolio/PortfolioShell";
 import { PortfolioSummary } from "@/components/portfolio/PortfolioSummary";
 import { ProjectList } from "@/components/portfolio/ProjectList";
 import { PortfolioMap } from "@/components/portfolio/PortfolioMap";
 import { Button } from "@/components/ui/Button";
 import { bandColorVar } from "@/lib/band";
-import { projects, portfolioSummary, riskFactorDefinitions } from "@/lib/mockData";
+import { summarize, useLiveProjects } from "@/lib/agent/useLiveProjects";
+import { riskFactorDefinitions } from "@/lib/mockData";
 
+/**
+ * The live portfolio. Data comes from the agent backend on every load
+ * (useLiveProjects) — mock projects are never rendered here. The map pins
+ * only projects with real coordinates.
+ */
 export default function ProjectsPage() {
-  const summary = portfolioSummary();
+  const { projects, loading, failed } = useLiveProjects();
+  const summary = summarize(projects);
+  const mappable = projects.filter((p) => p.latitude !== 0 || p.longitude !== 0);
 
   return (
     <PortfolioShell>
@@ -29,8 +39,10 @@ export default function ProjectsPage() {
               />
             </span>
             <span>
-              <span className="font-semibold text-ink">{summary.count}</span>{" "}
-              active projects · flagged before the 2030 ITC deadline
+              <span className="font-semibold text-ink">
+                {loading ? "…" : summary.count}
+              </span>{" "}
+              active projects — flagged before the 2030 ITC deadline
             </span>
           </div>
         </div>
@@ -46,8 +58,18 @@ export default function ProjectsPage() {
 
       {/* portfolio-layout */}
       <div className="flex flex-wrap items-start gap-3.5">
-        <ProjectList projects={projects} />
-        <PortfolioMap projects={projects} factors={riskFactorDefinitions} />
+        {loading ? (
+          <div className="flex-[1.3_1_420px] rounded-[11px] border border-hairline bg-canvas px-[18px] py-8 text-center text-[12.5px] text-faint shadow-card">
+            Loading live portfolio…
+          </div>
+        ) : failed ? (
+          <div className="flex-[1.3_1_420px] rounded-[11px] border border-hairline bg-canvas px-[18px] py-8 text-center text-[12.5px] text-faint shadow-card">
+            Portfolio backend unreachable — try again in a moment.
+          </div>
+        ) : (
+          <ProjectList projects={projects} />
+        )}
+        <PortfolioMap projects={mappable} factors={riskFactorDefinitions} />
       </div>
     </PortfolioShell>
   );
