@@ -9,12 +9,14 @@ import re
 import traceback
 import uuid
 from pathlib import Path
+from typing import Literal
 
 from fastapi import BackgroundTasks, FastAPI, File, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
+from . import review
 from .agents.base import Agent
 from .agents.roles import ANALYST, ROLE_TOOLS
 from .gate import GapGate
@@ -100,6 +102,13 @@ class AskRequest(BaseModel):
 
 class ResumeRequest(BaseModel):
     approved: list[str] = []  # gap ids ("gap-1", ...) the human approved
+
+
+class ReviewDecisionRequest(BaseModel):
+    decision: Literal["APPROVED", "REJECTED"]
+    reviewer: str = Field(min_length=1, max_length=80)
+    rationale: str | None = Field(default=None, max_length=500)
+    override: bool = False  # required to change an already-decided review
 
 
 ALLOWED_UPLOAD = re.compile(r"\.(pdf|xlsx|csv|docx|txt)$", re.IGNORECASE)
@@ -329,6 +338,39 @@ async def get_report(job_id: str):
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+@app.get("/api/reports/{report_id}/review")
+async def get_review(report_id: str):
+    """Review state for a finished report. A report with no sidecar defaults
+    to AWAITING_REVIEW — the pipeline's terminal state since PR #4."""
+    if not (STORE / f"{report_id}.json").exists():
+        raise HTTPException(status_code=404, detail=f"unknown report {report_id}")
+    return review.load(STORE, report_id)
+
+
+@app.post("/api/reports/{report_id}/review")
+async def post_review(report_id: str, req: ReviewDecisionRequest):
+    """Human sign-off on the FINAL report, from inside the app where the gaps
+    are shown. Writes the sidecar, mirrors the decision to the Port
+    factory_run entity (fire-and-forget — Port down never fails this), and
+    emits a `review.decided` trace event. 409 on an already-decided report
+    unless `override: true` is passed explicitly."""
+    if not (STORE / f"{report_id}.json").exists():
+        raise HTTPException(status_code=404, detail=f"unknown report {report_id}")
+    existing = review.load(STORE, report_id)
+    if existing["status"] in review.DECIDED and not req.override:
+        raise HTTPException(
+            status_code=409,
+            detail=(f"report {report_id} already {existing['status']} "
+                    f"by {existing['reviewedBy']} — pass override=true to change the decision"),
+        )
+    # Reuse the job's trace when it's still in memory (so the decision lands
+    # on the same replayable stream); otherwise a fresh job-scoped trace.
+    trace = JOB_TRACES.get(report_id) or Trace(report_id)
+    return review.decide(STORE, report_id, decision=req.decision,
+                         reviewer=req.reviewer, rationale=req.rationale,
+                         client=_port, trace=trace)
+
+
 @app.post("/api/reports/{report_id}/ask")
 async def ask(report_id: str, req: AskRequest):
     """Ask a question about a finished report.
@@ -395,10 +437,12 @@ async def portfolio():
     """Portfolio dashboard: every completed report, worst first.
 
     Archived ids (reports/archived.txt) are hidden from the listing only —
-    their reports stay fetchable by id so permalinks keep working."""
+    their reports stay fetchable by id so permalinks keep working. Review
+    sidecar files (*.review.json) are not reports and never list."""
     archived = _archived_ids()
     pairs = [(p.stem, Report.model_validate_json(p.read_text(encoding="utf-8")))
-             for p in STORE.glob("*.json") if p.stem not in archived]
+             for p in STORE.glob("*.json")
+             if p.stem not in archived and not p.name.endswith(".review.json")]
     pairs.sort(key=lambda t: t[1].readiness)
     return [
         {"id": pid, "project": r.project, "location": r.location, "readiness": r.readiness,
