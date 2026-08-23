@@ -37,6 +37,13 @@
   --color-risk-soft: #fff1df;
   --color-risk-ink: #ff8400;
 
+  /* Research verdicts — go/hold/no-go decision dots on the Current Projects
+     map (researched parcels). A distinct semantic from the status bands
+     above: green / amber / red only ever mean research verdicts. */
+  --color-go: #1f9d55; /* proceed / go */
+  --color-hold: #d97706; /* hold / review */
+  --color-nogo: #dc2626; /* no-go */
+
   /* Radii — reference scale */
   --radius-lg: 11px; /* cards, panels, modals */
   --radius-md: 5px; /* pillar cards, tooltip-adjacent */
@@ -100,6 +107,11 @@
   --color-watch-ink: #e9e9f0;
   --color-risk-soft: #3a240e;
   --color-risk-ink: #ffb066; /* lightened orange — 8.1:1 on risk-soft */
+
+  /* Research verdicts on dark — lightened for contrast against dark canvas. */
+  --color-go: #4ade80;
+  --color-hold: #fbbf24;
+  --color-nogo: #f87171;
 
   /* Elevation — stronger black alpha so shadows stay visible on dark */
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 6px 14px rgba(0, 0, 0, 0.4);

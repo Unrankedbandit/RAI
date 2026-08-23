@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Map, { Marker, Popup, type MapRef } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -9,6 +9,11 @@ import { bandColorVar, statusLabelText } from "@/lib/band";
 import { clsx } from "@/lib/clsx";
 import { useTheme } from "@/lib/theme";
 import type { Project } from "@/lib/types";
+import {
+  useResearchedParcels,
+  verdictColorVar,
+  type ResearchedParcel,
+} from "@/lib/agent/researched";
 import { ProjectIntel } from "@/components/portfolio/ProjectIntel";
 
 /**
@@ -16,6 +21,13 @@ import { ProjectIntel } from "@/components/portfolio/ProjectIntel";
  * light theme, Dark Matter in dark theme), one band-coloured marker per
  * project (true coordinates), and a design-system popup with the activation
  * score, status and per-project intel.
+ *
+ * On top of the project pins, every researched parcel from the agent backend
+ * (GET /api/projects via lib/agent/researched.ts) drops a smaller
+ * verdict-coloured dot — green for go/proceed, amber for hold/review, red
+ * for no-go — with a hover popup naming the project, its readiness and its
+ * decision. When nothing has been researched (or the backend is down) the
+ * layer simply renders nothing.
  * Client-only — PortfolioMap loads this via next/dynamic with ssr: false.
  */
 
@@ -31,24 +43,48 @@ export default function PortfolioMapView({
   projects: Project[];
 }) {
   const [selected, setSelected] = useState<Project | null>(null);
+  const [hoveredResearch, setHoveredResearch] =
+    useState<ResearchedParcel | null>(null);
   const mapRef = useRef<MapRef>(null);
   // Reactive theme (lib/theme.ts): switching the mapStyle prop makes
   // react-map-gl call setStyle internally — no remount, camera preserved.
   const theme = useTheme();
 
-  // [west, south, east, north] covering every project, fitted on load.
+  // Researched parcels from the agent backend (geocoded, verdict-coloured).
+  const researched = useResearchedParcels();
+
+  // [west, south, east, north] covering every project AND every researched
+  // parcel — researched dots (CA/NV) sit west of the mock pins, so fitting
+  // projects alone would crop them out.
   const bounds = useMemo<[number, number, number, number]>(() => {
     // Fallback: continental US when there is nothing to fit.
-    if (projects.length === 0) return [-125, 25, -66, 50];
-    const lngs = projects.map((p) => p.longitude);
-    const lats = projects.map((p) => p.latitude);
+    if (projects.length === 0 && researched.length === 0)
+      return [-125, 25, -66, 50];
+    const lngs = [
+      ...projects.map((p) => p.longitude),
+      ...researched.map((r) => r.longitude),
+    ];
+    const lats = [
+      ...projects.map((p) => p.latitude),
+      ...researched.map((r) => r.latitude),
+    ];
     return [
       Math.min(...lngs),
       Math.min(...lats),
       Math.max(...lngs),
       Math.max(...lats),
     ];
-  }, [projects]);
+  }, [projects, researched]);
+
+  // initialViewState fits only on mount; when researched parcels resolve
+  // afterwards, ease the camera to the widened bounds instead of remounting.
+  useEffect(() => {
+    mapRef.current?.fitBounds(bounds, {
+      padding: 56,
+      maxZoom: 6.5,
+      duration: 400,
+    });
+  }, [bounds]);
 
   return (
     <Map
@@ -91,6 +127,60 @@ export default function PortfolioMapView({
           </Marker>
         );
       })}
+
+      {/* Researched parcels — smaller verdict-coloured dots; hover reveals
+          name + readiness + decision. Not clickable (no detail page), so the
+          map click-through behaviour stays with the project pins. */}
+      {researched.map((r) => (
+        <Marker
+          key={`res-${r.id}`}
+          longitude={r.longitude}
+          latitude={r.latitude}
+          anchor="center"
+        >
+          <div
+            className="rai-marker-dot"
+            style={{
+              backgroundColor: verdictColorVar[r.verdict],
+              width: 11,
+              height: 11,
+            }}
+            title={r.name}
+            onMouseEnter={() => setHoveredResearch(r)}
+            onMouseLeave={() => setHoveredResearch(null)}
+          />
+        </Marker>
+      ))}
+
+      {hoveredResearch && (
+        <Popup
+          longitude={hoveredResearch.longitude}
+          latitude={hoveredResearch.latitude}
+          offset={12}
+          closeButton={false}
+          closeOnClick={false}
+          maxWidth="260px"
+        >
+          <div className="text-[13px] font-semibold text-ink">
+            {hoveredResearch.name}
+          </div>
+          <div className="mt-[3px] flex items-center gap-1.5 text-[12px]">
+            <span
+              className="font-semibold"
+              style={{ color: verdictColorVar[hoveredResearch.verdict] }}
+            >
+              {hoveredResearch.decision}
+            </span>
+            <span className="text-faint">·</span>
+            <span className="text-muted tabular-nums">
+              Readiness {hoveredResearch.readiness}
+            </span>
+          </div>
+          <div className="mt-[2px] text-[11.5px] text-faint">
+            {hoveredResearch.location}
+          </div>
+        </Popup>
+      )}
 
       {selected && (
         <Popup

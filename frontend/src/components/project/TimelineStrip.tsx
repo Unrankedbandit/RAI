@@ -1,22 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { clsx } from "@/lib/clsx";
 import { bandColorVar } from "@/lib/band";
 import type { TimelineEvent } from "@/lib/types";
 import { useProject } from "./ProjectContext";
 
 /**
- * Critical-path timeline strip. Milestone dots sit on a baseline; hovering a
- * dot reveals a dark tooltip. Two events sharing a `conflictKey` cross-highlight
- * together — hovering either one lights up both, even when non-adjacent
- * (matches the reference `toggleConflict()`).
+ * Critical-path timeline strip — lean redesign.
  *
- * Labels never collide: milestones alternate between two vertical lanes —
- * even-indexed (by position) sit on the upper lane, odd-indexed drop to a
- * lower lane with a thin connector tick back up to their dot. A milestone
- * within 10% of the deadline marker is always forced to the lower lane so its
- * label can never run into the anchored-right Deadline label/bar.
+ * Each milestone is a dot on the baseline plus ONE compact date chip
+ * ("Oct 14") beneath it. The phase label, full date and description live
+ * exclusively in the hover tooltip — no long text is ever stacked on the
+ * strip, so there is nothing to overlap.
+ *
+ * Chips can never collide at any viewport width: the strip is measured with
+ * a ResizeObserver and, walking milestones in position order, a chip is only
+ * rendered when its centre sits at least CHIP_CLEAR_PX from the previously
+ * shown chip (and clear of any deadline marker). Dots always render — a
+ * suppressed chip's details remain one hover away. Until the first
+ * measurement lands, no chips render at all (dots only), so there is no
+ * first-paint overlap flash either.
+ *
+ * Two events sharing a `conflictKey` cross-highlight together — hovering
+ * either one lights up both, even when non-adjacent.
  *
  * "You are here": there is no explicit current flag in the data, so the
  * current milestone is the LAST one whose date is today or in the past —
@@ -25,46 +32,96 @@ import { useProject } from "./ProjectContext";
  * brand-orange animate-ping ring around its (slightly larger) band-colored
  * core, matching the live-dot precedent in projects/page.tsx.
  */
+
+/** Minimum horizontal clearance between chip centres (chip ~48px + gap). */
+const CHIP_CLEAR_PX = 56;
+
+const MONTHS = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
+/** Compact chip text from the ISO event date, e.g. "Oct 14". */
+function dateChip(iso: string): string {
+  const time = Date.parse(iso);
+  if (Number.isNaN(time)) return "";
+  const d = new Date(time);
+  return `${MONTHS[d.getMonth()]} ${d.getDate()}`;
+}
+
 export function TimelineStrip() {
   const { timeline } = useProject();
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
 
-  const milestones = timeline
-    .filter((e) => e.kind !== "deadline")
-    .slice()
-    .sort((a, b) => a.position - b.position);
-  const deadlines = timeline.filter((e) => e.kind === "deadline");
+  const milestones = useMemo(
+    () =>
+      timeline
+        .filter((e) => e.kind !== "deadline")
+        .slice()
+        .sort((a, b) => a.position - b.position),
+    [timeline],
+  );
+  const deadlines = useMemo(
+    () => timeline.filter((e) => e.kind === "deadline"),
+    [timeline],
+  );
 
   const currentId = currentMilestoneId(milestones);
 
+  // Measured strip width drives chip collision suppression. ResizeObserver
+  // fires immediately on observe(), so no synchronous setState is needed.
+  const stripRef = useRef<HTMLDivElement>(null);
+  const [stripWidth, setStripWidth] = useState(0);
+  useEffect(() => {
+    const el = stripRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver((entries) => {
+      setStripWidth(entries[0]?.contentRect.width ?? 0);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const visibleChips = useMemo(() => {
+    const visible = new Set<string>();
+    if (stripWidth > 0) {
+      const minGapPct = (CHIP_CLEAR_PX / stripWidth) * 100;
+      const deadlineClearPct = minGapPct / 2;
+      let lastShown = -Infinity;
+      for (const event of milestones) {
+        const nearDeadline = deadlines.some(
+          (d) => Math.abs(d.position - event.position) < deadlineClearPct,
+        );
+        if (!nearDeadline && event.position - lastShown >= minGapPct) {
+          visible.add(event.id);
+          lastShown = event.position;
+        }
+      }
+    }
+    return visible;
+  }, [milestones, deadlines, stripWidth]);
+
   return (
-    <div className="relative mb-[18px] overflow-visible rounded-[5px] border border-hairline bg-canvas px-6 pb-6 pt-4 shadow-card">
-      <div className="mb-5 text-[12.5px] font-medium text-faint">
+    <div className="relative mb-4 overflow-visible rounded-[5px] border border-hairline bg-canvas px-5 pb-4 pt-3 shadow-card">
+      <div className="mb-2 text-[12px] font-medium text-faint">
         Critical path to activation — hover a point for details
       </div>
-      <div className="relative mx-4 h-[60px] overflow-visible">
-        <div className="absolute inset-x-0 top-[6px] h-[2px] bg-hairline" />
+      <div ref={stripRef} className="relative mx-1 h-[54px] overflow-visible">
+        <div className="absolute inset-x-0 top-[23px] h-[2px] bg-hairline" />
 
-        {milestones.map((event, i) => {
-          const nearDeadline = deadlines.some(
-            (d) => Math.abs(d.position - event.position) < 10,
-          );
-          return (
-            <MilestoneItem
-              key={event.id}
-              event={event}
-              lane={nearDeadline ? 1 : i % 2 === 0 ? 0 : 1}
-              isCurrent={event.id === currentId}
-              active={
-                !!event.conflictKey && event.conflictKey === hoveredKey
-              }
-              onEnter={() =>
-                event.conflictKey && setHoveredKey(event.conflictKey)
-              }
-              onLeave={() => setHoveredKey(null)}
-            />
-          );
-        })}
+        {milestones.map((event) => (
+          <MilestoneItem
+            key={event.id}
+            event={event}
+            isCurrent={event.id === currentId}
+            showChip={visibleChips.has(event.id)}
+            active={!!event.conflictKey && event.conflictKey === hoveredKey}
+            onEnter={() =>
+              event.conflictKey && setHoveredKey(event.conflictKey)
+            }
+            onLeave={() => setHoveredKey(null)}
+          />
+        ))}
 
         {deadlines.map((event) => (
           <DeadlineMarker key={event.id} event={event} />
@@ -88,9 +145,9 @@ function currentMilestoneId(milestones: TimelineEvent[]): string | null {
   return (current ?? byDate[0] ?? null)?.id ?? null;
 }
 
-/** Horizontal label nudge so the first/last labels never overflow the strip
+/** Horizontal chip nudge so the first/last chips never drift past the strip
  *  edges (centered by default, pulled inward near the edges). */
-function labelShift(position: number): string {
+function chipShift(position: number): string {
   if (position <= 8) return "translateX(-30%)";
   if (position >= 92) return "translateX(-70%)";
   return "translateX(-50%)";
@@ -98,22 +155,23 @@ function labelShift(position: number): string {
 
 function MilestoneItem({
   event,
-  lane,
   isCurrent,
+  showChip,
   active,
   onEnter,
   onLeave,
 }: {
   event: TimelineEvent;
-  lane: 0 | 1;
   isCurrent: boolean;
+  showChip: boolean;
   active: boolean;
   onEnter: () => void;
   onLeave: () => void;
 }) {
+  const chip = dateChip(event.date);
   return (
     <div
-      className="group/tl absolute top-0 z-[1] cursor-pointer hover:z-40"
+      className="group/tl absolute top-[17px] z-[1] cursor-pointer hover:z-40"
       style={{ left: `${event.position}%` }}
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
@@ -146,25 +204,22 @@ function MilestoneItem({
         />
       )}
 
-      {/* Lane 2 connector tick: drops from the dot down to the lower label. */}
-      {lane === 1 && (
-        <div className="absolute left-0 top-[15px] h-[20px] w-px bg-hairline" />
+      {/* The only persistent text on the strip: one compact date chip. */}
+      {showChip && chip && (
+        <div
+          className={clsx(
+            "absolute left-0 top-[16px] whitespace-nowrap rounded-full border px-[7px] py-px text-[10.5px] font-medium leading-[15px] transition-colors duration-150",
+            active
+              ? "border-risk-soft bg-risk-soft text-risk-ink"
+              : isCurrent
+                ? "border-hairline bg-canvas text-ink shadow-card"
+                : "border-hairline bg-surface-2 text-muted",
+          )}
+          style={{ transform: chipShift(event.position) }}
+        >
+          {chip}
+        </div>
       )}
-
-      <div
-        className={clsx(
-          "absolute left-0 whitespace-nowrap text-xs transition-colors duration-150",
-          lane === 0 ? "top-[21px]" : "top-[39px]",
-          active
-            ? "font-semibold text-risk"
-            : isCurrent
-              ? "font-medium text-ink"
-              : "text-muted",
-        )}
-        style={{ transform: labelShift(event.position) }}
-      >
-        {event.shortLabel ?? event.label}
-      </div>
 
       <Tooltip event={event} placement="above" isCurrent={isCurrent} />
     </div>
@@ -174,10 +229,13 @@ function MilestoneItem({
 function DeadlineMarker({ event }: { event: TimelineEvent }) {
   return (
     <div
-      className="group/tl absolute top-[-3px] bottom-[-3px] z-[2] w-[2px] cursor-pointer bg-risk hover:z-40"
+      className="group/tl absolute bottom-0 top-[13px] z-[2] w-[2px] cursor-pointer bg-risk hover:z-40"
       style={{ left: `${event.position}%` }}
     >
-      <div className="absolute right-0 top-[-20px] whitespace-nowrap text-xs font-semibold text-risk">
+      {/* Anchored right of the bar and ABOVE the baseline, inside the strip —
+          a different lane from the date chips below the line, so the two can
+          never meet. */}
+      <div className="absolute right-0 top-[-13px] whitespace-nowrap text-[10.5px] font-semibold text-risk">
         Deadline
       </div>
       <Tooltip event={event} placement="below" />
@@ -198,8 +256,8 @@ function Tooltip({
     <div
       className={clsx(
         "pointer-events-none absolute left-0 z-50 w-[230px] -translate-x-1/2 translate-y-1 rounded-[3px] bg-oxford px-[14px] py-3 text-left text-[12.5px] leading-[1.5] text-white opacity-0 shadow-[0_10px_24px_rgba(11,8,41,0.22)] transition-[opacity,transform] duration-150 group-hover/tl:pointer-events-auto group-hover/tl:translate-y-0 group-hover/tl:opacity-100",
-        // Milestone wrappers are dot-sized now — anchor "above" tooltips just
-        // over the dot (13/14px core) instead of the old label-height offset.
+        // Milestone wrappers are dot-sized — anchor "above" tooltips just
+        // over the dot (13/14px core).
         placement === "above" && (isCurrent ? "bottom-[20px]" : "bottom-[19px]"),
         placement === "below" && "top-[16px]",
       )}
