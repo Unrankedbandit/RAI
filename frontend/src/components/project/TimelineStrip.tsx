@@ -280,7 +280,9 @@ function TimelineGantt({
     return after ?? start + range.span * 0.05;
   });
 
-  const today = Date.now();
+  // useState initializer: sampled once per mount — render stays pure
+  // (react-hooks/purity flags Date.now() in render).
+  const [today] = useState(() => Date.now());
   const todayPct =
     today > range.min && today < range.min + range.span ? pct(today) : null;
 
