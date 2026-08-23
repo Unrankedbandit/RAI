@@ -2,6 +2,7 @@
 
 import { useState, type JSX, type ReactNode } from "react";
 
+import { ViabilityPreview } from "@/components/parcels/ViabilityPreview";
 import { clsx } from "@/lib/clsx";
 import type { ParcelResult } from "@/lib/parcels/counties";
 import {
@@ -152,6 +153,8 @@ function SelectedParcel({
           </StatCell>
         )}
       </div>
+
+      <ViabilityPreview parcel={parcel} />
 
       <button
         type="button"

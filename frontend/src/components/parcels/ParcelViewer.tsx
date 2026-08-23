@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import MapGL, { Layer, Source } from "react-map-gl/maplibre";
 import type { MapRef } from "react-map-gl/maplibre";
+import type { StyleSpecification } from "maplibre-gl";
 import type { Feature } from "geojson";
 import "maplibre-gl/dist/maplibre-gl.css";
 
@@ -26,13 +27,36 @@ import {
  * boundaries (zoom 13+), click-to-identify + APN/address text search against
  * the county open-GIS endpoints / CA DWR statewide mosaic (lib/parcels), the
  * selected parcel highlighted in brand orange, and the right-side ParcelRail
- * (selected parcel, watchlist, recent searches).
+ * (selected parcel, watchlist, recent searches). Basemap toggle (Positron /
+ * Esri satellite) in the top bar, and deep-linkable state: ?lat&lng&zoom
+ * (&apn&county) replays on load, the address bar tracks the camera via
+ * history.replaceState, and "Copy link" copies a parcel deep link.
  * Client-only — ParcelViewerClient loads this via next/dynamic ssr:false.
  */
 
 // Keyless vector basemap, no watermark. Attribution stays visible (required).
 const MAP_STYLE =
   "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
+
+// Satellite basemap: Esri World Imagery as an inline keyless raster style.
+// Swapping mapStyle re-mounts the child Sources/Layers onto the new style
+// (react-map-gl re-adds them automatically), so the Regrid overlay and the
+// selection highlight survive the toggle. Esri's attribution is carried by
+// the source and rendered by the map's attribution control.
+const SATELLITE_STYLE: StyleSpecification = {
+  version: 8,
+  sources: {
+    esri: {
+      type: "raster",
+      tiles: [
+        "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      ],
+      tileSize: 256,
+      attribution: "Imagery © Esri, Maxar, Earthstar Geographics",
+    },
+  },
+  layers: [{ id: "esri", type: "raster", source: "esri" }],
+};
 
 // Regrid nationwide parcel boundaries, served as ArcGIS raster tiles.
 const REGRID_TILES =
@@ -215,6 +239,16 @@ export default function ParcelViewer() {
   const [suggestLoading, setSuggestLoading] = useState(false);
   const [activeOption, setActiveOption] = useState(0);
   const suggestSeqRef = useRef(0);
+  // Basemap toggle: Positron vector style vs Esri imagery raster.
+  const [basemap, setBasemap] = useState<"map" | "satellite">("map");
+  // "Copy link" confirmation — briefly swaps the button label to "Copied".
+  const [copied, setCopied] = useState(false);
+  const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Debounce handle for the moveend → URL writer.
+  const moveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // One-shot guards for the deep-link bootstrap (below).
+  const deepLinkRef = useRef(false);
+  const suggestSuppressRef = useRef(false);
 
   const sortedCounties = useMemo(
     () => [...COUNTIES].sort((a, b) => a.name.localeCompare(b.name)),
@@ -315,6 +349,12 @@ export default function ParcelViewer() {
     const t = setTimeout(
       async () => {
         if (seq !== suggestSeqRef.current) return; // stale keystroke
+        // One-shot: the deep-link bootstrap sets searchText programmatically —
+        // don't pop the suggestion dropdown over the replayed search.
+        if (suggestSuppressRef.current) {
+          suggestSuppressRef.current = false;
+          return;
+        }
         if (text.length < 3) {
           setSuggestions(null);
           setSuggestOpen(false);
@@ -352,65 +392,103 @@ export default function ParcelViewer() {
     [applySearchResult, searchText],
   );
 
-  const handleSearch = useCallback(async () => {
-    const text = searchText.trim();
-    if (!text) return;
-    // Submitting cancels any pending debounced typeahead fetch.
-    suggestSeqRef.current++;
-    // If the dropdown is open with results, Enter picks the active option.
-    if (suggestOpen && suggestions && suggestions.length > 0) {
-      pickSuggestion(suggestions[Math.min(activeOption, suggestions.length - 1)]);
-      return;
-    }
-    const req = ++requestRef.current;
-    setSearchNote(null);
-    if (!countySearchSupported) {
-      // The statewide mosaic has no attribute search — geocode the text to a
-      // point, fly there, and identify the parcel at that point instead.
-      setPanel({ status: "loading", county: selectedCounty });
-      try {
-        const hit = await geocodePlace(text);
-        if (req !== requestRef.current) return;
-        if (!hit) {
-          setPanel({ status: "empty" });
-          setSearchNote(
-            `No place matched “${text}” — try an address or city, or pick a Live county for APN search.`,
-          );
-          return;
-        }
-        const lng = parseFloat(hit.lon);
-        const lat = parseFloat(hit.lat);
-        const result = await queryParcelAtPoint(STATEWIDE_COUNTY_NAME, lng, lat);
-        // Fly only after the second stale-guard — a superseded request must
-        // not move the map either.
-        if (req !== requestRef.current) return;
-        mapRef.current?.flyTo({ center: [lng, lat], zoom: 16, duration: 1200 });
-        if (!result) {
-          setPanel({ status: "empty" });
-          setSearchNote(
-            `No parcel at “${hit.display_name ?? text}” in the statewide mosaic — try zooming in and clicking the parcel.`,
-          );
-          return;
-        }
-        applySearchResult(result, text);
-      } catch {
-        if (req !== requestRef.current) return;
-        setPanel({ status: "error" });
-        setSearchNote("Place search failed — check the connection and try again.");
+  // Submit logic, callable from the form (interactive — text from state) and
+  // from the deep-link bootstrap (explicit text + county override, because a
+  // mount-effect closure can't see the state it just set).
+  const runSearch = useCallback(
+    async (text: string, countyOverride?: string) => {
+      const query = text.trim();
+      if (!query) return;
+      // Submitting cancels any pending debounced typeahead fetch.
+      suggestSeqRef.current++;
+      // If the dropdown is open with results, Enter picks the active option.
+      // (Deep-link replays pass a countyOverride and skip this.)
+      if (
+        !countyOverride &&
+        suggestOpen &&
+        suggestions &&
+        suggestions.length > 0
+      ) {
+        pickSuggestion(
+          suggestions[Math.min(activeOption, suggestions.length - 1)],
+        );
+        return;
       }
-      return;
-    }
-    setPanel({ status: "loading", county: selectedCounty });
-    const results = await searchParcels(selectedCounty, text);
-    if (req !== requestRef.current) return;
-    const first = results[0];
-    if (!first) {
-      setPanel({ status: "empty" });
-      setSearchNote(`No parcels in ${selectedCounty} match “${text}”.`);
-      return;
-    }
-    applySearchResult(first, text);
-  }, [searchText, selectedCounty, countySearchSupported, suggestOpen, suggestions, activeOption, pickSuggestion, applySearchResult]);
+      const req = ++requestRef.current;
+      setSearchNote(null);
+      const county = countyOverride ?? selectedCounty;
+      const supported =
+        county !== STATEWIDE_COUNTY_NAME &&
+        !!countyByName.get(county)?.endpoint &&
+        countyByName.get(county)?.status !== "mosaic-only";
+      if (!supported) {
+        // The statewide mosaic has no attribute search — geocode the text to
+        // a point, fly there, and identify the parcel at that point instead.
+        setPanel({ status: "loading", county });
+        try {
+          const hit = await geocodePlace(query);
+          if (req !== requestRef.current) return;
+          if (!hit) {
+            setPanel({ status: "empty" });
+            setSearchNote(
+              `No place matched “${query}” — try an address or city, or pick a Live county for APN search.`,
+            );
+            return;
+          }
+          const lng = parseFloat(hit.lon);
+          const lat = parseFloat(hit.lat);
+          const result = await queryParcelAtPoint(
+            STATEWIDE_COUNTY_NAME,
+            lng,
+            lat,
+          );
+          // Fly only after the second stale-guard — a superseded request must
+          // not move the map either.
+          if (req !== requestRef.current) return;
+          mapRef.current?.flyTo({ center: [lng, lat], zoom: 16, duration: 1200 });
+          if (!result) {
+            setPanel({ status: "empty" });
+            setSearchNote(
+              `No parcel at “${hit.display_name ?? query}” in the statewide mosaic — try zooming in and clicking the parcel.`,
+            );
+            return;
+          }
+          applySearchResult(result, query);
+        } catch {
+          if (req !== requestRef.current) return;
+          setPanel({ status: "error" });
+          setSearchNote(
+            "Place search failed — check the connection and try again.",
+          );
+        }
+        return;
+      }
+      setPanel({ status: "loading", county });
+      const results = await searchParcels(county, query);
+      if (req !== requestRef.current) return;
+      const first = results[0];
+      if (!first) {
+        setPanel({ status: "empty" });
+        setSearchNote(`No parcels in ${county} match “${query}”.`);
+        return;
+      }
+      applySearchResult(first, query);
+    },
+    [
+      selectedCounty,
+      countyByName,
+      suggestOpen,
+      suggestions,
+      activeOption,
+      pickSuggestion,
+      applySearchResult,
+    ],
+  );
+
+  const handleSearch = useCallback(
+    () => runSearch(searchText),
+    [runSearch, searchText],
+  );
 
   // Kick the selected parcel into the agent pipeline; fall back to the plain
   // scanning page when the backend is down (same pattern as IntakeDropzone).
@@ -442,6 +520,131 @@ export default function ParcelViewer() {
     setPanel({ status: "idle" });
   }, []);
 
+  // --- Deep links ---------------------------------------------------------
+  // URL shape: ?lat=..&lng=..&zoom=..[&apn=..&county=..]. All window access
+  // lives in effects/handlers, never in render — even though ParcelViewerClient
+  // already loads this component with ssr:false.
+
+  // Bootstrap (mount, once): replay the link. `apn` wins when both apn and
+  // lat/lng are present (copy-link URLs carry all five params — the APN+county
+  // search is the canonical parcel reference and flies to the parcel itself;
+  // lat/lng alone is the fallback view+identify replay).
+  useEffect(() => {
+    if (deepLinkRef.current) return;
+    const params = new URLSearchParams(window.location.search);
+    const apn = params.get("apn")?.trim() || null;
+    const countyParam = params.get("county")?.trim() || null;
+    const lat = parseFloat(params.get("lat") ?? "");
+    const lng = parseFloat(params.get("lng") ?? "");
+    const zoom = parseFloat(params.get("zoom") ?? "");
+    const hasPoint = Number.isFinite(lat) && Number.isFinite(lng);
+    if (!apn && !hasPoint) {
+      deepLinkRef.current = true; // nothing to replay — never re-check
+      return;
+    }
+    // Deferred a tick: keeps setState out of the effect body
+    // (react-hooks/set-state-in-effect) and lets MapGL's own mount effects
+    // create the map first. The ref is consumed inside the callback (not
+    // here), so a StrictMode double-invoke — whose cleanup clears the first
+    // timeout — still lets the second run's timeout fire the replay.
+    const t = setTimeout(() => {
+      if (deepLinkRef.current) return;
+      deepLinkRef.current = true;
+      const county =
+        countyParam &&
+        (countyParam === STATEWIDE_COUNTY_NAME ||
+          countyByName.has(countyParam))
+          ? countyParam
+          : null;
+      if (apn) {
+        // Pre-select the county first so the UI matches the replay…
+        if (county) handleCountyChange(county);
+        // …but runSearch also gets it as an explicit override, because this
+        // closure still sees the pre-update selectedCounty. The APN goes into
+        // the box for display; its typeahead dropdown is suppressed once.
+        suggestSuppressRef.current = true;
+        setSearchText(apn);
+        void runSearch(apn, county ?? undefined);
+        return;
+      }
+      // lat/lng replay: wait for the style to finish loading before moving
+      // the camera, then identify the parcel via the normal click path.
+      const go = () => {
+        mapRef.current?.flyTo({
+          center: [lng, lat],
+          zoom: Number.isFinite(zoom) ? zoom : 15,
+          duration: 1200,
+        });
+        void handleMapClick(lng, lat);
+      };
+      const map = mapRef.current;
+      if (map && !map.loaded()) {
+        map.once("load", go);
+      } else {
+        go();
+      }
+    }, 0);
+    return () => clearTimeout(t);
+  }, [countyByName, handleCountyChange, handleMapClick, runSearch]);
+
+  // URL writer (debounced moveend): keep ?lat&lng&zoom in the address bar in
+  // sync with the map, preserving any apn/county params already there, so the
+  // current view is always shareable. Deliberately window.history.replaceState
+  // instead of next/router — router.replace runs a React navigation (re-render
+  // churn + scroll bookkeeping) on every pan for what is pure shareable state.
+  const handleMoveEnd = useCallback(() => {
+    if (moveTimerRef.current) clearTimeout(moveTimerRef.current);
+    moveTimerRef.current = setTimeout(() => {
+      const map = mapRef.current;
+      if (!map) return;
+      const c = map.getCenter();
+      const params = new URLSearchParams(window.location.search);
+      params.set("lat", c.lat.toFixed(5));
+      params.set("lng", c.lng.toFixed(5));
+      params.set("zoom", map.getZoom().toFixed(2));
+      window.history.replaceState(
+        null,
+        "",
+        `${window.location.pathname}?${params.toString()}`,
+      );
+    }, 400);
+  }, []);
+
+  // Copy a deep link for the selected parcel: apn + its county + the current
+  // camera. Clipboard failure (permissions, insecure context) just logs and
+  // keeps the label — the same URL stays in the address bar regardless.
+  const handleCopyLink = useCallback(async () => {
+    if (panel.status !== "found") return;
+    const params = new URLSearchParams();
+    const map = mapRef.current;
+    if (map) {
+      const c = map.getCenter();
+      params.set("lat", c.lat.toFixed(5));
+      params.set("lng", c.lng.toFixed(5));
+      params.set("zoom", map.getZoom().toFixed(2));
+    }
+    const apn = panel.result.apn ?? panel.result.address;
+    if (apn) params.set("apn", apn);
+    params.set("county", panel.result.county);
+    const url = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
+      copiedTimerRef.current = setTimeout(() => setCopied(false), 1500);
+    } catch (err) {
+      console.warn("Copy link failed:", err);
+    }
+  }, [panel]);
+
+  // Cancel pending debounce/label-reset timers on unmount.
+  useEffect(() => {
+    return () => {
+      if (moveTimerRef.current) clearTimeout(moveTimerRef.current);
+      if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
+    };
+  }, []);
+
   // GeoJSON for the highlight layers — geometry:null results simply clear it.
   const selectedFeature = useMemo<Feature | null>(() => {
     if (panel.status !== "found" || !panel.result.geometry) return null;
@@ -457,11 +660,12 @@ export default function ParcelViewer() {
           latitude: CA_CENTER[1],
           zoom: CA_ZOOM,
         }}
-        mapStyle={MAP_STYLE}
+        mapStyle={basemap === "satellite" ? SATELLITE_STYLE : MAP_STYLE}
         style={{ width: "100%", height: "100%", cursor: MAP_CURSOR }}
         cursor={MAP_CURSOR}
         attributionControl={{ compact: false }}
         onClick={(e) => void handleMapClick(e.lngLat.lng, e.lngLat.lat)}
+        onMoveEnd={handleMoveEnd}
       >
         {/* Parcel boundary overlay — only meaningful when zoomed in. */}
         <Source id="regrid-parcels" type="raster" tiles={[REGRID_TILES]} tileSize={256}>
@@ -523,6 +727,32 @@ export default function ParcelViewer() {
             ))}
           </select>
         </label>
+        <div
+          role="group"
+          aria-label="Basemap"
+          className="flex items-center rounded-full bg-canvas p-0.5 ring-1 ring-hairline"
+        >
+          {(
+            [
+              ["map", "Map"],
+              ["satellite", "Satellite"],
+            ] as const
+          ).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={basemap === value}
+              onClick={() => setBasemap(value)}
+              className={`rounded-full px-3 py-1 text-[12px] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-vista ${
+                basemap === value
+                  ? "bg-ink text-white"
+                  : "text-muted hover:text-ink"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <form
           className="relative flex items-center"
           onSubmit={(e) => {
@@ -653,7 +883,31 @@ export default function ParcelViewer() {
             </ul>
           )}
         </form>
-        <span className="ml-auto text-[12px] text-faint">
+        {panel.status === "found" && (
+          <button
+            type="button"
+            onClick={() => void handleCopyLink()}
+            className="ml-auto flex items-center gap-1.5 rounded-full bg-canvas px-3 py-1.5 text-[12px] text-muted ring-1 ring-hairline transition-colors hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-vista"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              className="h-3.5 w-3.5"
+              aria-hidden="true"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+            </svg>
+            {copied ? "Copied" : "Copy link"}
+          </button>
+        )}
+        <span
+          className={`${panel.status === "found" ? "" : "ml-auto "}text-[12px] text-faint`}
+        >
           {counts.live} live · {counts.partial} partial · {counts.mosaic} via
           statewide mosaic
         </span>
