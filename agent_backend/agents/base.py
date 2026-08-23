@@ -316,17 +316,27 @@ class Agent:
                 except Exception as e:  # tool failures are observations, not crashes
                     output = f"tool error: {e}"
                 rendered = str(output)
-                if len(rendered) > 8000:
-                    # Mirror the anthropic path: silent truncation hides why an
-                    # agent "ignored" a document it was given.
+                if len(rendered) > 16000:
+                    # Head+tail preservation (2026-08-23): sources front-load
+                    # summaries and end with conclusions/contact tables — a
+                    # hard 8k head-cut could drop a red flag mid-document.
+                    # The omission marker keeps the agent honest about it.
+                    keep_head, keep_tail = 14000, 2000
+                    omitted = len(rendered) - (keep_head + keep_tail)
                     self.trace.warn(
                         "tool.truncated",
-                        f"{fn_name} returned {len(rendered)} chars, truncated to 8000",
+                        f"{fn_name} returned {len(rendered)} chars, kept head+tail "
+                        f"{keep_head}+{keep_tail} ({omitted} middle omitted)",
+                    )
+                    rendered = (
+                        rendered[:keep_head]
+                        + f"\n\n[…{omitted} middle chars omitted — fetch a narrower page for the rest]\n\n"
+                        + rendered[-keep_tail:]
                     )
                 messages.append({
                     "role": "tool",
                     "tool_call_id": call["id"],
-                    "content": rendered[:8000],
+                    "content": rendered,
                 })
 
         raise AgentDidNotConverge(self.name)
