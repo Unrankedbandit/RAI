@@ -28,6 +28,7 @@ type ScanEvent =
   | { type: "finding"; text: string; flag: boolean }
   | { type: "subagent_spawned"; name: string; parentPillar: string }
   | { type: "pillar_complete"; pillar: string; score: number; band: "strong"|"watch"|"risk" }
+  | { type: "phase"; phase: string; detail: string }
   | { type: "complete"; projectId: string; activationScore: number }
   | { type: "error"; message: string };
 ```
@@ -48,9 +49,13 @@ data: {"type":"complete","projectId":"proj_abc123","activationScore":62}
 
 - `reading_document` / `finding` → a new trail line (`flag:true` renders orange).
 - `subagent_spawned` → a trail line + a sub-agent pill.
-- `pillar_complete` → advances the bar to the next honest 1/5 milestone. Between
-  milestones the bar fills only in small increments and never reaches the next
-  jump — five real steps, no fabricated smooth 0–100.
+- `pillar_complete` → a trail line with the pillar's score.
+- `phase` → drives the staging tracker at the top of the run view: one box per
+  pipeline phase (orchestrate → compose) going waiting → working → done. A
+  phase event naming an already-done phase means the pipeline looped back
+  (cross-examine → follow-up research) — the box re-opens with "re-run due to
+  findings". Phases with no explicit backend event (scouts, research) are
+  inferred from working DataScout:*/Researcher:* agent activity.
 - `complete` → the terminal signal. The UI navigates to `/projects/{projectId}`
   with the real `activationScore`. **Send a real projectId** — nothing is hardcoded.
 - `error` → stops the run and shows `message` plainly with retry/back.

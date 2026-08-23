@@ -39,6 +39,15 @@ export type ScanEvent =
    */
   | { type: "progress"; percent: number }
   /**
+   * Pipeline phase boundary — trace kind "phase" from pipeline.py
+   * (orchestrate, extract, gap, scouts, research, cross_examine, score,
+   * liaison, compose). Drives the staging tracker in the run view. A phase
+   * event naming an already-done phase means the pipeline looped back (the
+   * cross-examine → follow-up research loop) — the tracker shows that stage
+   * working again with "re-run due to findings".
+   */
+  | { type: "phase"; phase: string; detail: string }
+  /**
    * Mid-run human-approval gate. The pipeline paused after the first research
    * step and is waiting for a human to pick which gaps the swarm should chase.
    * Purely additive — when the gate is disabled server-side this never arrives.

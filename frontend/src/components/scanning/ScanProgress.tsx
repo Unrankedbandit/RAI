@@ -1,100 +1,122 @@
 "use client";
 
 import { motion } from "framer-motion";
+import type { StageState } from "@/lib/scan/scanState";
 
 type ScanProgressProps = {
-  /** 0–100. */
-  percent: number;
-  /** True when no event has landed recently: read as "still working", not stalled. */
-  indeterminate: boolean;
-  /** Filename currently in focus, or null before any document is read. */
-  file: string | null;
+  /** One box per pipeline phase, in canonical order (from scanState). */
+  stages: StageState[];
+  /** Whole run finished — freezes every box filled green, pulses off. */
   done: boolean;
 };
 
+function statusText(stage: StageState): string {
+  if (stage.status === "done") return "done";
+  if (stage.status === "working") {
+    return stage.retriggered ? "re-run due to findings" : "working";
+  }
+  return "waiting";
+}
+
 /**
- * The moving progress indicator: a rounded bar that visibly fills left→right,
- * with the document currently being read and a live percentage. Vista marks
- * work-in-progress — a structural accent, never a status or the reserved brand
- * orange.
+ * The staging tracker — replaces the old progress bar. One box per pipeline
+ * phase (orchestrate → compose), each going from empty to fully green:
  *
- * In indeterminate mode (a milestone is taking a while) the bar keeps its
- * current width but overlays a shimmer sweep and pulses, and the numeric
- * percentage is replaced by a "working…" label — so it never fabricates a
- * climbing number the backend hasn't earned.
+ *   pending  — outlined/empty hairline box, status "waiting"
+ *   working  — brand-orange pulsing border, status "working" — or "re-run
+ *              due to findings" when the phase started again after
+ *              completing (the cross-examine → follow-up research loop)
+ *   done     — fills solid green left→right with a smooth transition,
+ *              status "done"
+ *
+ * Desktop lays the boxes out as a horizontal stepper with a connecting line
+ * (green behind finished stretches); under md it stacks into a list.
  */
-export function ScanProgress({ percent, indeterminate, file, done }: ScanProgressProps) {
-  const pct = Math.max(0, Math.min(100, Math.round(percent)));
-  const shimmering = indeterminate && !done;
-
+export function ScanProgress({ stages, done }: ScanProgressProps) {
   return (
-    <div>
-      <div className="flex items-baseline justify-between gap-4">
-        <div className="flex items-center gap-2 min-w-0">
-          {!done && (
-            <motion.span
-              aria-hidden
-              className="inline-block h-2 w-2 shrink-0 rounded-full bg-vista"
-              animate={{ opacity: [1, 0.3, 1] }}
-              transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
-            />
-          )}
-          <span className="truncate text-sm text-muted">
-            {done ? (
-              "Analysis complete"
-            ) : file ? (
-              <>
-                Reading <span className="text-ink">{file}</span>
-              </>
-            ) : (
-              "Preparing…"
-            )}
-          </span>
-        </div>
-        {shimmering ? (
-          <motion.span
-            className="shrink-0 text-sm font-medium text-faint"
-            animate={{ opacity: [1, 0.45, 1] }}
-            transition={{ duration: 1.3, repeat: Infinity, ease: "easeInOut" }}
-          >
-            working…
-          </motion.span>
-        ) : (
-          <span className="shrink-0 text-sm font-medium tabular-nums text-ink">
-            {pct}%
-          </span>
-        )}
-      </div>
+    <ol
+      aria-label="Pipeline stages"
+      className="flex flex-col gap-2 md:flex-row md:items-stretch"
+    >
+      {stages.map((stage, i) => {
+        const isDone = stage.status === "done";
+        const isWorking = stage.status === "working" && !done;
+        const prevDone = i > 0 && stages[i - 1].status === "done";
+        const text = statusText(stage);
 
-      <div className="relative mt-3 h-2.5 w-full overflow-hidden rounded-full bg-surface-2">
-        <motion.div
-          className="h-full rounded-full bg-vista"
-          initial={{ width: "0%" }}
-          animate={{
-            width: `${pct}%`,
-            opacity: shimmering ? [1, 0.65, 1] : 1,
-          }}
-          transition={{
-            width: { duration: 0.25, ease: "linear" },
-            opacity: shimmering
-              ? { duration: 1.3, repeat: Infinity, ease: "easeInOut" }
-              : { duration: 0.2 },
-          }}
-        />
-        {shimmering && (
-          <motion.div
-            aria-hidden
-            className="pointer-events-none absolute inset-y-0 left-0 w-1/3 rounded-full"
-            style={{
-              background:
-                "linear-gradient(90deg, transparent, var(--color-vista-soft), transparent)",
-            }}
-            initial={{ x: "-100%" }}
-            animate={{ x: "400%" }}
-            transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
-          />
-        )}
-      </div>
-    </div>
+        return (
+          <li
+            key={stage.id}
+            aria-label={`${stage.label}: ${text}`}
+            className="relative min-w-0 md:flex-1"
+          >
+            {/* Stepper connector, in the gap to the previous box. */}
+            {i > 0 && (
+              <span
+                aria-hidden
+                className="absolute -left-2 top-1/2 hidden h-px w-2 md:block"
+                style={{
+                  background:
+                    prevDone && isDone
+                      ? "var(--color-go)"
+                      : "var(--color-hairline)",
+                }}
+              />
+            )}
+
+            <div className="relative h-full overflow-hidden rounded-md border border-hairline bg-surface-2 px-2 py-2">
+              {/* Green fill — sweeps left→right when the stage completes and
+                  drains back out if the stage re-runs. */}
+              <motion.span
+                aria-hidden
+                className="absolute inset-0 origin-left bg-go"
+                initial={false}
+                animate={{ scaleX: isDone ? 1 : 0 }}
+                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              />
+
+              {/* Brand pulse on the border while the stage is working. */}
+              {isWorking && (
+                <motion.span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 rounded-md border-2 border-brand"
+                  animate={{ opacity: [1, 0.25, 1] }}
+                  transition={{
+                    duration: 1.2,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                />
+              )}
+
+              <div className="relative">
+                <p
+                  className={`text-[11px] font-medium leading-tight ${
+                    isDone
+                      ? "text-oxford"
+                      : isWorking
+                        ? "text-ink"
+                        : "text-faint"
+                  }`}
+                >
+                  {stage.label}
+                </p>
+                <p
+                  className={`mt-0.5 text-[10px] leading-tight ${
+                    isDone
+                      ? "text-oxford"
+                      : isWorking
+                        ? "text-brand"
+                        : "text-faint"
+                  }`}
+                >
+                  {text}
+                </p>
+              </div>
+            </div>
+          </li>
+        );
+      })}
+    </ol>
   );
 }

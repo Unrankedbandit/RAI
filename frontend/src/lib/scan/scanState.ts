@@ -94,6 +94,104 @@ export function groupAgentsByCore(agents: AgentBox[]): AgentCoreGroup[] {
 
 export type TrailKind = "read" | "flag" | "score" | "subagent" | "gate";
 
+/**
+ * The pipeline stages the run view tracks, in canonical order — the trace
+ * kind "phase" values from agent_backend/pipeline.py (ground truth), with
+ * the two phases that have no explicit phase event (scouts, research)
+ * inferred from agent activity instead (see AGENT_PHASE below).
+ */
+export type PipelinePhase =
+  | "orchestrate"
+  | "extract"
+  | "gap"
+  | "scouts"
+  | "research"
+  | "cross_examine"
+  | "score"
+  | "liaison"
+  | "compose";
+
+export type StageStatus = "pending" | "working" | "done";
+
+/** One box in the staging tracker. */
+export type StageState = {
+  id: PipelinePhase;
+  /** Friendly box title. */
+  label: string;
+  status: StageStatus;
+  /**
+   * True when the phase started AGAIN after completing (the cross-examine →
+   * follow-up research loop). The box flips back to working and its status
+   * line reads "re-run due to findings" instead of "working".
+   */
+  retriggered: boolean;
+};
+
+export const PIPELINE_STAGES: ReadonlyArray<{
+  id: PipelinePhase;
+  label: string;
+}> = [
+  { id: "orchestrate", label: "Project profile" },
+  { id: "extract", label: "Document extraction" },
+  { id: "gap", label: "Gap analysis" },
+  { id: "scouts", label: "Data scouts" },
+  { id: "research", label: "Research" },
+  { id: "cross_examine", label: "Cross-examination" },
+  { id: "score", label: "Scoring" },
+  { id: "liaison", label: "Action pack" },
+  { id: "compose", label: "Report" },
+];
+
+function initialStages(): StageState[] {
+  return PIPELINE_STAGES.map((s) => ({
+    ...s,
+    status: "pending",
+    retriggered: false,
+  }));
+}
+
+/**
+ * Agent core name → the phase its activity belongs to. pipeline.py emits no
+ * phase event for the scout/research fan-outs, so a working DataScout:* /
+ * Researcher:* box is the honest signal that stage is running (and, after
+ * cross-examination, that research re-ran).
+ */
+const AGENT_PHASE: Record<string, PipelinePhase> = {
+  orchestrator: "orchestrate",
+  extractor: "extract",
+  gapanalyzer: "gap",
+  datascout: "scouts",
+  researcher: "research",
+  crossexaminer: "cross_examine",
+  "cross-examiner": "cross_examine",
+  scorer: "score",
+  liaison: "liaison",
+  composer: "compose",
+};
+
+/**
+ * Phase state machine: the named phase goes to working (a done phase goes
+ * BACK to working and is flagged retriggered), and every earlier stage the
+ * pipeline has moved past snaps to done. Unknown phase names pass through
+ * unchanged so new backend stages never break the UI.
+ */
+function touchStage(stages: StageState[], id: PipelinePhase): StageState[] {
+  const idx = stages.findIndex((s) => s.id === id);
+  if (idx < 0) return stages;
+  return stages.map((s, i) => {
+    if (i < idx) {
+      return s.status === "done" ? s : { ...s, status: "done" };
+    }
+    if (i === idx) {
+      if (s.status === "done") {
+        return { ...s, status: "working", retriggered: true };
+      }
+      return s.status === "working" ? s : { ...s, status: "working" };
+    }
+    return s;
+  });
+}
+
 /** How the review gate closed — human selection or server-side timeout. */
 export type GateResolution = {
   mode: "approved" | "timeout";
@@ -144,6 +242,8 @@ export type ScanData = {
   agents: AgentBox[];
   /** Per-agent live feed lines (agent_update history), keyed by agent name. */
   feeds: Record<string, AgentFeedLine[]>;
+  /** The staging tracker: one box per pipeline phase, in canonical order. */
+  stages: StageState[];
   /** Total events folded so far (0 = nothing has arrived yet). */
   eventCount: number;
 };
@@ -162,6 +262,7 @@ export const initialScanData: ScanData = {
   gate: null,
   agents: [],
   feeds: {},
+  stages: initialStages(),
   eventCount: 0,
 };
 
@@ -250,7 +351,20 @@ export function reduceScan(state: ScanData, event: ScanEvent): ScanData {
         ...(prevFeed.length >= FEED_CAP ? prevFeed.slice(1) : prevFeed),
         feedLine(event.activity, event.status),
       ];
-      return { ...next, agents, feeds: { ...state.feeds, [event.agent]: feed } };
+      // A working agent whose core maps to a pipeline phase is also the
+      // tracker's signal for the phases that have no explicit phase event
+      // (scouts, research) — and for research re-running after cross-examine.
+      const mapped = AGENT_PHASE[event.agent.split(":")[0].toLowerCase()];
+      const stages =
+        mapped && status === "working"
+          ? touchStage(state.stages, mapped)
+          : state.stages;
+      return {
+        ...next,
+        agents,
+        feeds: { ...state.feeds, [event.agent]: feed },
+        stages,
+      };
     }
     case "pillar_complete": {
       const pillarsComplete = Math.min(PILLAR_COUNT, state.pillarsComplete + 1);
@@ -272,6 +386,12 @@ export function reduceScan(state: ScanData, event: ScanEvent): ScanData {
         ...next,
         percent: Math.max(state.percent, Math.min(96, event.percent)),
       };
+    }
+    case "phase": {
+      // Pipeline phase boundary (trace kind "phase"). A phase event naming an
+      // already-done phase is the cross-examine → follow-up research loop:
+      // touchStage flips it back to working and flags the re-run.
+      return { ...next, stages: touchStage(state.stages, event.phase as PipelinePhase) };
     }
     case "gate_gap_review": {
       // The pipeline is paused awaiting a human decision; the bar must not
@@ -324,6 +444,10 @@ export function reduceScan(state: ScanData, event: ScanEvent): ScanData {
           a.status === "working" || a.status === "waiting"
             ? { ...a, status: "done" }
             : a,
+        ),
+        // Every stage box fills green, including any still mid re-run.
+        stages: state.stages.map((s) =>
+          s.status === "done" ? s : { ...s, status: "done" },
         ),
         result: {
           projectId: event.projectId,

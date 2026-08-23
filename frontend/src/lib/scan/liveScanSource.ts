@@ -107,6 +107,13 @@ export function createLiveScanSource(
         count += 1;
         onEvent({ type: "progress", percent: approximateProgress(count) });
 
+        // Pipeline phase boundaries (pipeline.py emits trace kind "phase"
+        // with a phase field) drive the staging tracker first; the frame
+        // still falls through to the ambient run log below for history.
+        if (event.eventKind === "phase" && event.phase) {
+          onEvent({ type: "phase", phase: event.phase, detail: event.msg });
+        }
+
         // Frames naming an agent map onto that agent's box, same as the
         // "[Name] ..." narration; anything else is ambient run-log material.
         if (event.agent) {

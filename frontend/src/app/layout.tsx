@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Poppins, JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { SideNav } from "@/components/SideNav";
 import { TopBar } from "@/components/TopBar";
-import { RunBadge } from "@/components/RunBadge";
+import { ConsentGate } from "@/components/legal/ConsentGate";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -52,8 +53,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <div className="flex min-w-0 flex-1 flex-col">
           <TopBar />
           <main className="min-h-0 flex-1">{children}</main>
-          <RunBadge />
+          <footer className="border-t border-hairline px-5 py-2 text-right text-[11.5px] text-faint">
+            <Link href="/legal" className="underline-offset-2 hover:underline">
+              Legal & privacy
+            </Link>
+          </footer>
         </div>
+        <ConsentGate />
       </body>
     </html>
   );

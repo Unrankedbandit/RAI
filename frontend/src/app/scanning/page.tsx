@@ -196,12 +196,7 @@ function ScanningView() {
         </div>
 
         <Card>
-          <ScanProgress
-            percent={100}
-            indeterminate={false}
-            file={state.currentFile}
-            done
-          />
+          <ScanProgress stages={state.stages} done />
 
           <AgentActivity
             agents={state.agents}
@@ -248,12 +243,7 @@ function ScanningView() {
       </div>
 
       <Card>
-        <ScanProgress
-          percent={state.percent}
-          indeterminate={indeterminate}
-          file={state.currentFile}
-          done={false}
-        />
+        <ScanProgress stages={state.stages} done={false} />
 
         {indeterminate && (
           <p className="mt-2 text-xs text-muted">Still working…</p>
