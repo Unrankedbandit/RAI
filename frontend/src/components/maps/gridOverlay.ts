@@ -57,23 +57,24 @@ const ZOOM_GATE: FilterSpecification = [
   ["all", [">=", ["zoom"], 6], [">=", KV, 230]],
 ];
 
-// Ink/violet family — data-viz zone styling, deliberately NOT the red→green
-// ramp and NOT brand orange. Darkness scales with kv: unknown is a hairline
-// grey (the app's faint token), 500+ lands on full ink.
+// Neutral grey ramp — data-viz zone styling, deliberately NOT the red→green
+// score ramp, NOT brand orange, and NOT blue/violet (brand ink #0b0829 is
+// navy-leaning and reads blue on canvas — user feedback 2026-08-24).
+// Hue-free: darkness alone scales with kv, unknown is a hairline grey.
 const LINE_COLOR = [
   "step",
   KV,
-  "#9694a8", // unknown — hairline grey
+  "#b9b9c0", // unknown — hairline grey
   0,
-  "rgba(11, 8, 41, 0.4)", // <115 kV — ink at 40%
+  "#9a9aa2", // <115 kV
   115,
-  "#5f5a8c", // 115 kV — muted violet-ink
+  "#7d7d86", // 115 kV
   230,
-  "#453e80", // 230 kV
+  "#5c5c64", // 230 kV
   345,
-  "#2a2366", // 345 kV
+  "#3d3d44", // 345 kV
   500,
-  "#0b0829", // 500+ kV — darkest ink
+  "#1e1e26", // 500+ kV — near-black (watch token, neutral)
 ] as unknown as ExpressionSpecification;
 
 const LINE_WIDTH = [
@@ -135,7 +136,7 @@ export const GRID_LAYERS: LayerProps[] = [
     filter: ZOOM_GATE,
     paint: {
       "circle-radius": CIRCLE_RADIUS,
-      "circle-color": "#3d3875",
+      "circle-color": "#1e1e26", // neutral near-black, not blue/violet
       "circle-opacity": 0.9,
       "circle-stroke-color": "#ffffff",
       "circle-stroke-width": 1.5,

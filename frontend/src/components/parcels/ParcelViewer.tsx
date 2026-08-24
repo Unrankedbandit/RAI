@@ -55,9 +55,10 @@ const REGRID_TILES =
   "https://tiles.arcgis.com/tiles/KzeiCaQsMoeCfoCq/arcgis/rest/services/Regrid_Nationwide_Parcel_Boundaries_v1/MapServer/tile/{z}/{y}/{x}";
 
 const ORANGE = "#ff8400";
-// Ink (app token --color-ink) — grid distance connector/label, a data-viz
-// element that must not read as selection (orange) or status (red/green).
-const INK = "#0b0829";
+// Neutral near-black (--color-watch) — grid distance connector/label, a
+// data-viz element that must not read as selection (orange), status
+// (red/green), or blue (brand ink #0b0829 is navy-leaning on canvas).
+const INK = "#1e1e26";
 
 // Brand-orange crosshair/dot cursor for the map canvas (inline SVG data-uri).
 // Passed to MapGL's `cursor` prop (sets it on the canvas) and inherited from
