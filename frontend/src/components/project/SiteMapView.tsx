@@ -138,7 +138,7 @@ export default function SiteMapView({
             }}
             mapStyle={BASEMAP_STYLES[mapLayers.basemap]}
             style={{ width: "100%", height: "100%", touchAction: "none" }}
-            attributionControl={{ compact: false }}
+            attributionControl={{ compact: true }}
           >
             <MapLayersControl state={mapLayers} />
             {/* Site marker — the geocoded/explicit site point. */}

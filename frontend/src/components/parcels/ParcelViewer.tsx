@@ -655,7 +655,7 @@ export default function ParcelViewer() {
         // (fine pointer) is unaffected.
         style={{ width: "100%", height: "100%", cursor: MAP_CURSOR, touchAction: "none" }}
         cursor={MAP_CURSOR}
-        attributionControl={{ compact: false }}
+        attributionControl={{ compact: true }}
         onClick={(e) => void handleMapClick(e.lngLat.lng, e.lngLat.lat)}
         onMoveEnd={handleMoveEnd}
       >
@@ -922,7 +922,7 @@ export default function ParcelViewer() {
       </div>
 
       {/* data sources footer */}
-      <div className="absolute bottom-3 left-3 max-w-[min(600px,calc(100%-120px))] rounded-[8px] border border-hairline bg-canvas/95 px-3 py-2 text-[11.5px] leading-snug text-faint shadow-card backdrop-blur">
+      <div className="absolute bottom-3 left-16 max-w-[min(600px,calc(100%-160px))] rounded-[8px] border border-hairline bg-canvas/95 px-3 py-2 text-[11.5px] leading-snug text-faint shadow-card backdrop-blur">
         <span className="text-muted">
           Click the map to identify a parcel, or search by APN/address.
         </span>{" "}

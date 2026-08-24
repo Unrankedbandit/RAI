@@ -102,7 +102,7 @@ export default function PortfolioMapView({
       // markers + popups) so mobile pinch/drag on the map drives MapLibre
       // rather than pinch-zooming the page. Desktop is unaffected.
       style={{ width: "100%", height: "100%", touchAction: "none" }}
-      attributionControl={{ compact: false }}
+      attributionControl={{ compact: true }}
     >
       <MapLayersControl state={mapLayers} />
       {projects.map((p) => {
