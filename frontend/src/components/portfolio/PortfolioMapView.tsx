@@ -2,11 +2,17 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import Map, { Marker, Popup, type MapRef } from "react-map-gl/maplibre";
+import Map, {
+  Layer,
+  Popup,
+  Source,
+  type MapLayerMouseEvent,
+  type MapRef,
+} from "react-map-gl/maplibre";
+import type { FeatureCollection, Point } from "geojson";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import { bandColorVar, statusLabelText } from "@/lib/band";
-import { clsx } from "@/lib/clsx";
 import type { Project } from "@/lib/types";
 import {
   useResearchedParcels,
@@ -20,14 +26,47 @@ import {
 } from "@/components/maps/MapLayersControl";
 import { ProjectIntel } from "@/components/portfolio/ProjectIntel";
 
+// MapLibre paint props are evaluated in the style spec, not in CSS, so they
+// can't consume the var() tokens in bandColorVar / verdictColorVar — resolve
+// each token against the live stylesheet (client-only component, ssr:false).
+function resolveThemeColor(token: string): string {
+  const name = /^var\((--[\w-]+)\)$/.exec(token)?.[1];
+  if (!name || typeof document === "undefined") return token;
+  return (
+    getComputedStyle(document.documentElement).getPropertyValue(name).trim() ||
+    token
+  );
+}
+
+/** Concrete dot colors keyed by the same band / verdict names as the CSS
+ *  token maps, so the circle layers track the active theme. */
+function readDotColors(): {
+  band: Record<Project["band"], string>;
+  verdict: Record<ResearchedParcel["verdict"], string>;
+} {
+  return {
+    band: {
+      strong: resolveThemeColor(bandColorVar.strong),
+      watch: resolveThemeColor(bandColorVar.watch),
+      risk: resolveThemeColor(bandColorVar.risk),
+    },
+    verdict: {
+      go: resolveThemeColor(verdictColorVar.go),
+      hold: resolveThemeColor(verdictColorVar.hold),
+      nogo: resolveThemeColor(verdictColorVar.nogo),
+    },
+  };
+}
+
 /**
- * Real interactive portfolio map: one band-coloured marker per project (true
- * coordinates), and a design-system popup with the activation score, status
- * and per-project intel. The old satellite/vector toggle pill is replaced by
- * the shared layers tool (components/maps/MapLayersControl) — a basemap
- * radio (satellite default, keyless Esri raster / CARTO Positron / Dark
- * Matter) plus GIS overlay checkboxes, persisted per page under the
- * "portfolio" storage key.
+ * Real interactive portfolio map: one band-coloured pin per project (true
+ * coordinates), rendered as a single GPU circle layer (GeoJSON Source +
+ * Layer) rather than per-pin DOM markers, and a design-system popup with
+ * the activation score, status and per-project intel. The old
+ * satellite/vector toggle pill is replaced by the shared layers tool
+ * (components/maps/MapLayersControl) — a basemap radio (satellite default,
+ * keyless Esri raster / CARTO Positron / Dark Matter) plus GIS overlay
+ * checkboxes, persisted per page under the "portfolio" storage key.
  *
  * On top of the project pins, every researched parcel from the agent backend
  * (GET /api/projects via lib/agent/researched.ts) drops a smaller
@@ -49,6 +88,9 @@ export default function PortfolioMapView({
   const mapLayers = useMapLayers("portfolio");
   const [hoveredResearch, setHoveredResearch] =
     useState<ResearchedParcel | null>(null);
+  // Canvas cursor: pointer over a dot, grab elsewhere (react-map-gl `cursor`
+  // prop pattern, as in ParcelViewer).
+  const [cursor, setCursor] = useState("grab");
   const mapRef = useRef<MapRef>(null);
   // Switching the mapStyle prop (via the layers tool) makes react-map-gl
   // call setStyle internally — no remount, camera preserved.
@@ -89,6 +131,86 @@ export default function PortfolioMapView({
     });
   }, [bounds]);
 
+  // Resolved after mount so a theme flip re-reads the stylesheet; the two
+  // GeoJSON collections below rebuild when the concrete colors land.
+  const [dotColors, setDotColors] = useState(readDotColors);
+  useEffect(() => {
+    setDotColors(readDotColors());
+  }, []);
+
+  // One GPU circle layer per dot family replaces the old per-project /
+  // per-parcel DOM <Marker> loops: pin color and the selected/at-risk halo
+  // ride on feature properties, so paint is data-driven off these.
+  const projectPins = useMemo<FeatureCollection<Point>>(
+    () => ({
+      type: "FeatureCollection",
+      features: projects.map((p) => ({
+        type: "Feature",
+        geometry: { type: "Point", coordinates: [p.longitude, p.latitude] },
+        properties: {
+          id: p.id,
+          color: dotColors.band[p.band],
+          // 1 = draw the halo (selected or at-risk — the old CSS pulse ring).
+          pulsing: selected?.id === p.id || p.status === "at-risk" ? 1 : 0,
+        },
+      })),
+    }),
+    [projects, dotColors, selected],
+  );
+
+  const researchedDots = useMemo<FeatureCollection<Point>>(
+    () => ({
+      type: "FeatureCollection",
+      features: researched.map((r, i) => ({
+        type: "Feature",
+        geometry: { type: "Point", coordinates: [r.longitude, r.latitude] },
+        // i indexes back into `researched` for the hover/click popup.
+        properties: { i, color: dotColors.verdict[r.verdict] },
+      })),
+    }),
+    [researched, dotColors],
+  );
+
+  // Clicks arrive via the map's onClick (interactiveLayerIds below) with the
+  // hit circle's feature in e.features; the popups are unchanged from the
+  // DOM-marker version. Researched dots render after the project pins, so
+  // they win when the 44px hit areas overlap (as the DOM stacking did).
+  const handleDotClick = (e: MapLayerMouseEvent) => {
+    const features = e.features ?? [];
+    const res = features.find((f) => f.layer.id === "researched-hit");
+    if (res) {
+      const r = researched[(res.properties as { i: number }).i];
+      if (r) setHoveredResearch((cur) => (cur?.id === r.id ? null : r));
+      return;
+    }
+    const pin = features.find((f) => f.layer.id === "portfolio-hit");
+    if (!pin) return;
+    const p = projects.find(
+      (proj) => proj.id === (pin.properties as { id: string }).id,
+    );
+    if (!p) return;
+    setSelected(p);
+    // Move the pin away from the container edges so the popup never clips
+    // against the map frame (which is overflow-hidden). Offset puts the pin
+    // slightly above center, leaving the most room below it; the camera
+    // eases, so the map never remounts.
+    mapRef.current?.easeTo({
+      center: [p.longitude, p.latitude],
+      offset: [0, -60],
+      duration: 300,
+    });
+  };
+
+  // Hover tracking for the researched popup: mousemove only fires over the
+  // interactive hit layers, so when no researched feature is under the
+  // pointer the hover clears (fully off the dots, onMouseLeave clears).
+  const handleDotHover = (e: MapLayerMouseEvent) => {
+    const res = e.features?.find((f) => f.layer.id === "researched-hit");
+    setHoveredResearch(
+      res ? (researched[(res.properties as { i: number }).i] ?? null) : null,
+    );
+  };
+
   return (
     <div className="relative h-full w-full">
     <Map
@@ -103,82 +225,76 @@ export default function PortfolioMapView({
       // rather than pinch-zooming the page. Desktop is unaffected.
       style={{ width: "100%", height: "100%", touchAction: "none" }}
       attributionControl={{ compact: true }}
+      // The transparent 44px hit circles are the interactive surface; they
+      // fully cover the visible dots they sit on top of.
+      interactiveLayerIds={["portfolio-hit", "researched-hit"]}
+      cursor={cursor}
+      onClick={handleDotClick}
+      onMouseMove={handleDotHover}
+      onMouseEnter={() => setCursor("pointer")}
+      onMouseLeave={() => {
+        setCursor("grab");
+        setHoveredResearch(null);
+      }}
     >
       <MapLayersControl state={mapLayers} />
-      {projects.map((p) => {
-        const pulsing = selected?.id === p.id || p.status === "at-risk";
-        return (
-          <Marker
-            key={p.id}
-            longitude={p.longitude}
-            latitude={p.latitude}
-            anchor="center"
-            onClick={(e) => {
-              e.originalEvent.stopPropagation();
-              setSelected(p);
-              // Move the pin away from the container edges so the popup
-              // never clips against the map frame (which is overflow-hidden).
-              // Offset puts the pin slightly above center, leaving the most
-              // room below it; the camera eases, so the map never remounts.
-              mapRef.current?.easeTo({
-                center: [p.longitude, p.latitude],
-                offset: [0, -60],
-                duration: 300,
-              });
-            }}
-          >
-            {/* 44×44 hit area (WCAG target size) around the 14px visual dot —
-                a tap registers the same selection as a mouse click; desktop
-                appearance is unchanged because the padding is transparent. */}
-            <div
-              className="flex h-11 w-11 cursor-pointer items-center justify-center"
-              role="button"
-              aria-label={`Select project ${p.name}`}
-            >
-              <div
-                className={clsx("rai-marker-dot", pulsing && "rai-marker-pulse")}
-                style={{ backgroundColor: bandColorVar[p.band] }}
-                title={p.name}
-              />
-            </div>
-          </Marker>
-        );
-      })}
 
-      {/* Researched parcels — smaller verdict-coloured dots; hover reveals
-          name + readiness + decision, and on touch the same 44px hit area
-          toggles the popup on tap. No detail page, so the map click-through
-          behaviour stays with the project pins. */}
-      {researched.map((r) => (
-        <Marker
-          key={`res-${r.id}`}
-          longitude={r.longitude}
-          latitude={r.latitude}
-          anchor="center"
-        >
-          <div
-            className="flex h-11 w-11 cursor-pointer items-center justify-center"
-            role="button"
-            aria-label={`Researched parcel ${r.name}: ${r.decision}`}
-            title={r.name}
-            onMouseEnter={() => setHoveredResearch(r)}
-            onMouseLeave={() => setHoveredResearch(null)}
-            onClick={(e) => {
-              e.stopPropagation();
-              setHoveredResearch((cur) => (cur?.id === r.id ? null : r));
-            }}
-          >
-            <div
-              className="rai-marker-dot"
-              style={{
-                backgroundColor: verdictColorVar[r.verdict],
-                width: 11,
-                height: 11,
-              }}
-            />
-          </div>
-        </Marker>
-      ))}
+      {/* Project pins — one GeoJSON circle layer (a single GPU draw call)
+          replaces the old per-project DOM <Marker> loop. */}
+      <Source id="portfolio-pins" type="geojson" data={projectPins}>
+        {/* Static stand-in for the old CSS pulse keyframe (a GPU layer can't
+            run it): a soft ink halo on selected / at-risk pins. */}
+        <Layer
+          id="portfolio-pulse"
+          type="circle"
+          filter={["==", ["get", "pulsing"], 1]}
+          paint={{
+            "circle-radius": 12,
+            "circle-color": "rgba(11, 8, 41, 0.18)",
+          }}
+        />
+        <Layer
+          id="portfolio-dots"
+          type="circle"
+          paint={{
+            "circle-color": ["get", "color"],
+            // 14px dot + 2px white ring, matching .rai-marker-dot.
+            "circle-radius": 7,
+            "circle-stroke-color": "#ffffff",
+            "circle-stroke-width": 2,
+          }}
+        />
+        {/* Fully transparent circles are still hit-testable — preserves the
+            44×44 WCAG tap target the DOM marker hit area provided. */}
+        <Layer
+          id="portfolio-hit"
+          type="circle"
+          paint={{ "circle-radius": 22, "circle-opacity": 0 }}
+        />
+      </Source>
+
+      {/* Researched parcels — smaller verdict-coloured dots, same
+          single-draw conversion. Hover reveals name + readiness + decision,
+          and on touch a tap toggles the same popup. No detail page, so the
+          map click-through behaviour stays with the project pins. */}
+      <Source id="portfolio-researched" type="geojson" data={researchedDots}>
+        <Layer
+          id="researched-dots"
+          type="circle"
+          paint={{
+            "circle-color": ["get", "color"],
+            // 11px dot (the old marker's inline size) + the same white ring.
+            "circle-radius": 5.5,
+            "circle-stroke-color": "#ffffff",
+            "circle-stroke-width": 2,
+          }}
+        />
+        <Layer
+          id="researched-hit"
+          type="circle"
+          paint={{ "circle-radius": 22, "circle-opacity": 0 }}
+        />
+      </Source>
 
       {hoveredResearch && (
         <Popup
