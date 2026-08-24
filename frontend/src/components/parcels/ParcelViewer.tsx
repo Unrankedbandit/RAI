@@ -7,7 +7,12 @@ import type { MapRef } from "react-map-gl/maplibre";
 import type { Feature } from "geojson";
 import "maplibre-gl/dist/maplibre-gl.css";
 
-import { analyze } from "@/lib/agent/client";
+import {
+  analyze,
+  getGridNearest,
+  gridAccessClosest,
+  type GridNearest,
+} from "@/lib/agent/client";
 import { slugify } from "@/lib/agent/liveStore";
 import { BASEMAP_STYLES } from "@/components/maps/basemaps";
 import {
@@ -50,6 +55,9 @@ const REGRID_TILES =
   "https://tiles.arcgis.com/tiles/KzeiCaQsMoeCfoCq/arcgis/rest/services/Regrid_Nationwide_Parcel_Boundaries_v1/MapServer/tile/{z}/{y}/{x}";
 
 const ORANGE = "#ff8400";
+// Ink (app token --color-ink) — grid distance connector/label, a data-viz
+// element that must not read as selection (orange) or status (red/green).
+const INK = "#0b0829";
 
 // Brand-orange crosshair/dot cursor for the map canvas (inline SVG data-uri).
 // Passed to MapGL's `cursor` prop (sets it on the canvas) and inherited from
@@ -216,6 +224,9 @@ export default function ParcelViewer() {
     STATEWIDE_COUNTY_NAME,
   );
   const [panel, setPanel] = useState<PanelState>({ status: "idle" });
+  // Nearest-grid lookup for the selected parcel (GRID V1 §4). Null until the
+  // backend answers — silent degradation: no connector line, no rail chip.
+  const [gridNearest, setGridNearest] = useState<GridNearest | null>(null);
   const [searchText, setSearchText] = useState("");
   // Why the last search came up empty (no match vs county has no attribute
   // search) — shown as a small caption, since the rail only gets panelStatus.
@@ -646,6 +657,66 @@ export default function ParcelViewer() {
     return { type: "Feature", geometry: panel.result.geometry, properties: {} };
   }, [panel]);
 
+  // Distance-to-grid lookup (GRID V1 §4): on every selection, fetch the
+  // nearest grid infrastructure for the parcel centroid. The cleanup aborts
+  // any in-flight request on a new selection, and any panel change that
+  // isn't "found" (deselect, new search, county switch) clears the result.
+  // Deferred a tick so setState stays out of the effect body
+  // (react-hooks/set-state-in-effect — the deep-link bootstrap's pattern).
+  useEffect(() => {
+    const ctrl = new AbortController();
+    const t = setTimeout(async () => {
+      if (panel.status !== "found") {
+        setGridNearest(null);
+        return;
+      }
+      const center = geometryCenter(panel.result.geometry);
+      if (!center) {
+        setGridNearest(null);
+        return;
+      }
+      const res = await getGridNearest(center[1], center[0], ctrl.signal);
+      if (!ctrl.signal.aborted) setGridNearest(res);
+    }, 0);
+    return () => {
+      ctrl.abort();
+      clearTimeout(t);
+    };
+  }, [panel]);
+
+  // Connector GeoJSON: dashed line parcel-centroid → nearest grid asset,
+  // plus a midpoint point carrying the short distance label. Null clears the
+  // source (deselect / fetch failure / no closest point).
+  const gridConnector = useMemo<GeoJSON.FeatureCollection | null>(() => {
+    if (panel.status !== "found" || !gridNearest?.access) return null;
+    const center = geometryCenter(panel.result.geometry);
+    const closest = gridAccessClosest(gridNearest);
+    if (!center || !closest) return null;
+    const from: [number, number] = center;
+    const to: [number, number] = [closest.lng, closest.lat];
+    const mid: [number, number] = [(from[0] + to[0]) / 2, (from[1] + to[1]) / 2];
+    const { distance_m, distance_mi } = gridNearest.access;
+    const label =
+      distance_mi < 0.1
+        ? `${Math.round(distance_m)} m`
+        : `${distance_mi.toFixed(1)} mi`;
+    return {
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          geometry: { type: "LineString", coordinates: [from, to] },
+          properties: {},
+        },
+        {
+          type: "Feature",
+          geometry: { type: "Point", coordinates: mid },
+          properties: { label },
+        },
+      ],
+    };
+  }, [panel, gridNearest]);
+
   return (
     <div className="relative h-full w-full overflow-hidden bg-canvas">
       <MapGL
@@ -702,6 +773,44 @@ export default function ParcelViewer() {
                 "circle-radius": 7,
                 "circle-stroke-color": "#ffffff",
                 "circle-stroke-width": 2,
+              }}
+            />
+          </Source>
+        )}
+
+        {/* Parcel→grid distance connector (dashed ink) + midpoint label.
+            Draws only while a selection's nearest-grid lookup has a closest
+            point; unmounting the Source clears it. The label font is a
+            glyph-PBF fontstack (Open Sans Regular, hosted keyless by CARTO —
+            now referenced by every basemap, see basemaps.ts), not a CSS
+            font, so JetBrains Mono isn't available here. */}
+        {gridConnector && (
+          <Source id="grid-distance" type="geojson" data={gridConnector}>
+            <Layer
+              id="grid-distance-line"
+              type="line"
+              filter={["==", ["geometry-type"], "LineString"]}
+              paint={{
+                "line-color": INK,
+                "line-width": 1.5,
+                "line-opacity": 0.9,
+                "line-dasharray": [2, 2],
+              }}
+            />
+            <Layer
+              id="grid-distance-label"
+              type="symbol"
+              filter={["==", ["geometry-type"], "Point"]}
+              layout={{
+                "text-field": ["get", "label"],
+                "text-font": ["Open Sans Regular"],
+                "text-size": 12,
+                "text-offset": [0, -0.9],
+              }}
+              paint={{
+                "text-color": INK,
+                "text-halo-color": "#ffffff",
+                "text-halo-width": 1.5,
               }}
             />
           </Source>
@@ -922,6 +1031,7 @@ export default function ParcelViewer() {
         <ParcelRail
           selected={panel.status === "found" ? panel.result : null}
           panelStatus={panel.status}
+          gridAccess={gridNearest}
           onCloseSelected={handleCloseSelected}
           onResearch={(p) => void handleResearch(p)}
           onFlyTo={handleFlyTo}

@@ -17,6 +17,7 @@ import {
   type BasemapId,
 } from "@/components/maps/basemaps";
 import { MAP_OVERLAYS } from "@/components/maps/overlays";
+import { GRID_LAYERS } from "@/components/maps/gridOverlay";
 
 /**
  * MapLayersControl — basemap switcher + optional GIS overlay toggles,
@@ -349,6 +350,7 @@ export function MapLayersControl({
       {MAP_OVERLAYS.map(
         (def) =>
           def.enabled &&
+          def.kind !== "vector-grid" &&
           state.isOverlayOn(def.id) &&
           // Never render the satellite-only overlay over a vector basemap,
           // even from stale persisted state (guards the hydration window).
@@ -372,6 +374,31 @@ export function MapLayersControl({
               />
             </Source>
           )),
+      )}
+
+      {/* Vector overlays (kind "vector-grid"): one pmtiles vector Source per
+          entry, layer styles from maps/gridOverlay.ts (kv-scaled ink/violet
+          transmission lines + substation dots, zoom-gated per the GRID V1
+          contract). Same declarative re-add-on-style-swap behavior as the
+          raster branch above. */}
+      {MAP_OVERLAYS.map(
+        (def) =>
+          def.kind === "vector-grid" &&
+          def.enabled &&
+          def.pmtiles &&
+          state.isOverlayOn(def.id) && (
+            <Source
+              key={def.id}
+              id={`ovl-${def.id}`}
+              type="vector"
+              url={def.pmtiles}
+              attribution={def.attribution}
+            >
+              {GRID_LAYERS.map((layer) => (
+                <Layer key={layer.id} {...layer} />
+              ))}
+            </Source>
+          ),
       )}
 
       {/* 44px-tall hit area (WCAG target size) around the compact pill —

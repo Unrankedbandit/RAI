@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type JSX, type ReactNode } from "react";
 import { useResearchedParcels } from "@/lib/agent/researched";
+import type { GridBucket, GridNearest } from "@/lib/agent/client";
 
 import { ViabilityPreview } from "@/components/parcels/ViabilityPreview";
 import { clsx } from "@/lib/clsx";
@@ -43,11 +44,21 @@ function matchReportId(
 export function ParcelRail(props: {
   selected: ParcelResult | null;
   panelStatus: "idle" | "loading" | "found" | "empty" | "error";
+  /** Nearest-grid lookup for the selected parcel — null until the backend
+   *  answers (or on failure): the "Nearest grid" cell simply doesn't render. */
+  gridAccess: GridNearest | null;
   onCloseSelected: () => void;
   onResearch: (p: ParcelResult) => void;
   onFlyTo: (lng: number, lat: number) => void;
 }): JSX.Element {
-  const { selected, panelStatus, onCloseSelected, onResearch, onFlyTo } = props;
+  const {
+    selected,
+    panelStatus,
+    gridAccess,
+    onCloseSelected,
+    onResearch,
+    onFlyTo,
+  } = props;
   const researchedRows = useResearchedParcels();
   const reportId = matchReportId(
     selected,
@@ -107,6 +118,7 @@ export function ParcelRail(props: {
             <SelectedParcel
               parcel={selected}
             reportId={reportId}
+              gridAccess={gridAccess}
               justWatched={justWatched}
               onWatch={handleWatch}
               onResearch={onResearch}
@@ -143,6 +155,16 @@ export function ParcelRail(props: {
   );
 }
 
+/** Bucket chip styling (GRID V1 §4): the app's no-red/no-green status
+ *  palette — near reads cleared/strong (grey), moderate ink (near-black),
+ *  far/remote flagged (risk orange; remote bold). */
+const BUCKET_CHIP: Record<GridBucket, string> = {
+  near: "bg-strong-soft text-strong-ink",
+  moderate: "bg-watch-soft text-watch-ink",
+  far: "bg-risk-soft text-risk-ink",
+  remote: "bg-risk-soft text-risk-ink font-semibold",
+};
+
 /** At-a-glance selected-parcel layout — title, stat grid, research CTA, watch. */
 function SelectedParcel({
   parcel,
@@ -150,12 +172,14 @@ function SelectedParcel({
   onWatch,
   onResearch,
   reportId,
+  gridAccess,
 }: {
   parcel: ParcelResult;
   justWatched: boolean;
   onWatch: () => void;
   onResearch: (p: ParcelResult) => void;
   reportId?: string | null;
+  gridAccess?: GridNearest | null;
 }) {
   const title = parcel.address ?? parcel.apn ?? "Unnamed parcel";
   return (
@@ -183,6 +207,26 @@ function SelectedParcel({
         {parcel.owner && (
           <StatCell label="Owner" title={parcel.owner}>
             {parcel.owner}
+          </StatCell>
+        )}
+        {gridAccess?.access && (
+          <StatCell
+            label="Nearest grid"
+            title={`${gridAccess.access.label} — ${gridAccess.disclaimer}`}
+          >
+            <span className="flex items-center gap-1.5">
+              <span className="truncate">{gridAccess.access.label}</span>
+              <span
+                className={clsx(
+                  "flex-none rounded-full px-1.5 py-px text-[10px] font-medium",
+                  BUCKET_CHIP[gridAccess.access.bucket],
+                )}
+                title={gridAccess.disclaimer}
+                aria-label={`Grid access: ${gridAccess.access.bucket}`}
+              >
+                {gridAccess.access.bucket}
+              </span>
+            </span>
           </StatCell>
         )}
       </div>

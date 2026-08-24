@@ -1,3 +1,5 @@
+import { GRID_PMTILES_URL } from "@/components/maps/gridOverlay";
+
 /**
  * Optional GIS overlays for the map surfaces, drawn as raster Sources above
  * the basemap (MapLayersControl renders one Source/Layer per tile set of
@@ -12,14 +14,21 @@
  * bytes). Verification round: 2026-08-23, SF Bay Area sample tiles.
  * Failed endpoints are NOT in the panel — they appear here only as comments
  * explaining why.
+ *
+ * Entries default to raster; `kind: "vector-grid"` is the one discriminant:
+ * the entry renders VECTOR layers from a pmtiles archive (styles in
+ * maps/gridOverlay.ts) instead of raster tile sets, so `tiles` is unused
+ * (pass []) and `pmtiles` carries the pmtiles:// archive URL.
  */
 export interface OverlayDef {
-  id: string; // stable id: "reference" | "counties" | "jurisdictions" | "wetlands" | "flood" | "fire"
+  id: string; // stable id: "reference" | "counties" | "jurisdictions" | "wetlands" | "flood" | "fire" | "grid"
   label: string; // panel checkbox label
-  attribution: string; // required credit, passed to the raster Source
+  attribution: string; // required credit, passed to the raster/vector Source
   tiles: string[]; // primary tile set: XYZ template OR WMS/export template with {bbox-epsg-3857}
+  kind?: "vector-grid"; // absent = raster (the default); see header comment
+  pmtiles?: string; // pmtiles:// archive URL — required when kind is "vector-grid"
   extraTileSets?: string[][]; // additional stacked tile sets under the same checkbox
-  opacity: number; // raster layer opacity 0..1
+  opacity: number; // raster layer opacity 0..1 (vector styles own their paint)
   minzoom?: number; // raster source minzoom — the service draws nothing below it
   maxzoom?: number;
   note?: string; // extra user-facing caveat line in the panel
@@ -126,6 +135,26 @@ export const MAP_OVERLAYS: OverlayDef[] = [
     ],
     opacity: 0.5,
     note: "2007/2011 vintage zones — not the 2025 FHSZ update.",
+    enabled: true,
+  },
+  {
+    id: "grid",
+    label: "Power grid",
+    attribution: "CEC · HIFLD · OpenStreetMap",
+    // GRID V1 contract §4: vector layers (transmission lines by kV, substation
+    // dots) from the backend-baked pmtiles archive — styles + protocol
+    // registration live in maps/gridOverlay.ts.
+    kind: "vector-grid",
+    pmtiles: GRID_PMTILES_URL,
+    tiles: [], // no raster tile sets — vector source via pmtiles
+    opacity: 1, // unused for vector layers (their paint owns opacity)
+    note: "Screening aid — mapped grid infrastructure, not capacity.",
+    // VERIFIED 2026-08-24 against the branch backend (agent_backend/grid.py)
+    // serving the real archive: GET /api/grid/tiles/grid.pmtiles with
+    // Range: bytes=0-255 → 206 + 256 bytes; /api/grid/status loaded:true
+    // (8,973 lines / 3,999 substations). REQUIRES the branch backend to be
+    // deployed wherever the frontend points — a backend without the grid
+    // routes logs pmtiles fetch errors and renders nothing for this layer.
     enabled: true,
   },
 ];

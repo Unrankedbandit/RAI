@@ -206,6 +206,68 @@ export function listProjects(): Promise<PortfolioRow[]> {
   return request<PortfolioRow[]>("/api/projects");
 }
 
+/* ---------- Grid proximity (GRID V1 contract §2) ---------- */
+
+export type GridBucket = "near" | "moderate" | "far" | "remote";
+
+export interface GridPoint {
+  lat: number;
+  lng: number;
+}
+
+/** The screening-relevant nearest asset — what the rail chip and the map
+ *  connector describe. `closest` is optional: the contract shows it on
+ *  transmission/substation, but the connector brief reads it off access, so
+ *  both spellings are accepted (gridAccessClosest resolves). */
+export interface GridAccess {
+  kind: "substation" | "transmission";
+  distance_m: number;
+  distance_mi: number;
+  bucket: GridBucket;
+  label: string;
+  closest?: GridPoint | null;
+}
+
+export interface GridNearest {
+  transmission: { closest?: GridPoint | null } | null;
+  substation: { closest?: GridPoint | null } | null;
+  access: GridAccess | null;
+  disclaimer: string;
+}
+
+/** The point a parcel→grid connector draws to: access.closest when present,
+ *  else the closest of the access.kind asset. Null = no connector. */
+export function gridAccessClosest(n: GridNearest): GridPoint | null {
+  const a = n.access;
+  if (!a) return null;
+  return (
+    a.closest ??
+    (a.kind === "substation"
+      ? (n.substation?.closest ?? null)
+      : (n.transmission?.closest ?? null))
+  );
+}
+
+/**
+ * Nearest mapped grid infrastructure to a point. Returns null — never
+ * throws — on any failure (silent degradation per contract §4: no chip, no
+ * connector, the tile overlay is unaffected).
+ */
+export async function getGridNearest(
+  lat: number,
+  lng: number,
+  signal?: AbortSignal,
+): Promise<GridNearest | null> {
+  try {
+    return await request<GridNearest>(
+      `/api/grid/nearest?lat=${lat}&lng=${lng}`,
+      { signal },
+    );
+  } catch {
+    return null;
+  }
+}
+
 /** One grounded answer from the analyst, with the findings it leaned on. */
 export interface ChatAnswer {
   answer: string;
