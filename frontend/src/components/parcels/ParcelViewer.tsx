@@ -61,6 +61,38 @@ const ORANGE = "#ff8400";
 // (red/green), or blue (brand ink #0b0829 is navy-leaning on canvas).
 const INK = "#1e1e26";
 
+/** Tap-point glyphs for the grid connection diagram: square = existing
+ *  substation bus, diamond = new switchyard a line tap requires. Returns
+ *  ImageData because MapLibre's addImage types don't accept a canvas. */
+function makeNodeImage(kind: "substation" | "line-tap"): ImageData {
+  const S = 28;
+  const c = document.createElement("canvas");
+  c.width = S;
+  c.height = S;
+  const ctx = c.getContext("2d");
+  if (!ctx) return new ImageData(S, S);
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = INK;
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  if (kind === "substation") {
+    ctx.rect(4, 4, S - 8, S - 8); // bus node
+  } else {
+    ctx.moveTo(S / 2, 3); // switchyard diamond
+    ctx.lineTo(S - 3, S / 2);
+    ctx.lineTo(S / 2, S - 3);
+    ctx.lineTo(3, S / 2);
+    ctx.closePath();
+  }
+  ctx.fill();
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(S / 2, S / 2, 3.5, 0, Math.PI * 2); // ink core
+  ctx.fillStyle = INK;
+  ctx.fill();
+  return ctx.getImageData(0, 0, S, S);
+}
+
 // Brand-orange crosshair/dot cursor for the map canvas (inline SVG data-uri).
 // Passed to MapGL's `cursor` prop (sets it on the canvas) and inherited from
 // the map style, with `crosshair` as the browser fallback.
@@ -692,8 +724,10 @@ export default function ParcelViewer() {
   }, [panel]);
 
   // Connector GeoJSON: dashed line parcel-centroid → nearest grid asset,
-  // plus a midpoint point carrying the short distance label. Null clears the
-  // source (deselect / fetch failure / no closest point).
+  // a midpoint point carrying the short distance label, and — when the
+  // hookup (§2b) is known — a tap-point node glyph distinguishing the two
+  // hookup shapes: square bus node (substation gen-tie) vs diamond (new
+  // switchyard at a line tap). Null clears the source.
   const gridConnector = useMemo<GeoJSON.FeatureCollection | null>(() => {
     if (panel.status !== "found" || !gridNearest?.access) return null;
     const center = geometryCenter(panel.result.geometry);
@@ -707,22 +741,52 @@ export default function ParcelViewer() {
       distance_mi < 0.1
         ? `${Math.round(distance_m)} m`
         : `${distance_mi.toFixed(1)} mi`;
-    return {
-      type: "FeatureCollection",
-      features: [
-        {
-          type: "Feature",
-          geometry: { type: "LineString", coordinates: [from, to] },
-          properties: {},
+    const features: GeoJSON.Feature[] = [
+      {
+        type: "Feature",
+        geometry: { type: "LineString", coordinates: [from, to] },
+        properties: {},
+      },
+      {
+        type: "Feature",
+        geometry: { type: "Point", coordinates: mid },
+        properties: { label },
+      },
+    ];
+    const hookup = gridNearest.hookup;
+    const method = hookup?.method;
+    const tap = hookup?.tap_point;
+    if ((method === "substation" || method === "line-tap") && tap) {
+      features.push({
+        type: "Feature",
+        geometry: { type: "Point", coordinates: [tap.lng, tap.lat] },
+        properties: {
+          method, // icon-image id suffix: grid-node-substation / -line-tap
+          methodLabel:
+            method === "substation" ? "Substation" : "New switchyard",
         },
-        {
-          type: "Feature",
-          geometry: { type: "Point", coordinates: mid },
-          properties: { label },
-        },
-      ],
-    };
+      });
+    }
+    return { type: "FeatureCollection", features };
   }, [panel, gridNearest]);
+
+  // Tap-point node glyphs (canvas-drawn, registered on the map): a square
+  // "bus" node marks a substation gen-tie connection; a diamond marks the
+  // NEW switchyard a line tap requires. White fill + ink stroke + ink core
+  // reads on light and satellite basemaps, matching the connector/label.
+  // Re-registered on styledata because a basemap switch wipes map images.
+  const handleMapLoad = useCallback(() => {
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+    const register = () => {
+      if (!map.hasImage("grid-node-substation"))
+        map.addImage("grid-node-substation", makeNodeImage("substation"));
+      if (!map.hasImage("grid-node-line-tap"))
+        map.addImage("grid-node-line-tap", makeNodeImage("line-tap"));
+    };
+    register();
+    map.on("styledata", register);
+  }, [mapRef]);
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-canvas">
@@ -747,6 +811,7 @@ export default function ParcelViewer() {
         touchPitch={false}
         onClick={(e) => void handleMapClick(e.lngLat.lng, e.lngLat.lat)}
         onMoveEnd={handleMoveEnd}
+        onLoad={handleMapLoad}
       >
         {/* Shared layers tool FIRST: its overlay rasters must draw below the
             Regrid parcel boundaries and the selection highlight (react-map-gl
@@ -811,12 +876,37 @@ export default function ParcelViewer() {
             <Layer
               id="grid-distance-label"
               type="symbol"
-              filter={["==", ["geometry-type"], "Point"]}
+              filter={["has", "label"]}
               layout={{
                 "text-field": ["get", "label"],
                 "text-font": ["Open Sans Regular"],
                 "text-size": 12,
                 "text-offset": [0, -0.9],
+              }}
+              paint={{
+                "text-color": INK,
+                "text-halo-color": "#ffffff",
+                "text-halo-width": 1.5,
+              }}
+            />
+            {/* Tap-point node: square glyph + "Substation" for a gen-tie,
+                diamond + "New switchyard" for a line tap. The icon id is
+                built from the feature's method property. */}
+            <Layer
+              id="grid-tap-node"
+              type="symbol"
+              filter={["has", "method"]}
+              layout={{
+                "icon-image": ["concat", "grid-node-", ["get", "method"]],
+                "icon-size": 1,
+                "icon-allow-overlap": true,
+                "icon-ignore-placement": true,
+                "text-field": ["get", "methodLabel"],
+                "text-font": ["Open Sans Regular"],
+                "text-size": 11,
+                "text-offset": [0, 1.5],
+                "text-anchor": "top",
+                "text-allow-overlap": true,
               }}
               paint={{
                 "text-color": INK,
