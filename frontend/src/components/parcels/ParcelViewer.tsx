@@ -24,6 +24,7 @@ import { recordRecent, type SavedParcel } from "@/lib/parcels/watchlist";
 import {
   COUNTIES,
   STATEWIDE_COUNTY_NAME,
+  countyNameAtPoint,
   queryParcelAtPoint,
   searchParcels,
   type CountyConfig,
@@ -290,7 +291,12 @@ export default function ParcelViewer() {
   const handleMapClick = useCallback(
     async (lng: number, lat: number) => {
       const req = ++requestRef.current;
-      const cfg = countyByName.get(selectedCounty);
+      // Route the click to the county under the cursor (not the dropdown's
+      // county): in statewide mode every click used to hit the DWR mosaic,
+      // which 500s after ~60 s when sick — selection felt broken. County-
+      // direct endpoints answer envelope queries in well under a second.
+      const clickedCounty = countyNameAtPoint(lng, lat);
+      const cfg = countyByName.get(clickedCounty ?? selectedCounty);
       // Mosaic-only (or endpoint-less) counties resolve via the statewide mosaic.
       const queryCounty =
         !cfg || cfg.status === "mosaic-only" || !cfg.endpoint

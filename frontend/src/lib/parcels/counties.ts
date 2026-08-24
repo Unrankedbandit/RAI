@@ -6,6 +6,17 @@
  * and the CA DWR i15 statewide assessor-parcel mosaic as fallback.
  */
 
+// Simplified 58-county boundaries (Census cb 500k via the plotly
+// geojson-counties extract, STATEFP 06) — routes a click to the clicked
+// county's OWN endpoint instead of the statewide DWR mosaic, which was
+// observed 500ing after ~60 s on 2026-08-24 and made statewide-mode
+// selection unusable. Generalized borders: near a county line the wrong
+// county may resolve — callers fall back to the mosaic on a null county hit.
+import caCountyBoundariesRaw from './caCountyBoundaries.json';
+
+const caCountyBoundaries =
+  caCountyBoundariesRaw as unknown as GeoJSON.FeatureCollection;
+
 export interface CountyConfig {
   name: string;
   status: 'live' | 'partial' | 'mosaic-only';
@@ -195,6 +206,21 @@ function pointInGeometry(lon: number, lat: number, geom: GeoJSON.Geometry | null
   return false;
 }
 
+/** Resolve the county containing a click point (generalized borders — see
+ *  the import comment above). Null outside California. */
+export function countyNameAtPoint(lon: number, lat: number): string | null {
+  for (const f of caCountyBoundaries.features) {
+    const name = (f.properties as { name?: string } | null)?.name;
+    if (name && pointInGeometry(lon, lat, f.geometry)) return name;
+  }
+  return null;
+}
+
+/** Point-identify requests hang when a county server (or the DWR mosaic) is
+ *  sick — observed 47–61 s mosaic 500s on 2026-08-24. Cap the wait so a dead
+ *  endpoint fails fast to the fallback path instead of freezing the rail. */
+const IDENTIFY_TIMEOUT_MS = 8000;
+
 /**
  * Query parcels at a click point. Several ArcGIS servers (SF mirror, OC proxy,
  * DWR mosaic) silently return zero features for raw point-intersect queries,
@@ -207,7 +233,7 @@ async function queryArcGisPoint(endpoint: string, lon: number, lat: number): Pro
   const url =
     `${endpoint}/query?geometry=${bbox}&geometryType=esriGeometryEnvelope&inSR=4326` +
     `&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=true&outSR=4326&f=geojson`;
-  const res = await fetch(url);
+  const res = await fetch(url, { signal: AbortSignal.timeout(IDENTIFY_TIMEOUT_MS) });
   if (!res.ok) return null;
   const data = (await res.json()) as {
     features?: Array<{ properties?: Record<string, unknown>; geometry?: GeoJSON.Geometry | null }>;
@@ -246,7 +272,7 @@ async function querySocrataRaw(
 ): Promise<RawHit | null> {
   const where = `intersects(${geomColumn},'POINT (${lon} ${lat})')`;
   const url = `${endpoint}?$where=${encodeURIComponent(where)}&$limit=1`;
-  const res = await fetch(url);
+  const res = await fetch(url, { signal: AbortSignal.timeout(IDENTIFY_TIMEOUT_MS) });
   if (!res.ok) return null;
   const rows = (await res.json()) as Array<Record<string, unknown>>;
   const row = Array.isArray(rows) ? rows[0] : undefined;
@@ -417,10 +443,10 @@ export async function queryParcelAtPoint(
         ? await querySocrataPoint(county.endpoint, lon, lat)
         : await queryArcGisPoint(county.endpoint, lon, lat);
     if (!hit) {
-      // San Mateo's Socrata geometry is WKT text and cannot be queried spatially
-      // server-side; fall back to the statewide mosaic on any Socrata failure.
-      if (county.api === 'socrata') return await queryMosaic(county.name, lon, lat);
-      return null;
+      // County endpoint missed (Socrata WKT columns can't be spatially
+      // queried server-side; a border click may also resolve to the wrong
+      // county; or the county server is down) — fall back to the mosaic.
+      return await queryMosaic(county.name, lon, lat);
     }
     return normalize(county.name, hit);
   } catch {
