@@ -500,9 +500,16 @@ export default function ParcelViewer() {
     [router],
   );
 
-  const handleFlyTo = useCallback((lng: number, lat: number) => {
-    mapRef.current?.flyTo({ center: [lng, lat], zoom: 15, duration: 1200 });
-  }, []);
+  const handleFlyTo = useCallback(
+    (lng: number, lat: number) => {
+      mapRef.current?.flyTo({ center: [lng, lat], zoom: 15, duration: 1200 });
+      // A pick from the recent/watch list must SELECT the parcel on the map,
+      // not just zoom — the same identify path a real click takes, after the
+      // flight so the parcel tiles are under the point.
+      window.setTimeout(() => void handleMapClick(lng, lat), 1250);
+    },
+    [handleMapClick],
+  );
 
   const handleCloseSelected = useCallback(() => {
     setPanel({ status: "idle" });
