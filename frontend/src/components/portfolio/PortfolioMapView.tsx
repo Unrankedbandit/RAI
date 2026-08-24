@@ -225,6 +225,9 @@ export default function PortfolioMapView({
       // rather than pinch-zooming the page. Desktop is unaffected.
       style={{ width: "100%", height: "100%", touchAction: "none" }}
       attributionControl={{ compact: true }}
+      // No 3D tilt (right-drag/Ctrl-drag keeps 2D bearing rotation only).
+      pitchWithRotate={false}
+      touchPitch={false}
       // The transparent 44px hit circles are the interactive surface; they
       // fully cover the visible dots they sit on top of.
       interactiveLayerIds={["portfolio-hit", "researched-hit"]}

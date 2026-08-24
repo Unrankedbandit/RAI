@@ -741,6 +741,10 @@ export default function ParcelViewer() {
         style={{ width: "100%", height: "100%", cursor: MAP_CURSOR, touchAction: "none" }}
         cursor={MAP_CURSOR}
         attributionControl={{ compact: true }}
+        // No 3D tilt: right-drag (or Ctrl-drag) still rotates bearing (2D)
+        // but no longer pitches; two-finger touch pitch off too.
+        pitchWithRotate={false}
+        touchPitch={false}
         onClick={(e) => void handleMapClick(e.lngLat.lng, e.lngLat.lat)}
         onMoveEnd={handleMoveEnd}
       >
