@@ -10,10 +10,13 @@ import type { AgentReport } from "@/lib/agent/report";
 
 /**
  * Map tab — a real satellite site map (SiteMapView) fed by the raw agent
- * report: geocoded site point, zoning legend when the report mentions one,
- * and report-derived area-of-interest markers that click through to their
- * finding cards. Mock/demo projects have no raw report; the map still renders
- * the geocoded site from project.location with no AoI layer.
+ * report: the parcel the project ran on (auto-selected via the report's
+ * APN + county through the parcels page's county GIS search, drawn and
+ * fitBounds'd when found), geocoded site point, zoning legend when the
+ * report mentions one, and report-derived area-of-interest markers that
+ * click through to their finding cards. Mock/demo projects have no raw
+ * report; the map still renders the geocoded site from project.location
+ * with no AoI layer, and a note says when no parcel geometry was found.
  */
 
 // MapLibre needs the browser — the dynamic() + ssr:false pair must live in

@@ -1,8 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import Map, { Marker, Popup } from "react-map-gl/maplibre";
+import Map, {
+  Layer,
+  Marker,
+  Popup,
+  Source,
+  type MapRef,
+} from "react-map-gl/maplibre";
+import type { Feature } from "geojson";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import { bandColorVar } from "@/lib/band";
@@ -13,6 +20,13 @@ import {
   positionForFeature,
   type AoIFeature,
 } from "@/lib/agent/siteGeo";
+import {
+  extractParcelQuery,
+  geometryBbox,
+  geometryCenter,
+  lookupProjectParcel,
+} from "@/lib/parcels/projectParcel";
+import type { ParcelResult } from "@/lib/parcels/counties";
 import { BASEMAP_STYLES } from "@/components/maps/basemaps";
 import {
   MapLayersControl,
@@ -28,10 +42,22 @@ import {
  *
  * Layers, in increasing order of inference — each one renders only when the
  * underlying report text supports it:
- *   - Site marker: explicit project lat/lng when non-zero, else the project
- *     `location` string geocoded via Nominatim (lib/agent/siteGeo). If
- *     geocoding fails the tab shows an honest empty state — never a
- *     default-country fake view.
+ *   - Project parcel: the report/project strings carry the parcel the
+ *     project ran on ("Parcel 040016011 — Ventura County" / location
+ *     "Ventura County, CA — parcel APN 040016011"). The APN + county are
+ *     extracted and looked up with the SAME county GIS search the parcels
+ *     page uses (lib/parcels/projectParcel → counties.searchParcels); the
+ *     returned polygon is drawn in the parcels page's selected-parcel
+ *     orange (fill + line) and the camera fitBounds it with padding. No
+ *     APN or no hit → the geocoded county view stays and a note under the
+ *     map says so — never a fake polygon.
+ *   - Site marker: explicit project lat/lng when non-zero, else the
+ *     auto-selected parcel's centroid, else the project `location` string
+ *     geocoded via Nominatim (lib/agent/siteGeo). If geocoding fails and
+ *     no parcel was found the tab shows an honest empty state — never a
+ *     default-country fake view. The 12px dot is its OWN center-anchored
+ *     Marker; the name/capacity label is a SEPARATE left-anchored, offset
+ *     Marker, so the label's width can never drag the dot off the point.
  *   - Zoning legend line: only when the report carries a zoning mention.
  *   - Area-of-interest markers: only for features the report says are ON the
  *     site. Their positions are synthesized deterministically inside a ~300m
@@ -49,6 +75,9 @@ interface PositionedFeature extends AoIFeature {
   longitude: number;
   latitude: number;
 }
+
+// The parcels page's selected-parcel colour (ParcelViewer's ORANGE).
+const PARCEL_ORANGE = "#ff8400";
 
 export default function SiteMapView({
   projectId,
@@ -96,26 +125,93 @@ export default function SiteMapView({
       live = false;
     };
   }, [explicit, location]);
-  const center: [number, number] | "failed" | null =
-    explicit ?? (location.trim() ? geocoded : "failed");
+  // --- Parcel auto-select -------------------------------------------------
+  // The project ran on a parcel: the report/project strings carry its APN +
+  // county ("Parcel 040016011 — Ventura County" / "… — parcel APN
+  // 040016011"). Same lookup the parcels page uses (county GIS search via
+  // lib/parcels). null = resolving, "not-found" = no APN or no GIS hit.
+  const parcelQuery = useMemo(
+    () =>
+      extractParcelQuery([report?.project, report?.location, name, location]),
+    [report, name, location],
+  );
+  const [parcel, setParcel] = useState<ParcelResult | "not-found" | null>(
+    null,
+  );
+  useEffect(() => {
+    let live = true;
+    if (!parcelQuery.apn || !parcelQuery.county) {
+      // Nothing to look up — resolve via a microtask so setState stays out
+      // of the effect body (react-hooks/set-state-in-effect).
+      void Promise.resolve().then(() => {
+        if (live) setParcel("not-found");
+      });
+      return () => {
+        live = false;
+      };
+    }
+    void lookupProjectParcel(parcelQuery).then((p) => {
+      if (live) setParcel(p ?? "not-found");
+    });
+    return () => {
+      live = false;
+    };
+  }, [parcelQuery]);
+
+  const parcelGeometry =
+    parcel !== null && parcel !== "not-found" ? parcel.geometry : null;
+  const parcelCenter = useMemo(
+    () => (parcelGeometry ? geometryCenter(parcelGeometry) : null),
+    [parcelGeometry],
+  );
+  const parcelFeature = useMemo<Feature | null>(() => {
+    if (!parcelGeometry) return null;
+    return { type: "Feature", geometry: parcelGeometry, properties: {} };
+  }, [parcelGeometry]);
+
+  // Site point: explicit project coordinates win; else the auto-selected
+  // parcel's centroid (the dot must sit ON the parcel); else the geocoded
+  // location string (the county view fallback).
+  const sitePoint: [number, number] | "failed" | null =
+    explicit ?? parcelCenter ?? (location.trim() ? geocoded : "failed");
   const [selected, setSelected] = useState<PositionedFeature | null>(null);
   // Shared layers tool: basemap (satellite default) + GIS overlay toggles,
   // persisted per page under this storage key.
   const mapLayers = useMapLayers("project-site");
+  const mapRef = useRef<MapRef | null>(null);
 
   const features = useMemo(() => extractSiteFeatures(report), [report]);
 
-  // Markers positioned inside the synthetic parcel extent (indicative only —
-  // see siteGeo.positionForFeature). Recomputed if the center resolves.
+  // Camera: when the parcel resolves, frame it with padding instead of
+  // leaving the geocoded county-level zoom (initialViewState only applies
+  // at mount, so the parcel always arrives after it).
+  useEffect(() => {
+    if (!parcelGeometry || !Array.isArray(sitePoint)) return;
+    const bbox = geometryBbox(parcelGeometry);
+    if (!bbox) return;
+    mapRef.current?.fitBounds(bbox, {
+      padding: 56,
+      maxZoom: 16,
+      duration: 800,
+    });
+  }, [parcelGeometry, sitePoint]);
+
+  // Markers positioned inside the site extent (indicative only — see
+  // siteGeo.positionForFeature). Recomputed if the site point resolves.
   const positioned = useMemo<PositionedFeature[]>(() => {
-    if (!Array.isArray(center)) return [];
+    if (!Array.isArray(sitePoint)) return [];
     return features.aois.map((f) => {
-      const [lng, lat] = positionForFeature(f.key, center);
+      const [lng, lat] = positionForFeature(f.key, sitePoint);
       return { ...f, longitude: lng, latitude: lat };
     });
-  }, [features, center]);
+  }, [features, sitePoint]);
 
-  if (center === "failed") {
+  // While a parcel lookup is in flight, a failed geocode is not the final
+  // word — the parcel can still place the map. Hold the loading pulse.
+  const parcelResolving =
+    parcel === null && !!parcelQuery.apn && !!parcelQuery.county;
+
+  if (sitePoint === "failed" && !parcelResolving) {
     return (
       <div className="flex h-[380px] items-center justify-center rounded-[5px] bg-surface-2 px-6 text-center text-[13px] text-faint">
         Location could not be geocoded{location ? ` (“${location}”)` : ""} — no
@@ -127,13 +223,14 @@ export default function SiteMapView({
   return (
     <div>
       <div className="relative h-[380px] overflow-hidden rounded-[5px] bg-surface-2">
-        {!Array.isArray(center) ? (
+        {!Array.isArray(sitePoint) ? (
           <div className="h-full w-full animate-pulse bg-surface-2" />
         ) : (
           <Map
+            ref={mapRef}
             initialViewState={{
-              longitude: center[0],
-              latitude: center[1],
+              longitude: sitePoint[0],
+              latitude: sitePoint[1],
               zoom: 14.5,
             }}
             mapStyle={BASEMAP_STYLES[mapLayers.basemap]}
@@ -141,17 +238,52 @@ export default function SiteMapView({
             attributionControl={{ compact: true }}
           >
             <MapLayersControl state={mapLayers} />
-            {/* Site marker — the geocoded/explicit site point. */}
-            <Marker longitude={center[0]} latitude={center[1]} anchor="center">
-              <div className="flex items-center gap-2">
-                <div
-                  className="h-[12px] w-[12px] flex-none rounded-full border-2 border-canvas bg-ink"
-                  style={{ boxShadow: "0 0 0 1px var(--color-hairline)" }}
-                  title={name}
+
+            {/* The parcel the project ran on — real county GIS geometry,
+                fill + line like the parcels page's selected-parcel layers.
+                Rendered after the layers tool so it draws above its rasters. */}
+            {parcelFeature && (
+              <Source id="project-parcel" type="geojson" data={parcelFeature}>
+                <Layer
+                  id="project-parcel-fill"
+                  type="fill"
+                  paint={{
+                    "fill-color": PARCEL_ORANGE,
+                    "fill-opacity": 0.25,
+                  }}
                 />
-                <div className="whitespace-nowrap rounded-full border border-hairline bg-canvas px-[9px] py-[3px] text-[12px] font-semibold text-ink shadow-card">
-                  {name} · {capacityMW} MW
-                </div>
+                <Layer
+                  id="project-parcel-line"
+                  type="line"
+                  paint={{ "line-color": PARCEL_ORANGE, "line-width": 2 }}
+                />
+              </Source>
+            )}
+
+            {/* Site marker — TWO Markers so the label can never drag the dot
+                off the point: the dot is its own center-anchored Marker; the
+                label is a separate left-anchored, 12px-offset Marker whose
+                width is irrelevant to where the dot sits (zoom-proof). */}
+            <Marker
+              longitude={sitePoint[0]}
+              latitude={sitePoint[1]}
+              anchor="center"
+            >
+              <div
+                className="h-[12px] w-[12px] rounded-full border-2 border-canvas bg-ink"
+                style={{ boxShadow: "0 0 0 1px var(--color-hairline)" }}
+                title={name}
+              />
+            </Marker>
+            <Marker
+              longitude={sitePoint[0]}
+              latitude={sitePoint[1]}
+              anchor="left"
+              offset={[12, 0]}
+              style={{ pointerEvents: "none" }}
+            >
+              <div className="whitespace-nowrap rounded-full border border-hairline bg-canvas px-[9px] py-[3px] text-[12px] font-semibold text-ink shadow-card">
+                {name} · {capacityMW} MW
               </div>
             </Marker>
 
@@ -224,6 +356,22 @@ export default function SiteMapView({
 
       {/* Under-map legend lines — each renders only with report support. */}
       <div className="mt-3 space-y-1.5 text-[12px] text-muted">
+        {parcel !== null && parcel !== "not-found" && (
+          <div>
+            <span className="font-semibold text-ink">Parcel:</span>{" "}
+            {parcel.apn ?? parcelQuery.apn} · {parcel.county} County
+            {parcel.acres != null &&
+              ` · ${parcel.acres.toLocaleString(undefined, { maximumFractionDigits: 2 })} ac`}{" "}
+            <span className="text-faint">(county GIS boundary)</span>
+          </div>
+        )}
+        {parcel === "not-found" && (
+          <div className="text-faint">
+            {parcelQuery.apn
+              ? `parcel geometry not found for ${parcelQuery.apn} — showing county view`
+              : "no parcel APN in the project data — showing county view"}
+          </div>
+        )}
         {features.zoning && (
           <div>
             <span className="font-semibold text-ink">Zoning:</span>{" "}

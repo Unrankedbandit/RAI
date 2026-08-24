@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   useId,
+  useRef,
   useState,
   type JSX,
 } from "react";
@@ -25,10 +26,16 @@ import { MAP_OVERLAYS } from "@/components/maps/overlays";
  *   <Source>/<Layer> children (ParcelViewer pattern): react-map-gl re-adds
  *   them automatically when the basemap style swaps via setStyle, so the
  *   overlays survive basemap changes with no imperative re-adding.
- * - The trigger is the standard top-right pill (PortfolioMapView precedent).
- *   The panel is an absolute card below it on md+; on mobile it's a
- *   portal-mounted bottom sheet (backdrop + Esc + ✕ to close), because the
- *   map container's overflow-hidden would clip a fixed sheet otherwise.
+ * - The trigger is the bottom-left icon button. The panel is an absolute
+ *   card above it — but only when the MAP CONTAINER is wide enough to hold
+ *   it (~420px+): embedded maps (project tab, portfolio cards) can be far
+ *   narrower than the viewport, and a 264px card clipped by the map's
+ *   overflow-hidden is unusable there. Narrow containers (and sub-md
+ *   viewports) get the portal-mounted bottom sheet instead (backdrop + Esc
+ *   + ✕ to close) — portaled to document.body, so overflow-hidden can never
+ *   clip it. Container width is measured with a ResizeObserver on the
+ *   control's parent (react-map-gl renders children into a full-size div
+ *   inside the map container).
  * - State comes from useMapLayers(storageKey), which persists
  *   {basemap, overlays} to localStorage under `rai.mapLayers.${storageKey}`
  *   — one key per page/map surface. Writes happen inside the event handlers,
@@ -238,6 +245,11 @@ function CloseButton({ onClose }: { onClose: () => void }) {
   );
 }
 
+// Map containers narrower than this get the bottom sheet, not the 264px card.
+const COMPACT_CONTAINER_PX = 420;
+// Tailwind's md breakpoint — sub-md viewports always get the bottom sheet.
+const MOBILE_VIEWPORT_QUERY = "(max-width: 767px)";
+
 export function MapLayersControl({
   state,
 }: {
@@ -248,6 +260,40 @@ export function MapLayersControl({
   // so two map surfaces never cross-link their radios/labels.
   const idBase = useId();
   const close = useCallback(() => setOpen(false), []);
+
+  // Container-aware panel path: the 264px absolute card only fits when the
+  // map itself is wide enough. Viewport width says nothing about an embedded
+  // map's size, so measure the container (the trigger wrapper's parent —
+  // react-map-gl's full-size child container) with a ResizeObserver.
+  const triggerWrapRef = useRef<HTMLDivElement | null>(null);
+  const [compactContainer, setCompactContainer] = useState(false);
+  const [mobileViewport, setMobileViewport] = useState<boolean>(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia(MOBILE_VIEWPORT_QUERY).matches,
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_VIEWPORT_QUERY);
+    const onChange = () => setMobileViewport(mq.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
+  useEffect(() => {
+    const wrap = triggerWrapRef.current;
+    const container = wrap?.parentElement ?? wrap;
+    if (!container) return;
+    const ro = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect.width ?? 0;
+      setCompactContainer(width > 0 && width < COMPACT_CONTAINER_PX);
+    });
+    ro.observe(container);
+    return () => ro.disconnect();
+  }, []);
+
+  // Sheet for narrow containers / mobile viewports; absolute card otherwise.
+  const useSheet = compactContainer || mobileViewport;
 
   // Esc closes the panel; the listener exists only while it is open.
   useEffect(() => {
@@ -294,7 +340,10 @@ export function MapLayersControl({
           the wrapper's transparent flex box takes the tap, desktop appearance
           is unchanged (same pattern as the marker hit areas in
           PortfolioMapView). */}
-      <div className="absolute bottom-3 left-3 z-10 flex items-center">
+      <div
+        ref={triggerWrapRef}
+        className="absolute bottom-3 left-3 z-10 flex items-center"
+      >
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
@@ -320,35 +369,39 @@ export function MapLayersControl({
         </button>
       </div>
 
-      {/* Desktop panel: absolute card below the trigger, inside the map
-          container (overflow-hidden clipping is acceptable here). */}
-      {open && (
+      {/* Roomy containers: absolute card above the trigger, inside the map
+          container. Width is guaranteed by useSheet (container ≥ ~420px);
+          height is capped to the container with internal scroll, so even a
+          360px-tall embedded map never clips the panel (its overflow-hidden
+          would swallow the overflow otherwise). */}
+      {open && !useSheet && (
         <div
           role="dialog"
           aria-label="Map layers"
-          className="absolute bottom-14 left-3 z-20 hidden w-[264px] rounded-[11px] border border-hairline bg-canvas p-3 shadow-card md:block"
+          className="absolute bottom-14 left-3 z-20 max-h-[calc(100%-68px)] w-[264px] overflow-y-auto rounded-[11px] border border-hairline bg-canvas p-3 shadow-card"
         >
           <PanelContents state={state} idBase={`${idBase}-d`} />
           <CloseButton onClose={close} />
         </div>
       )}
 
-      {/* Mobile panel: bottom sheet + backdrop, portaled to document.body so
-          the map container's overflow-hidden cannot clip it. Mounted only
-          while open — open can only become true via a click, so document is
-          guaranteed to exist here. */}
+      {/* Narrow containers + mobile viewports: bottom sheet + backdrop,
+          portaled to document.body so the map container's overflow-hidden
+          cannot clip it. Mounted only while open — open can only become true
+          via a click, so document is guaranteed to exist here. */}
       {open &&
+        useSheet &&
         createPortal(
           <>
             <div
-              className="fixed inset-0 z-40 bg-ink/30 md:hidden"
+              className="fixed inset-0 z-40 bg-ink/30"
               onClick={close}
               aria-hidden="true"
             />
             <div
               role="dialog"
               aria-label="Map layers"
-              className="fixed inset-x-0 bottom-0 z-50 rounded-t-[11px] border-t border-hairline bg-canvas p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-card md:hidden"
+              className="fixed inset-x-0 bottom-0 z-50 rounded-t-[11px] border-t border-hairline bg-canvas p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-card"
             >
               <PanelContents state={state} idBase={`${idBase}-m`} />
               <CloseButton onClose={close} />
