@@ -2,7 +2,13 @@
 
 import { useEffect, useState, type JSX, type ReactNode } from "react";
 import { useResearchedParcels } from "@/lib/agent/researched";
-import type { GridBucket, GridNearest } from "@/lib/agent/client";
+import type {
+  GridBucket,
+  GridHookup,
+  GridNearest,
+} from "@/lib/agent/client";
+
+type GridHookupMethod = NonNullable<GridHookup["method"]>;
 
 import { ViabilityPreview } from "@/components/parcels/ViabilityPreview";
 import { clsx } from "@/lib/clsx";
@@ -165,6 +171,15 @@ const BUCKET_CHIP: Record<GridBucket, string> = {
   remote: "bg-risk-soft text-risk-ink font-semibold",
 };
 
+/** Hookup-method chip styling (GRID V1 §2b): gen-tie to a substation is the
+ *  simple path (neutral); a line tap means building a new switchyard, so it
+ *  gets the flagged/risk-orange treatment like far/remote buckets. */
+const METHOD_CHIP: Record<GridHookupMethod, { label: string; cls: string }> = {
+  substation: { label: "Substation gen-tie", cls: "bg-strong-soft text-strong-ink" },
+  "line-tap": { label: "Line tap + new switchyard", cls: "bg-risk-soft text-risk-ink" },
+  none: { label: "No mapped access", cls: "bg-strong-soft text-strong-ink" },
+};
+
 /** At-a-glance selected-parcel layout — title, stat grid, research CTA, watch. */
 function SelectedParcel({
   parcel,
@@ -230,6 +245,39 @@ function SelectedParcel({
           </StatCell>
         )}
       </div>
+
+      {/* Required hookup (GRID V1 §2b): how a project on this parcel would
+          physically connect — gen-tie to a substation bus vs a line tap
+          with a new switchyard, plus the cheaper-alternative note. */}
+      {gridAccess?.access && gridAccess.hookup && (
+        <div
+          className="mt-2 rounded-[5px] bg-surface-2 px-2.5 py-2"
+          title={gridAccess.disclaimer}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs text-faint">Required hookup</span>
+            <span
+              className={clsx(
+                "flex-none rounded-full px-1.5 py-px text-[10px] font-medium",
+                METHOD_CHIP[gridAccess.hookup.method].cls,
+              )}
+            >
+              {METHOD_CHIP[gridAccess.hookup.method].label}
+            </span>
+          </div>
+          <div className="mt-1 text-[13px] font-semibold text-ink">
+            {gridAccess.hookup.summary}
+          </div>
+          <div className="mt-1 text-xs leading-relaxed text-faint">
+            {gridAccess.hookup.detail}
+          </div>
+          {gridAccess.hookup.alternative && (
+            <div className="mt-1 text-xs leading-relaxed text-faint">
+              {gridAccess.hookup.alternative}
+            </div>
+          )}
+        </div>
+      )}
 
       <ViabilityPreview parcel={parcel} />
 

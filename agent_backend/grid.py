@@ -145,6 +145,99 @@ def _label(kind: str, distance_m: float, props: dict) -> str:
     return f"{mi:.1f} mi to nearest substation"
 
 
+def _mi(distance_m: float) -> float:
+    return distance_m / MILE_M
+
+
+def _hookup(access: dict, transmission: dict | None,
+            substation: dict | None) -> dict:
+    """Required physical hookup for the parcel, derived from the chosen access
+    point. Two shapes (GRID V1 contract §2b):
+      - substation  → a gen-tie line from the parcel to the substation bus;
+                      the simplest interconnection path.
+      - line tap    → transmission lines can't be clamped onto: a new tap
+                      switchyard is built at the tap point, then a gen-tie
+                      spur from parcel to switchyard. Substation-scale work
+                      on top of the gen-tie.
+    `alternative` names the other option when it exists nearby — a slightly
+    farther substation often beats a line tap (no new switchyard).
+    Distance guidance follows developer screening norms (go ≤1–2 mi to a
+    substation, outer screen ~5 mi — report 08)."""
+    kind = access.get("kind")
+    if kind is None:
+        return {
+            "method": "none", "gentie_mi": None, "tap_point": None,
+            "summary": "No mapped grid access within screening range",
+            "detail": "Nothing mapped within 200 km. Any interconnection "
+                      "would mean long new transmission construction — "
+                      "effectively a greenfield grid project, not a hookup.",
+            "alternative": None,
+        }
+
+    bucket = access.get("bucket")
+    if kind == "substation":
+        dist_m = access["distance_m"]
+        mi = _mi(dist_m)
+        name = substation.get("name") if substation else None
+        kv = substation.get("kv") if substation else None
+        target = f"{name} substation" if name else "the nearest substation"
+        if kv:
+            target += f" ({kv:g} kV)"
+        summary = f"Gen-tie ~{mi:.1f} mi to {target}"
+        detail = ("A new generation-tie (gen-tie) line from the parcel to "
+                  f"the substation, interconnecting at the substation bus — "
+                  "the simplest hookup path. Requires a utility "
+                  "interconnection study and available capacity at that bus.")
+        if bucket == "far":
+            detail += (" At this distance the gen-tie is a real cost driver; "
+                       "~5 mi is the outer screening line for most "
+                       "developers.")
+        elif bucket == "remote":
+            detail += (" Beyond ~5 mi the gen-tie alone usually kills "
+                       "utility-scale economics.")
+        alternative = None
+        if transmission:
+            t_mi = _mi(transmission["distance_m"])
+            if t_mi < mi:  # line is closer, but tapping it costs more
+                kv_t = transmission.get("kv")
+                alt_t = f"the {kv_t:g} kV line" if kv_t else "a transmission line"
+                alternative = (f"Closer: {alt_t} at {t_mi:.1f} mi — but a "
+                               "line tap needs a new switchyard, so the "
+                               "farther substation is usually cheaper.")
+        method, tap = "substation", substation.get("closest") if substation else None
+    else:  # transmission line tap
+        dist_m = access["distance_m"]
+        mi = _mi(dist_m)
+        kv = transmission.get("kv") if transmission else None
+        line = f"the {kv:g} kV line" if kv else "the nearest transmission line"
+        summary = f"Tap {line} (~{mi:.1f} mi gen-tie) — needs a new switchyard"
+        detail = ("A transmission line can't be clamped onto: the hookup is "
+                  f"a new tap switchyard built where the spur meets {line}, "
+                  f"plus a ~{mi:.1f} mi gen-tie from the parcel to that "
+                  "switchyard. That is substation-scale construction with "
+                  "utility/CAISO approval and protection studies on top of "
+                  "the gen-tie.")
+        if kv and kv >= 345:
+            detail += (f" Tapping a {kv:g} kV trunk line is a major "
+                       "CAISO-controlled undertaking — usually only viable "
+                       "for large projects.")
+        if bucket in ("far", "remote"):
+            detail += (" At this distance the gen-tie spur itself becomes a "
+                       "dominant cost.")
+        alternative = None
+        if substation:
+            s_mi = _mi(substation["distance_m"])
+            name_s = substation.get("name") or "the nearest substation"
+            alternative = (f"Alternative: gen-tie {s_mi:.1f} mi to {name_s} "
+                           "— farther, but interconnects at an existing bus "
+                           "with no new switchyard.")
+        method, tap = "line-tap", transmission.get("closest") if transmission else None
+
+    return {"method": method, "gentie_mi": round(_mi(access["distance_m"]), 2),
+            "tap_point": tap, "summary": summary, "detail": detail,
+            "alternative": alternative}
+
+
 @router.get("/api/grid/nearest")
 async def grid_nearest(lat: float, lng: float):
     st = _load()
@@ -196,7 +289,9 @@ async def grid_nearest(lat: float, lng: float):
                   "label": _label(kind, dist, props)}
 
     return {"query": {"lat": lat, "lng": lng}, "transmission": transmission,
-            "substation": substation, "access": access, "disclaimer": DISCLAIMER}
+            "substation": substation, "access": access,
+            "hookup": _hookup(access, transmission, substation),
+            "disclaimer": DISCLAIMER}
 
 
 @router.get("/api/grid/tiles/grid.pmtiles")

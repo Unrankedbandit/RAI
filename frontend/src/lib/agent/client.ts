@@ -228,10 +228,24 @@ export interface GridAccess {
   closest?: GridPoint | null;
 }
 
+/** Required physical hookup for the parcel (GRID V1 §2b). `substation` =
+ *  gen-tie to an existing substation bus; `line-tap` = new tap switchyard at
+ *  the line + gen-tie spur; `none` = nothing mapped in screening range.
+ *  Optional: older backends without the field just don't render the block. */
+export interface GridHookup {
+  method: "substation" | "line-tap" | "none";
+  gentie_mi: number | null;
+  tap_point: GridPoint | null;
+  summary: string;
+  detail: string;
+  alternative: string | null;
+}
+
 export interface GridNearest {
   transmission: { closest?: GridPoint | null } | null;
   substation: { closest?: GridPoint | null } | null;
   access: GridAccess | null;
+  hookup?: GridHookup | null;
   disclaimer: string;
 }
 
