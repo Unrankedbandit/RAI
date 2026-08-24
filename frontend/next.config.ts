@@ -1,4 +1,4 @@
-import path from "node:path";
+import { withSerwist } from "@serwist/turbopack";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -22,4 +22,6 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Serwist (PWA): marks esbuild as a server-external package so the
+// /serwist/[path] route can bundle the worker. All other config passes through.
+export default withSerwist(nextConfig);
