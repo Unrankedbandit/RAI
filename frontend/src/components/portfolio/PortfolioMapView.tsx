@@ -135,7 +135,10 @@ export default function PortfolioMapView({
   // GeoJSON collections below rebuild when the concrete colors land.
   const [dotColors, setDotColors] = useState(readDotColors);
   useEffect(() => {
-    setDotColors(readDotColors());
+    // Post-paint re-read (hydration-safe): a synchronous setState here would
+    // cascade renders — lint rule set-state-in-effect — so defer to rAF.
+    const id = requestAnimationFrame(() => setDotColors(readDotColors()));
+    return () => cancelAnimationFrame(id);
   }, []);
 
   // One GPU circle layer per dot family replaces the old per-project /
