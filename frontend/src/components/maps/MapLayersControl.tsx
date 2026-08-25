@@ -17,7 +17,6 @@ import {
   type BasemapId,
 } from "@/components/maps/basemaps";
 import { MAP_OVERLAYS } from "@/components/maps/overlays";
-import { GRID_LAYERS } from "@/components/maps/gridOverlay";
 
 /**
  * MapLayersControl — basemap switcher + optional GIS overlay toggles,
@@ -385,15 +384,17 @@ export function MapLayersControl({
       )}
 
       {/* Vector overlays (kind "vector-grid"): one pmtiles vector Source per
-          entry, layer styles from maps/gridOverlay.ts (kv-scaled ink/violet
-          transmission lines + substation dots, zoom-gated per the GRID V1
-          contract). Same declarative re-add-on-style-swap behavior as the
-          raster branch above. */}
+          entry, each carrying its own style layers on the OverlayDef
+          (vectorLayers — grid's kv-scaled lines + substation dots live in
+          maps/gridOverlay.ts, off-limits land's ink washes in
+          maps/offlimitsOverlay.ts). Same declarative re-add-on-style-swap
+          behavior as the raster branch above. */}
       {MAP_OVERLAYS.map(
         (def) =>
           def.kind === "vector-grid" &&
           def.enabled &&
           def.pmtiles &&
+          def.vectorLayers &&
           state.isOverlayOn(def.id) && (
             <Source
               key={def.id}
@@ -402,7 +403,7 @@ export function MapLayersControl({
               url={def.pmtiles}
               attribution={def.attribution}
             >
-              {GRID_LAYERS.map((layer) => (
+              {def.vectorLayers.map((layer) => (
                 <Layer key={layer.id} {...layer} />
               ))}
             </Source>

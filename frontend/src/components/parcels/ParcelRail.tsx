@@ -384,6 +384,28 @@ function SelectedParcel({
         </div>
       )}
 
+      {/* Off-limits siting (GRID V1 §7c): parcel centroid point-in-polygon
+          against protected land / water — a risk-orange "off-limits" chip on
+          an xs faint line under the verdict block. Silent when the backend
+          omits the key (layers unavailable). */}
+      {gridAccess?.siting?.protected && (
+        <p className="mt-2 text-xs text-faint">
+          Parcel sits in protected land ({gridAccess.siting.protected}) —
+          likely off-limits{" "}
+          <span className="rounded-full bg-risk-soft px-1.5 py-px text-[10px] font-medium text-risk-ink">
+            off-limits
+          </span>
+        </p>
+      )}
+      {gridAccess?.siting?.water && (
+        <p className="mt-2 text-xs text-faint">
+          Parcel centroid is on mapped water{" "}
+          <span className="rounded-full bg-risk-soft px-1.5 py-px text-[10px] font-medium text-risk-ink">
+            off-limits
+          </span>
+        </p>
+      )}
+
       {/* Origin explainer (GRID V1 §6b): which point the grid analysis
           describes — a scanned candidate or a manually dragged origin. */}
       {originLabel && <p className="mt-2 text-xs text-faint">{originLabel}</p>}

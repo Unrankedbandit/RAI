@@ -1,4 +1,10 @@
-import { GRID_PMTILES_URL } from "@/components/maps/gridOverlay";
+import type { LayerProps } from "react-map-gl/maplibre";
+
+import { GRID_LAYERS, GRID_PMTILES_URL } from "@/components/maps/gridOverlay";
+import {
+  OFFLIMITS_LAYERS,
+  OFFLIMITS_PMTILES_URL,
+} from "@/components/maps/offlimitsOverlay";
 
 /**
  * Optional GIS overlays for the map surfaces, drawn as raster Sources above
@@ -16,9 +22,11 @@ import { GRID_PMTILES_URL } from "@/components/maps/gridOverlay";
  * explaining why.
  *
  * Entries default to raster; `kind: "vector-grid"` is the one discriminant:
- * the entry renders VECTOR layers from a pmtiles archive (styles in
- * maps/gridOverlay.ts) instead of raster tile sets, so `tiles` is unused
- * (pass []) and `pmtiles` carries the pmtiles:// archive URL.
+ * the entry renders VECTOR layers from a pmtiles archive instead of raster
+ * tile sets, so `tiles` is unused (pass []), `pmtiles` carries the
+ * pmtiles:// archive URL, and `vectorLayers` carries the entry's own style
+ * layers (grid's live in maps/gridOverlay.ts, off-limits' in
+ * maps/offlimitsOverlay.ts).
  */
 export interface OverlayDef {
   id: string; // stable id: "reference" | "counties" | "jurisdictions" | "wetlands" | "flood" | "fire" | "grid"
@@ -27,6 +35,7 @@ export interface OverlayDef {
   tiles: string[]; // primary tile set: XYZ template OR WMS/export template with {bbox-epsg-3857}
   kind?: "vector-grid"; // absent = raster (the default); see header comment
   pmtiles?: string; // pmtiles:// archive URL — required when kind is "vector-grid"
+  vectorLayers?: LayerProps[]; // the entry's vector style layers — required when kind is "vector-grid"
   extraTileSets?: string[][]; // additional stacked tile sets under the same checkbox
   opacity: number; // raster layer opacity 0..1 (vector styles own their paint)
   minzoom?: number; // raster source minzoom — the service draws nothing below it
@@ -50,6 +59,7 @@ export const MAP_OVERLAYS: OverlayDef[] = [
     // registration live in maps/gridOverlay.ts.
     kind: "vector-grid",
     pmtiles: GRID_PMTILES_URL,
+    vectorLayers: GRID_LAYERS,
     tiles: [], // no raster tile sets — vector source via pmtiles
     opacity: 1, // unused for vector layers (their paint owns opacity)
     note: "Screening aid — mapped grid infrastructure, not capacity.",
@@ -61,6 +71,28 @@ export const MAP_OVERLAYS: OverlayDef[] = [
     // routes logs pmtiles fetch errors and renders nothing for this layer.
     enabled: true,
     defaultOn: true,
+  },
+  {
+    // GRID V1 contract §7c: directly AFTER "Power grid". No-go land classes
+    // (protected / water / military / tribal) from the offlimits pmtiles
+    // archive — styles in maps/offlimitsOverlay.ts (ink wash + hairline
+    // outline). Heavy visual, so NOT defaultOn.
+    id: "offlimits",
+    label: "Off-limits land",
+    attribution: "CPAD 2026a · US Census Bureau",
+    kind: "vector-grid",
+    pmtiles: OFFLIMITS_PMTILES_URL,
+    vectorLayers: OFFLIMITS_LAYERS,
+    tiles: [], // no raster tile sets — vector source via pmtiles
+    opacity: 1, // unused for vector layers (their paint owns opacity)
+    note: "Generally no-go for development — protected, water, military, tribal. Screening aid.",
+    // VERIFIED 2026-08-24 against the branch backend (agent_backend/grid.py)
+    // serving the real archive: GET /api/grid/tiles/offlimits.pmtiles with
+    // Range: bytes=0-255 → 206 + 256 bytes (Content-Range
+    // bytes 0-255/6534815); /api/grid/status reports
+    // offlimits_pmtiles_bytes: 6534815. Same deploy caveat as the grid
+    // overlay — a backend without the archive serves 503 here.
+    enabled: true,
   },
   {
     id: "reference",

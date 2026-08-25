@@ -286,6 +286,16 @@ export interface GridPath {
   verdict: { code: GridVerdictCode; summary: string; detail: string };
 }
 
+/** Off-limits siting flag (GRID V1 §7b): centroid point-in-polygon against
+ *  the protected-holdings and water layers. `protected` is the holding name
+ *  (null = not in mapped protected land / layer unavailable); `water` true
+ *  means the centroid is on mapped water. The whole key is absent when both
+ *  layers are unavailable — missing data is never faked. */
+export interface GridSiting {
+  protected: string | null;
+  water: boolean;
+}
+
 export interface GridNearest {
   transmission: { closest?: GridPoint | null } | null;
   substation: { closest?: GridPoint | null } | null;
@@ -294,6 +304,9 @@ export interface GridNearest {
   /** Connection-path feasibility (§5) — absent on backends that predate it;
    *  the corridor overlay and verdict block silently skip when missing. */
   path?: GridPath | null;
+  /** Off-limits siting flag (§7b) — absent on backends without the layers;
+   *  the rail's siting lines silently skip when missing. */
+  siting?: GridSiting | null;
   disclaimer: string;
 }
 
@@ -342,6 +355,7 @@ export interface GridScanCandidate {
   access: GridNearest["access"];
   hookup?: GridNearest["hookup"];
   path?: GridNearest["path"];
+  siting?: GridNearest["siting"];
   disclaimer?: GridNearest["disclaimer"];
 }
 

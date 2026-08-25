@@ -589,6 +589,27 @@ def _path(st: dict, pt, access_pt, access: dict) -> dict:
     }
 
 
+def _siting(blockers: dict, pt) -> dict | None:
+    """Off-limits siting flag (contract §7b): point-in-polygon of the query
+    point against the already-loaded protected/water trees. Absent when
+    neither layer is available — missing data is never faked; each key is
+    null-safe when its own layer is missing."""
+    protected = blockers["protected"]
+    water = blockers["water"]
+    if not protected["available"] and not water["available"]:
+        return None
+    name = None
+    if protected["available"]:
+        hits = [int(i) for i in protected["tree"].query(pt, predicate="intersects")]
+        if hits:
+            # Overlapping CPAD holdings: the smallest (most specific) names it.
+            best = min(hits, key=lambda i: protected["geoms"][i].area)
+            name = protected["props"][best].get("name") or None
+    on_water = bool(water["available"] and
+                    list(water["tree"].query(pt, predicate="intersects")))
+    return {"protected": name, "water": on_water}
+
+
 def _analyze(lat: float, lng: float) -> dict:
     """Full grid analysis for one point — the /api/grid/nearest payload minus
     "query" (contract §6a: grid_nearest and the scan candidates share it)."""
@@ -647,6 +668,11 @@ def _analyze(lat: float, lng: float) -> dict:
             "disclaimer": DISCLAIMER}
     if access_pt is not None:  # contract §5b: corridor needs both endpoints
         resp["path"] = _path(st, pt, access_pt, access)
+    # Contract §7b: siting flag rides _analyze, so every scan candidate (§6a)
+    # inherits it automatically.
+    siting = _siting(st["blockers"], pt)
+    if siting is not None:
+        resp["siting"] = siting
     return resp
 
 
@@ -764,10 +790,17 @@ async def grid_scan(request: Request):
             "best": min(candidates, key=_scan_rank)["id"]}
 
 
-@router.get("/api/grid/tiles/grid.pmtiles")
-async def grid_tiles(request: Request):
+# Serveable pmtiles archives (contract §7b): grid = transmission/substations,
+# offlimits = no-go land classes. Anything else is a 404, never a path probe.
+_TILE_ARCHIVES = frozenset({"grid", "offlimits"})
+
+
+@router.get("/api/grid/tiles/{name}.pmtiles")
+async def grid_tiles(name: str, request: Request):
     """pmtiles needs HTTP Range reads — serve 206 partial content, no deps."""
-    path = DATA_DIR / "grid.pmtiles"
+    if name not in _TILE_ARCHIVES:
+        raise HTTPException(status_code=404, detail="unknown tile archive")
+    path = DATA_DIR / f"{name}.pmtiles"
     if not path.exists():
         raise HTTPException(status_code=503, detail="grid data not loaded")
     size = path.stat().st_size
@@ -799,8 +832,13 @@ async def grid_tiles(request: Request):
 async def grid_status():
     st = _load()
     path = DATA_DIR / "grid.pmtiles"
+    offlimits = DATA_DIR / "offlimits.pmtiles"
     return {"lines": len(st["line_geoms"]), "substations": len(st["sub_geoms"]),
             "pmtiles_bytes": path.stat().st_size if path.exists() else 0,
+            # Contract §7b: additive — the off-limits archive's size (0 = not
+            # baked yet).
+            "offlimits_pmtiles_bytes":
+                offlimits.stat().st_size if offlimits.exists() else 0,
             "loaded": st["loaded"],
             "layers": {k: v["available"]
                        for k, v in st.get("blockers", {}).items()}}
