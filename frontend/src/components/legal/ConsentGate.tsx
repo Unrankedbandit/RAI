@@ -46,7 +46,13 @@ export function ConsentGate() {
   // "declined" is a session-only user gesture, so it stays a normal state;
   // only the persisted consent read needed the purity-safe store.
   const [declined, setDeclined] = useState(false);
-  const status: ConsentStatus = accepted ? "accepted" : declined ? "declined" : "pending";
+  // Session acceptance lives in normal state too: the external store's
+  // subscribe is a deliberate no-op, so after writing localStorage the store
+  // alone would never re-read — and a same-value setDeclined(false) bails
+  // out without a render, which made Accept look dead (user report).
+  const [acceptedSession, setAcceptedSession] = useState(false);
+  const status: ConsentStatus =
+    accepted || acceptedSession ? "accepted" : declined ? "declined" : "pending";
   const [openSection, setOpenSection] = useState<string | null>(null);
 
   // Lock background scroll while the gate is up.
@@ -73,7 +79,8 @@ export function ConsentGate() {
       // Storage unavailable — still let the session proceed; the gate will
       // reappear on the next visit.
     }
-    setDeclined(false)  // acceptance re-reads from storage on next render;
+    setAcceptedSession(true); // lifts the gate THIS session (see above)
+    setDeclined(false);
   };
 
   return (
@@ -87,12 +94,13 @@ export function ConsentGate() {
         {status === "declined" ? (
           <div className="p-[24px]">
             <div className="text-[15px] font-semibold text-ink">
-              RAI requires acceptance to continue
+              We&apos;re sorry — you must agree to the terms to continue
             </div>
             <p className="mt-3 text-[13.5px] leading-relaxed text-muted">
-              You declined the terms. RAI can&apos;t be used without accepting
-              them — the app will stay unavailable until you do. Nothing has
-              been stored, and you&apos;ll be asked again on your next visit.
+              You declined the terms, and RAI can&apos;t be used without
+              accepting them — the app will stay unavailable until you do.
+              Nothing has been stored, and you&apos;ll be asked again on your
+              next visit.
             </p>
             <p className="mt-2 text-[13.5px] leading-relaxed text-muted">
               If you declined by mistake, you can review the terms again and
