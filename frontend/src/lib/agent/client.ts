@@ -346,17 +346,13 @@ export async function getGridNearest(
 /* ---------- Grid origin scan (GRID V1 contract §6a) ---------- */
 
 /** One pre-scanned gen-tie origin candidate for a parcel: the full
- *  /api/grid/nearest analysis payload at that point (access/hookup/path),
- *  plus the scan's own id/kind/point. */
-export interface GridScanCandidate {
+ *  /api/grid/nearest analysis payload at that point (transmission/
+ *  substation/access/hookup/path/siting/disclaimer — the backend emits the
+ *  identical shape per candidate), plus the scan's own id/kind/point. */
+export interface GridScanCandidate extends GridNearest {
   id: string;
   kind: "centroid" | "edge-nearest" | "mid" | string;
   point: GridPoint;
-  access: GridNearest["access"];
-  hookup?: GridNearest["hookup"];
-  path?: GridNearest["path"];
-  siting?: GridNearest["siting"];
-  disclaimer?: GridNearest["disclaimer"];
 }
 
 export interface GridScanResponse {
