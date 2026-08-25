@@ -62,9 +62,19 @@ const ORANGE = "#ff8400";
 // (red/green), or blue (brand ink #0b0829 is navy-leaning on canvas).
 const INK = "#1e1e26";
 
+/** Short mobile-strip labels for path verdict codes (the rail carries the
+ *  full verdict copy). */
+const VERDICT_LABEL: Record<string, string> = {
+  clear_rural: "Clear rural",
+  review: "Review",
+  constrained_urban: "Constrained",
+  municipal_path: "Municipal path",
+  protected_conflict: "Protected",
+  remote: "Remote",
+};
+
 /** Tap-point glyphs for the grid connection diagram: square = existing
- *  substation bus, diamond = new switchyard a line tap requires,
- *  triangle = local-grid entry point on a municipal path (§5c). Returns
+ *  substation bus, diamond = new switchyard a line tap requires. Returns
  *  ImageData because MapLibre's addImage types don't accept a canvas. */
 function makeNodeImage(kind: "substation" | "line-tap" | "entry"): ImageData {
   const S = 28;
@@ -276,6 +286,9 @@ export default function ParcelViewer() {
   // (centroid) and the feature hides.
   const [origin, setOrigin] = useState<[number, number] | null>(null);
   const [originCustom, setOriginCustom] = useState(false);
+  // Mobile bottom-sheet: a selection starts COLLAPSED (title + chips strip)
+  // so the map and the parcel stay visible; tap the strip for full details.
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
   // Why the last search came up empty (no match vs county has no attribute
   // search) — shown as a small caption, since the rail only gets panelStatus.
@@ -718,6 +731,12 @@ export default function ParcelViewer() {
     if (panel.status !== "found") return null;
     return origin ?? geometryCenter(panel.result.geometry);
   }, [panel, origin]);
+
+  // New selection → mobile sheet back to collapsed (deferred-tick idiom).
+  useEffect(() => {
+    const t = setTimeout(() => setSheetOpen(false), 0);
+    return () => clearTimeout(t);
+  }, [panel]);
 
   // Origin scan (GRID V1 §6a/6b, simplified): every selection change resets
   // the origin state and POSTs the parcel geometry once. The scan's `best`
@@ -1165,17 +1184,19 @@ export default function ParcelViewer() {
         )}
       </MapGL>
 
-      {/* top bar */}
-      <div className="absolute left-3 right-3 top-3 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[11px] border border-hairline bg-surface-2 px-4 py-3 shadow-card">
-        <h1 className="text-[15px] font-semibold text-ink">
+      {/* top bar — on phones: one compact row (no title/labels, fluid
+          search) so the map + selected parcel stay visible. Desktop
+          layout unchanged. */}
+      <div className="absolute left-3 right-3 top-3 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[11px] border border-hairline bg-surface-2 px-4 py-3 shadow-card max-md:flex-nowrap max-md:gap-2 max-md:px-2.5 max-md:py-2">
+        <h1 className="text-[15px] font-semibold text-ink max-md:hidden">
           California Parcel Viewer
         </h1>
-        <label className="flex items-center gap-2">
-          <span className="text-[12px] text-faint">County</span>
+        <label className="flex items-center gap-2 max-md:flex-none">
+          <span className="text-[12px] text-faint max-md:hidden">County</span>
           <select
             value={selectedCounty}
             onChange={(e) => handleCountyChange(e.target.value)}
-            className="max-w-[260px] cursor-pointer rounded-full bg-canvas px-3 py-1.5 text-[12.5px] text-ink outline-none ring-1 ring-hairline focus:ring-2 focus:ring-vista"
+            className="max-w-[260px] cursor-pointer rounded-full bg-canvas px-3 py-1.5 text-[12.5px] text-ink outline-none ring-1 ring-hairline focus:ring-2 focus:ring-vista max-md:max-w-[118px] max-md:px-2 max-md:text-[11.5px]"
           >
             <option value={STATEWIDE_COUNTY_NAME}>
               {STATEWIDE_COUNTY_NAME} — Mosaic
@@ -1188,7 +1209,7 @@ export default function ParcelViewer() {
           </select>
         </label>
         <form
-          className="relative flex items-center"
+          className="relative flex items-center max-md:min-w-0 max-md:flex-1"
           onSubmit={(e) => {
             e.preventDefault();
             void handleSearch();
@@ -1251,7 +1272,7 @@ export default function ParcelViewer() {
             aria-label="Search APN or address in the selected county"
             autoComplete="off"
             spellCheck={false}
-            className="w-[240px] rounded-full bg-canvas py-1.5 pl-8 pr-3 text-[12.5px] text-ink outline-none ring-1 ring-hairline placeholder:text-faint focus:ring-2 focus:ring-vista"
+            className="w-[240px] rounded-full bg-canvas py-1.5 pl-8 pr-3 text-[12.5px] text-ink outline-none ring-1 ring-hairline placeholder:text-faint focus:ring-2 focus:ring-vista max-md:w-full max-md:min-w-0"
           />
           {suggestOpen && searchText.trim().length >= 3 && (
             <ul
@@ -1370,25 +1391,87 @@ export default function ParcelViewer() {
       )}
 
       {/* right-side rail: selected parcel, watchlist, recent searches.
-          On phones the floating top bar wraps to several rows, so a fixed
-          top-[76px] rail would slide under it — anchor the rail to the
-          bottom as a height-capped sheet instead (Watching/Recent are
-          hidden below md anyway, so this is just the selected-parcel card).
+          On phones this is a bottom sheet that starts COLLAPSED — a one-row
+          strip (parcel name + grid/verdict chips) so the map and the
+          selected parcel stay visible; tap to expand the full rail, chevron
+          or X to put it away (Watching/Recent are hidden below md anyway).
           Desktop geometry (right column, top 76px) is unchanged. */}
-      <div className="absolute flex max-w-[calc(100vw-24px)] flex-col max-md:inset-x-3 max-md:bottom-24 max-md:max-h-[42vh] max-md:overflow-y-auto md:bottom-14 md:right-3 md:top-[76px] md:w-[360px]">
-        <ParcelRail
-          selected={panel.status === "found" ? panel.result : null}
-          panelStatus={panel.status}
-          gridAccess={gridNearest}
-          originLabel={originLabel}
-          onCloseSelected={handleCloseSelected}
-          onResearch={(p) => void handleResearch(p)}
-          onFlyTo={handleFlyTo}
-        />
+      <div className="absolute flex max-w-[calc(100vw-24px)] flex-col max-md:inset-x-3 max-md:bottom-24 md:bottom-14 md:right-3 md:top-[76px] md:w-[360px]">
+        {panel.status === "found" && !sheetOpen && (
+          <div className="flex items-center gap-2 rounded-[11px] border border-hairline bg-surface-2 px-3 py-2 shadow-card md:hidden">
+            <button
+              type="button"
+              onClick={() => setSheetOpen(true)}
+              className="flex min-w-0 flex-1 items-center gap-2 text-left"
+              aria-label="Expand parcel details"
+            >
+              <span className="truncate text-[13px] font-semibold text-ink">
+                {panel.result.address ?? panel.result.apn ?? "Unnamed parcel"}
+              </span>
+              {gridNearest?.access && (
+                <span className="flex-none rounded-full bg-canvas px-1.5 py-px text-[10px] font-medium text-muted ring-1 ring-hairline">
+                  {gridNearest.access.label.split(" to ")[0]} · {gridNearest.access.bucket}
+                </span>
+              )}
+              {gridNearest?.path?.verdict && (
+                <span className="flex-none rounded-full bg-canvas px-1.5 py-px text-[10px] font-medium text-muted ring-1 ring-hairline">
+                  {VERDICT_LABEL[gridNearest.path.verdict.code] ?? gridNearest.path.verdict.code}
+                </span>
+              )}
+              <svg viewBox="0 0 12 12" className="h-3 w-3 flex-none text-faint" aria-hidden="true">
+                <path d="M2 8l4-4 4 4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              aria-label="Close selected parcel"
+              onClick={handleCloseSelected}
+              className="flex-none text-faint hover:text-ink"
+            >
+              <svg viewBox="0 0 12 12" className="h-3 w-3" aria-hidden="true">
+                <path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            </button>
+          </div>
+        )}
+        {/* Mobile expand handle (only when the sheet is open on phones). */}
+        {panel.status === "found" && sheetOpen && (
+          <button
+            type="button"
+            onClick={() => setSheetOpen(false)}
+            aria-label="Collapse parcel details"
+            className="mb-1 flex items-center justify-center gap-1 self-center rounded-full border border-hairline bg-surface-2 px-3 py-1 text-[11px] text-muted shadow-card md:hidden"
+          >
+            <svg viewBox="0 0 12 12" className="h-3 w-3" aria-hidden="true">
+              <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Minimize
+          </button>
+        )}
+        <div
+          className={`max-md:max-h-[55vh] max-md:overflow-y-auto ${
+            panel.status === "found" && !sheetOpen ? "max-md:hidden" : ""
+          }`}
+        >
+          <ParcelRail
+            selected={panel.status === "found" ? panel.result : null}
+            panelStatus={panel.status}
+            gridAccess={gridNearest}
+            originLabel={originLabel}
+            onCloseSelected={handleCloseSelected}
+            onResearch={(p) => void handleResearch(p)}
+            onFlyTo={handleFlyTo}
+          />
+        </div>
       </div>
 
-      {/* data sources footer */}
-      <div className="absolute bottom-3 left-16 max-w-[min(600px,calc(100%-160px))] rounded-[8px] border border-hairline bg-canvas/95 px-3 py-2 text-[11.5px] leading-snug text-faint shadow-card backdrop-blur">
+      {/* data sources footer — hidden on phones while a parcel is selected
+          (it overlaps the bottom sheet); smaller there otherwise. */}
+      <div
+        className={`absolute bottom-3 left-16 max-w-[min(600px,calc(100%-160px))] rounded-[8px] border border-hairline bg-canvas/95 px-3 py-2 text-[11.5px] leading-snug text-faint shadow-card backdrop-blur max-md:left-3 max-md:px-2 max-md:py-1 max-md:text-[10.5px] ${
+          panel.status === "found" ? "max-md:hidden" : ""
+        }`}
+      >
         <span className="text-muted">
           Click the map to identify a parcel, or search by APN/address.
         </span>{" "}
