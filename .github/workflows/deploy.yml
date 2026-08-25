@@ -1,0 +1,131 @@
+name: Deploy
+
+# Manual CD for the live stack (rai-live.josephbissell.com).
+# Streams deploy/deploy.sh to the box over SSH: git pull -> deps -> build ->
+# restart -> local health wait, then runs the post-deploy smoke suite as a gate.
+#
+# One-time setup (details in deploy/README.md):
+#   Secret:    SSH_PRIVATE_KEY   key that can ssh ${DEPLOY_USER}@${DEPLOY_HOST}
+#   Variables: DEPLOY_HOST       the box (required)
+#              DEPLOY_USER       default: bob
+#              DEPLOY_PATH       default: ~/hackathons/rai/RAI (on the box)
+#   On the box once:  ssh bob@<host> 'bash -s' < deploy/bootstrap.sh
+#
+# Fork-friendly like smoke.yml: without the secret/var the run skips green.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch, tag, or SHA to deploy"
+        required: true
+        default: "main"
+      force:
+        description: "Deploy even if CI is not green on this ref (and clobber dirty server checkout)"
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read
+
+# Never cancel a deploy mid-flight; queue them instead.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  guard:
+    name: CI must be green on the target ref
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.resolve.outputs.sha }}
+    steps:
+      - name: Resolve ref and check CI conclusion
+        id: resolve
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REF: ${{ inputs.ref }}
+          FORCE: ${{ inputs.force }}
+        run: |
+          set -euo pipefail
+          sha="$(gh api "repos/$GITHUB_REPOSITORY/commits/$REF" --jq .sha)"
+          echo "resolved $REF -> $sha"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          conclusion="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$sha&per_page=1" \
+            --jq '.workflow_runs[0].conclusion // "none"')"
+          echo "CI conclusion for $sha: $conclusion"
+          if [ "$conclusion" != "success" ]; then
+            if [ "$FORCE" = "true" ]; then
+              echo "::warning::CI is '$conclusion' on $sha — deploying anyway (force=true)"
+            else
+              echo "::error::CI is '$conclusion' on $sha. Fix main first, or rerun with force=true."
+              exit 1
+            fi
+          fi
+
+  deploy:
+    name: Deploy to live box (SSH)
+    needs: guard
+    runs-on: ubuntu-latest
+    outputs:
+      deployed: ${{ steps.cfg.outputs.configured }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Check deploy is configured
+        id: cfg
+        env:
+          KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          HOST: ${{ vars.DEPLOY_HOST }}
+        run: |
+          if [ -z "$KEY" ] || [ -z "$HOST" ]; then
+            echo "::notice::deploy not configured — set secret SSH_PRIVATE_KEY and variable DEPLOY_HOST; skipping"
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy over SSH
+        if: steps.cfg.outputs.configured == 'true'
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+          REF: ${{ inputs.ref }}
+          FORCE: ${{ inputs.force }}
+        run: |
+          set -euo pipefail
+          install -m 600 -D /dev/null "$RUNNER_TEMP/deploy_key"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$RUNNER_TEMP/deploy_key"
+          mkdir -p ~/.ssh
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+
+          remote_env="REF='$REF'"
+          [ "$FORCE" = "true" ] && remote_env="$remote_env FORCE=1"
+          [ -n "${DEPLOY_PATH:-}" ] && remote_env="DEPLOY_PATH='$DEPLOY_PATH' $remote_env"
+
+          ssh -i "$RUNNER_TEMP/deploy_key" -o StrictHostKeyChecking=accept-new \
+            "${DEPLOY_USER:-bob}@$DEPLOY_HOST" "$remote_env bash -s" < deploy/deploy.sh
+
+  smoke:
+    name: Post-deploy smoke gate
+    needs: deploy
+    if: needs.deploy.outputs.deployed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Smoke the fresh deployment
+        env:
+          SMOKE_BASE_URL: ${{ vars.SMOKE_BASE_URL }}
+          SMOKE_WEB_URL: ${{ vars.SMOKE_WEB_URL }}
+          SMOKE_TOKEN: ${{ secrets.SMOKE_TOKEN }}
+        run: python scripts/smoke.py
