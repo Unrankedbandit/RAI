@@ -6,6 +6,10 @@ import {
   offlimitsLayers,
   OFFLIMITS_PMTILES_URL,
 } from "@/components/maps/offlimitsOverlay";
+import {
+  scoresLayers,
+  SCORES_PMTILES_URL,
+} from "@/components/maps/scoresOverlay";
 
 /**
  * Optional GIS overlays for the map surfaces, drawn as raster Sources above
@@ -77,7 +81,26 @@ export const MAP_OVERLAYS: OverlayDef[] = [
     defaultOn: true,
   },
   {
-    // GRID V1 contract §7c: directly AFTER "Power grid". No-go land classes
+    // GRID V1 contract §8c: position 2 — directly AFTER "Power grid", before
+    // "Off-limits land". Every scoreable parcel pre-scored 0-100 by
+    // scripts/score/ and baked into scores.pmtiles; the fill carries the
+    // frozen red→green ramp (this layer IS the data-viz zone the ramp was
+    // reserved for). Heavy + unmeasured on real data, so NOT defaultOn.
+    id: "scores",
+    label: "Parcel scores",
+    attribution: "RAI screening score · screening aid only",
+    kind: "vector-grid",
+    pmtiles: SCORES_PMTILES_URL,
+    vectorLayers: scoresLayers,
+    tiles: [], // no raster tile sets — vector source via pmtiles
+    opacity: 1, // unused for vector layers (their paint owns opacity)
+    note: "Precomputed screening score 0-100 — red no-go, green promising",
+    // enabled:false until the scores.pmtiles archive exists on the backend
+    // and is verified serving (live 206 Range check), per contract §8c.
+    enabled: false,
+  },
+  {
+    // GRID V1 contract §7c: directly AFTER "Parcel scores". No-go land classes
     // (protected / water / military / tribal) from the offlimits pmtiles
     // archive — styles in maps/offlimitsOverlay.ts (ink wash + hairline
     // outline). Heavy visual, so NOT defaultOn.
