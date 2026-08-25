@@ -1,17 +1,16 @@
 name: Deploy
 
 # Manual CD for the live stack (rai-live.josephbissell.com).
-# Streams deploy/deploy.sh to the box over SSH: git pull -> deps -> build ->
-# restart -> local health wait, then runs the post-deploy smoke suite as a gate.
+# Two delivery routes, picked automatically by the `strategy` job:
+#   runner — preferred: a self-hosted runner on the box runs deploy/deploy.sh
+#            locally. The box is outbound-only (cloudflared), so nothing has to
+#            reach in. Set up once with deploy/install-runner.sh.
+#   ssh    — fallback: stream deploy/deploy.sh over SSH (needs the box to be
+#            reachable on port 22 + repo secret SSH_PRIVATE_KEY / var DEPLOY_HOST).
+# After either route, `smoke` gates the run against the public URLs.
 #
-# One-time setup (details in deploy/README.md):
-#   Secret:    SSH_PRIVATE_KEY   key that can ssh ${DEPLOY_USER}@${DEPLOY_HOST}
-#   Variables: DEPLOY_HOST       the box (required)
-#              DEPLOY_USER       default: bob
-#              DEPLOY_PATH       default: ~/hackathons/rai/RAI (on the box)
-#   On the box once:  ssh bob@<host> 'bash -s' < deploy/bootstrap.sh
-#
-# Fork-friendly like smoke.yml: without the secret/var the run skips green.
+# Setup: deploy/README.md. Fork-friendly: with neither route configured the
+# run skips green (same convention as smoke.yml).
 
 on:
   workflow_dispatch:
@@ -38,11 +37,8 @@ jobs:
   guard:
     name: CI must be green on the target ref
     runs-on: ubuntu-latest
-    outputs:
-      sha: ${{ steps.resolve.outputs.sha }}
     steps:
       - name: Resolve ref and check CI conclusion
-        id: resolve
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REF: ${{ inputs.ref }}
@@ -51,7 +47,6 @@ jobs:
           set -euo pipefail
           sha="$(gh api "repos/$GITHUB_REPOSITORY/commits/$REF" --jq .sha)"
           echo "resolved $REF -> $sha"
-          echo "sha=$sha" >> "$GITHUB_OUTPUT"
           conclusion="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$sha&per_page=1" \
             --jq '.workflow_runs[0].conclusion // "none"')"
           echo "CI conclusion for $sha: $conclusion"
@@ -64,32 +59,61 @@ jobs:
             fi
           fi
 
-  deploy:
-    name: Deploy to live box (SSH)
+  strategy:
+    name: Pick deploy route
     needs: guard
     runs-on: ubuntu-latest
     outputs:
-      deployed: ${{ steps.cfg.outputs.configured }}
+      mode: ${{ steps.pick.outputs.mode }}
+    steps:
+      - name: Prefer online self-hosted runner, fall back to SSH
+        id: pick
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_HOST: ${{ vars.DEPLOY_HOST }}
+        run: |
+          set -euo pipefail
+          online="$(gh api "repos/$GITHUB_REPOSITORY/actions/runners" \
+            --jq '[.runners[] | select(.status == "online")] | length')"
+          echo "online self-hosted runners: $online"
+          if [ "$online" -gt 0 ]; then
+            echo "mode=runner" >> "$GITHUB_OUTPUT"
+          elif [ -n "$SSH_KEY" ] && [ -n "$SSH_HOST" ]; then
+            echo "mode=ssh" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::no deploy route — run deploy/install-runner.sh on the box, or set SSH_PRIVATE_KEY + DEPLOY_HOST. Skipping green."
+            echo "mode=none" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy_runner:
+    name: Deploy on the box (self-hosted runner)
+    needs: strategy
+    if: needs.strategy.outputs.mode == 'runner'
+    runs-on: self-hosted
+    steps:
+      # Checked out on the box so deploy.sh is always the version from the ref
+      # being deployed; the script itself operates on $DEPLOY_PATH.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - name: Run deploy.sh locally
+        env:
+          REF: ${{ inputs.ref }}
+          FORCE: ${{ inputs.force && '1' || '0' }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+        run: bash deploy/deploy.sh
+
+  deploy_ssh:
+    name: Deploy over SSH (fallback)
+    needs: strategy
+    if: needs.strategy.outputs.mode == 'ssh'
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
-
-      - name: Check deploy is configured
-        id: cfg
-        env:
-          KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          HOST: ${{ vars.DEPLOY_HOST }}
-        run: |
-          if [ -z "$KEY" ] || [ -z "$HOST" ]; then
-            echo "::notice::deploy not configured — set secret SSH_PRIVATE_KEY and variable DEPLOY_HOST; skipping"
-            echo "configured=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "configured=true" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Deploy over SSH
-        if: steps.cfg.outputs.configured == 'true'
+      - name: Stream deploy.sh over SSH
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
@@ -113,8 +137,8 @@ jobs:
 
   smoke:
     name: Post-deploy smoke gate
-    needs: deploy
-    if: needs.deploy.outputs.deployed == 'true'
+    needs: [deploy_runner, deploy_ssh]
+    if: always() && (needs.deploy_runner.result == 'success' || needs.deploy_ssh.result == 'success')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
