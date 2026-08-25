@@ -37,6 +37,10 @@ async def _lifespan(_app: FastAPI):
     # FAILED/WorkerLost before serving — the catalog must never claim a run
     # is alive when nothing is executing it.
     _port.reconcile_orphans(set(JOB_QUEUES))
+    # Grid warmup: parse+index the grid/blocker GeoJSON in a daemon thread so
+    # the first parcel click never pays the ~25 s cold load and the event
+    # loop stays free (grid endpoints 503 until loaded — frontend hides it).
+    grid.preload()
     yield
 
 
