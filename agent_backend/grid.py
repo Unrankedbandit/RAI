@@ -180,9 +180,9 @@ def preload() -> None:
     the first parcel click never pays the cold parse, and uvicorn's single
     event loop is never blocked by it. Until the load lands, nearest/scan
     answer 503 (the frontend silently hides grid UI) and status reports
-     loaded:false with warming:true."""
-     threading.Thread(target=lambda: _get(wait=True), daemon=True,
-                      name="grid-preload").start()
+    loaded:false with warming:true."""
+    threading.Thread(target=lambda: _get(wait=True), daemon=True,
+                     name="grid-preload").start()
 
 
 def _load_blockers() -> dict:
