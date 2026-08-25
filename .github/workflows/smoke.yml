@@ -1,0 +1,65 @@
+name: Smoke (live deploy)
+
+# Post-deploy smoke against a live stack. Runs on demand and on a schedule.
+# Targets resolve: workflow input > repo variable. When neither is set the
+# run skips green instead of failing — fork/clone friendly.
+#
+# Configure:
+#   repo Settings > Secrets and variables > Actions > Variables:
+#     SMOKE_BASE_URL   backend, e.g. https://rai-live-api.josephbissell.com
+#     SMOKE_WEB_URL    frontend, e.g. https://rai-live.josephbissell.com
+#   Secrets (optional, if the gate requires a token on API calls):
+#     SMOKE_TOKEN
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Backend base URL (overrides vars.SMOKE_BASE_URL)"
+        required: false
+        default: ""
+      web_url:
+        description: "Frontend base URL (overrides vars.SMOKE_WEB_URL)"
+        required: false
+        default: ""
+  schedule:
+    - cron: "*/30 * * * *"
+
+# Scheduled + manual runs shouldn't stack up behind each other.
+concurrency:
+  group: smoke
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: Smoke against live deployment
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Resolve smoke targets
+        id: t
+        env:
+          IN_BASE: ${{ inputs.base_url }}
+          IN_WEB: ${{ inputs.web_url }}
+          VAR_BASE: ${{ vars.SMOKE_BASE_URL }}
+          VAR_WEB: ${{ vars.SMOKE_WEB_URL }}
+        run: |
+          BASE="${IN_BASE:-$VAR_BASE}"
+          WEB="${IN_WEB:-$VAR_WEB}"
+          if [ -z "$BASE" ] && [ -z "$WEB" ]; then
+            echo "::notice::no smoke targets configured — set repo variables SMOKE_BASE_URL / SMOKE_WEB_URL; skipping"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "SMOKE_BASE_URL=$BASE" >> "$GITHUB_ENV"
+            echo "SMOKE_WEB_URL=$WEB" >> "$GITHUB_ENV"
+            echo "targets: BASE=$BASE WEB=$WEB"
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Run smoke checks
+        if: steps.t.outputs.skip != 'true'
+        env:
+          SMOKE_TOKEN: ${{ secrets.SMOKE_TOKEN }}
+        run: python scripts/smoke.py

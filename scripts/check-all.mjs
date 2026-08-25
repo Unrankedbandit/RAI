@@ -75,6 +75,14 @@ if (!py) {
     diff.ok
       ? ok("sentinel-samples in sync with reports")
       : fail("stale fixtures — regenerated locally; commit the changes in agent_backend/sentinel-samples");
+
+    step("Unit tests (offline, no LLM) — CI blocking");
+    const ru = run(py, ["scripts/test_unit.py"]);
+    ru.ok ? ok("unit tests pass") : fail("unit test failure:\n" + ru.out);
+
+    step("Integration tests (API contract, in-process) — CI blocking");
+    const ri = run(py, ["scripts/test_integration.py"]);
+    ri.ok ? ok("integration tests pass") : fail("integration test failure:\n" + ri.out);
   }
 }
 
