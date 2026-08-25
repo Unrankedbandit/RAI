@@ -1448,8 +1448,12 @@ export default function ParcelViewer() {
             Minimize
           </button>
         )}
+        {/* Scroll container. Desktop: min-h-0 flex-1 gives the rail's own
+            h-full+overflow a definite height to scroll in. Mobile: the 55vh
+            cap + this overflow-y-auto do the scrolling (the rail's h-full
+            doesn't resolve against a max-height-only parent). */}
         <div
-          className={`min-h-0 flex-1 max-md:max-h-[55vh] ${
+          className={`min-h-0 flex-1 overflow-y-auto overscroll-contain max-md:max-h-[55vh] ${
             panel.status === "found" && !sheetOpen ? "max-md:hidden" : ""
           }`}
         >
