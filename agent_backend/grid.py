@@ -825,9 +825,10 @@ async def grid_scan(request: Request):
             "best": min(candidates, key=_scan_rank)["id"]}
 
 
-# Serveable pmtiles archives (contract §7b): grid = transmission/substations,
-# offlimits = no-go land classes. Anything else is a 404, never a path probe.
-_TILE_ARCHIVES = frozenset({"grid", "offlimits"})
+# Serveable pmtiles archives (contract §7b/§8b): grid = transmission/
+# substations, offlimits = no-go land classes, scores = precomputed parcel
+# screening scores. Anything else is a 404, never a path probe.
+_TILE_ARCHIVES = frozenset({"grid", "offlimits", "scores"})
 
 
 @router.get("/api/grid/tiles/{name}.pmtiles")
@@ -870,11 +871,15 @@ async def grid_status():
     st = _state
     path = DATA_DIR / "grid.pmtiles"
     offlimits = DATA_DIR / "offlimits.pmtiles"
+    scores = DATA_DIR / "scores.pmtiles"
     base = {"pmtiles_bytes": path.stat().st_size if path.exists() else 0,
             # Contract §7b: additive — the off-limits archive's size (0 = not
             # baked yet).
             "offlimits_pmtiles_bytes":
-                offlimits.stat().st_size if offlimits.exists() else 0}
+                offlimits.stat().st_size if offlimits.exists() else 0,
+            # Contract §8b: the precomputed parcel-scores archive's size.
+            "scores_pmtiles_bytes":
+                scores.stat().st_size if scores.exists() else 0}
     if st is None:
         return {**base, "lines": 0, "substations": 0,
                 "loaded": False, "warming": True, "layers": {}}
