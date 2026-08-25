@@ -9,8 +9,8 @@
     },
     {
       "name": "frontend",
-      "command": "cd frontend && npm run dev",
-      "description": "Next.js 16 dashboard on http://localhost:3000. Talks to the backend at :8000; degrades to mock data if it is down."
+      "command": "cd frontend && NEXT_PUBLIC_AGENT_API=http://localhost:8000 npm run dev",
+      "description": "Next.js 16 dashboard on http://localhost:3000, pointed at the local backend via NEXT_PUBLIC_AGENT_API (the code default is a remote host). Degrades to mock data if the backend is down."
     }
   ],
   "ports": [
