@@ -387,28 +387,38 @@ export function MapLayersControl({
           entry, each carrying its own style layers on the OverlayDef
           (vectorLayers — grid's kv-scaled lines + substation dots live in
           maps/gridOverlay.ts, off-limits land's ink washes in
-          maps/offlimitsOverlay.ts). Same declarative re-add-on-style-swap
-          behavior as the raster branch above. */}
-      {MAP_OVERLAYS.map(
-        (def) =>
-          def.kind === "vector-grid" &&
-          def.enabled &&
-          def.pmtiles &&
-          def.vectorLayers &&
-          state.isOverlayOn(def.id) && (
-            <Source
-              key={def.id}
-              id={`ovl-${def.id}`}
-              type="vector"
-              url={def.pmtiles}
-              attribution={def.attribution}
-            >
-              {def.vectorLayers.map((layer) => (
-                <Layer key={layer.id} {...layer} />
-              ))}
-            </Source>
-          ),
-      )}
+          maps/offlimitsOverlay.ts). An entry may carry a FUNCTION of the
+          current basemap (basemap-adaptive palette — ink washes vanish on
+          the dark basemap). Same declarative re-add-on-style-swap behavior
+          as the raster branch above. */}
+      {MAP_OVERLAYS.map((def) => {
+        if (
+          def.kind !== "vector-grid" ||
+          !def.enabled ||
+          !def.pmtiles ||
+          !def.vectorLayers ||
+          !state.isOverlayOn(def.id)
+        ) {
+          return null;
+        }
+        const layers =
+          typeof def.vectorLayers === "function"
+            ? def.vectorLayers(state.basemap)
+            : def.vectorLayers;
+        return (
+          <Source
+            key={def.id}
+            id={`ovl-${def.id}`}
+            type="vector"
+            url={def.pmtiles}
+            attribution={def.attribution}
+          >
+            {layers.map((layer) => (
+              <Layer key={layer.id} {...layer} />
+            ))}
+          </Source>
+        );
+      })}
 
       {/* 44px-tall hit area (WCAG target size) around the compact pill —
           the wrapper's transparent flex box takes the tap, desktop appearance

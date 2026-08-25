@@ -7,6 +7,7 @@ import type {
 } from "maplibre-gl";
 
 import { apiUrl } from "@/lib/agent/client";
+import type { BasemapId } from "@/components/maps/basemaps";
 
 /**
  * Power-grid vector overlay (GRID V1 contract §4): CA transmission lines +
@@ -61,21 +62,25 @@ const ZOOM_GATE: FilterSpecification = [
 // score ramp, NOT brand orange, and NOT blue/violet (brand ink #0b0829 is
 // navy-leaning and reads blue on canvas — user feedback 2026-08-24).
 // Hue-free: darkness alone scales with kv, unknown is a hairline grey.
-const LINE_COLOR = [
-  "step",
-  KV,
-  "#b9b9c0", // unknown — hairline grey
-  0,
-  "#9a9aa2", // <115 kV
-  115,
-  "#7d7d86", // 115 kV
-  230,
-  "#5c5c64", // 230 kV
-  345,
-  "#3d3d44", // 345 kV
-  500,
-  "#1e1e26", // 500+ kV — near-black (watch token, neutral)
-] as unknown as ExpressionSpecification;
+// Basemap-adaptive (same-day feedback): dark basemap inverts to a light
+// ramp — dark greys on dark read as nothing.
+const LINE_COLOR: Record<BasemapId, ExpressionSpecification> = {
+  light: [
+    "step", KV,
+    "#b9b9c0", 0, "#9a9aa2", 115, "#7d7d86", 230, "#5c5c64", 345, "#3d3d44",
+    500, "#1e1e26",
+  ] as unknown as ExpressionSpecification,
+  satellite: [
+    "step", KV,
+    "#b9b9c0", 0, "#9a9aa2", 115, "#7d7d86", 230, "#5c5c64", 345, "#3d3d44",
+    500, "#1e1e26",
+  ] as unknown as ExpressionSpecification,
+  dark: [
+    "step", KV,
+    "#6a6a74", 0, "#8a8a94", 115, "#a5a5b0", 230, "#c4c4cf", 345, "#dcdce4",
+    500, "#f5f5fa",
+  ] as unknown as ExpressionSpecification,
+};
 
 const LINE_WIDTH = [
   "step",
@@ -110,36 +115,40 @@ const CIRCLE_RADIUS = [
 ] as unknown as ExpressionSpecification;
 
 /**
- * The grid overlay's vector layers, spread onto <Layer> children of the
- * pmtiles Source in MapLayersControl. Transmission first so substation dots
- * draw above the lines. Source-layer names are the tippecanoe layer names
- * from contract §1.
+ * The grid overlay's vector layers for the given basemap, spread onto
+ * <Layer> children of the pmtiles Source in MapLayersControl. Transmission
+ * first so substation dots draw above the lines. Source-layer names are the
+ * tippecanoe layer names from contract §1. Stable ids across basemaps — a
+ * basemap swap only repaints.
  */
-export const GRID_LAYERS: LayerProps[] = [
-  {
-    id: "ovl-grid-transmission",
-    type: "line",
-    "source-layer": "transmission",
-    minzoom: 6,
-    filter: ZOOM_GATE,
-    paint: {
-      "line-color": LINE_COLOR,
-      "line-width": LINE_WIDTH,
-      "line-opacity": 0.85,
+export function gridLayers(basemap: BasemapId): LayerProps[] {
+  const dark = basemap === "dark";
+  return [
+    {
+      id: "ovl-grid-transmission",
+      type: "line",
+      "source-layer": "transmission",
+      minzoom: 6,
+      filter: ZOOM_GATE,
+      paint: {
+        "line-color": LINE_COLOR[basemap],
+        "line-width": LINE_WIDTH,
+        "line-opacity": 0.85,
+      },
     },
-  },
-  {
-    id: "ovl-grid-substations",
-    type: "circle",
-    "source-layer": "substations",
-    minzoom: 6,
-    filter: ZOOM_GATE,
-    paint: {
-      "circle-radius": CIRCLE_RADIUS,
-      "circle-color": "#1e1e26", // neutral near-black, not blue/violet
-      "circle-opacity": 0.9,
-      "circle-stroke-color": "#ffffff",
-      "circle-stroke-width": 1.5,
+    {
+      id: "ovl-grid-substations",
+      type: "circle",
+      "source-layer": "substations",
+      minzoom: 6,
+      filter: ZOOM_GATE,
+      paint: {
+        "circle-radius": CIRCLE_RADIUS,
+        "circle-color": dark ? "#e8e8f0" : "#1e1e26", // neutral, not blue/violet
+        "circle-opacity": 0.9,
+        "circle-stroke-color": dark ? "#1e1e26" : "#ffffff",
+        "circle-stroke-width": 1.5,
+      },
     },
-  },
-];
+  ];
+}

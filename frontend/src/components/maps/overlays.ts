@@ -1,8 +1,9 @@
 import type { LayerProps } from "react-map-gl/maplibre";
 
-import { GRID_LAYERS, GRID_PMTILES_URL } from "@/components/maps/gridOverlay";
+import { gridLayers, GRID_PMTILES_URL } from "@/components/maps/gridOverlay";
+import type { BasemapId } from "@/components/maps/basemaps";
 import {
-  OFFLIMITS_LAYERS,
+  offlimitsLayers,
   OFFLIMITS_PMTILES_URL,
 } from "@/components/maps/offlimitsOverlay";
 
@@ -35,7 +36,10 @@ export interface OverlayDef {
   tiles: string[]; // primary tile set: XYZ template OR WMS/export template with {bbox-epsg-3857}
   kind?: "vector-grid"; // absent = raster (the default); see header comment
   pmtiles?: string; // pmtiles:// archive URL — required when kind is "vector-grid"
-  vectorLayers?: LayerProps[]; // the entry's vector style layers — required when kind is "vector-grid"
+  // The entry's vector style layers — required when kind is "vector-grid".
+  // A function makes the palette basemap-adaptive (ink washes vanish on the
+  // dark basemap); MapLayersControl resolves it with the current basemap.
+  vectorLayers?: LayerProps[] | ((basemap: BasemapId) => LayerProps[]);
   extraTileSets?: string[][]; // additional stacked tile sets under the same checkbox
   opacity: number; // raster layer opacity 0..1 (vector styles own their paint)
   minzoom?: number; // raster source minzoom — the service draws nothing below it
@@ -59,7 +63,7 @@ export const MAP_OVERLAYS: OverlayDef[] = [
     // registration live in maps/gridOverlay.ts.
     kind: "vector-grid",
     pmtiles: GRID_PMTILES_URL,
-    vectorLayers: GRID_LAYERS,
+    vectorLayers: gridLayers,
     tiles: [], // no raster tile sets — vector source via pmtiles
     opacity: 1, // unused for vector layers (their paint owns opacity)
     note: "Screening aid — mapped grid infrastructure, not capacity.",
@@ -82,7 +86,7 @@ export const MAP_OVERLAYS: OverlayDef[] = [
     attribution: "CPAD 2026a · US Census Bureau",
     kind: "vector-grid",
     pmtiles: OFFLIMITS_PMTILES_URL,
-    vectorLayers: OFFLIMITS_LAYERS,
+    vectorLayers: offlimitsLayers,
     tiles: [], // no raster tile sets — vector source via pmtiles
     opacity: 1, // unused for vector layers (their paint owns opacity)
     note: "Generally no-go for development — protected, water, military, tribal. Screening aid.",
