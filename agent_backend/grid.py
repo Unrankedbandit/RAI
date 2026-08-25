@@ -589,8 +589,9 @@ def _path(st: dict, pt, access_pt, access: dict) -> dict:
     }
 
 
-@router.get("/api/grid/nearest")
-async def grid_nearest(lat: float, lng: float):
+def _analyze(lat: float, lng: float) -> dict:
+    """Full grid analysis for one point — the /api/grid/nearest payload minus
+    "query" (contract §6a: grid_nearest and the scan candidates share it)."""
     st = _load()
     if not st["loaded"]:
         raise HTTPException(status_code=503, detail="grid data not loaded")
@@ -640,13 +641,127 @@ async def grid_nearest(lat: float, lng: float):
                   "distance_mi": round(dist / MILE_M, 2), "bucket": bucket,
                   "label": _label(kind, dist, props)}
 
-    resp = {"query": {"lat": lat, "lng": lng}, "transmission": transmission,
-            "substation": substation, "access": access,
+    resp = {"transmission": transmission, "substation": substation,
+            "access": access,
             "hookup": _hookup(access, transmission, substation),
             "disclaimer": DISCLAIMER}
     if access_pt is not None:  # contract §5b: corridor needs both endpoints
         resp["path"] = _path(st, pt, access_pt, access)
     return resp
+
+
+@router.get("/api/grid/nearest")
+async def grid_nearest(lat: float, lng: float):
+    return {"query": {"lat": lat, "lng": lng}, **_analyze(lat, lng)}
+
+
+# --- Pre-scanned farm-origin candidates (contract §6a) ---------------------
+# Scan bodies carry one parcel polygon; reject anything past 5 MB before
+# parsing (contract §6a perf note).
+MAX_SCAN_BODY_BYTES = 5 * 1024 * 1024
+# Candidates closer than this (EPSG:3310 meters) are duplicates — drop them.
+SCAN_DEDUPE_M = 50.0
+# Verdict rank for picking "best" (contract §6a frozen order). A candidate
+# with no corridor — access.kind None → _analyze omits "path" — ranks remote.
+_VERDICT_RANK = {"clear_rural": 0, "municipal_path": 1, "constrained_urban": 2,
+                 "review": 3, "protected_conflict": 4, "remote": 5}
+
+
+def _scan_rank(candidate: dict) -> tuple:
+    """(verdict rank, gentie miles, urban crossing miles) — lower wins."""
+    path = candidate.get("path") or {}
+    code = (path.get("verdict") or {}).get("code")
+    gentie = (candidate.get("hookup") or {}).get("gentie_mi")
+    urban = (path.get("urban") or {}).get("crossing_mi")
+    return (_VERDICT_RANK.get(code, _VERDICT_RANK["remote"]),
+            gentie if gentie is not None else float("inf"),
+            urban if urban is not None else 0.0)
+
+
+@router.post("/api/grid/scan")
+async def grid_scan(request: Request):
+    st = _load()
+    if not st["loaded"]:
+        raise HTTPException(status_code=503, detail="grid data not loaded")
+    body = await request.body()
+    if len(body) > MAX_SCAN_BODY_BYTES:
+        raise HTTPException(status_code=413,
+                            detail="geometry body too large (5 MB max)")
+    try:
+        payload = json.loads(body)
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        raise HTTPException(status_code=400, detail="body is not valid JSON")
+    geom_json = payload.get("geometry") if isinstance(payload, dict) else None
+    if isinstance(payload, dict) and "type" in payload:
+        raise HTTPException(status_code=400, detail='body must be '
+                            '{"geometry": <GeoJSON Polygon|MultiPolygon>}, '
+                            f'not a bare GeoJSON {payload["type"]} object')
+    if not isinstance(geom_json, dict):
+        raise HTTPException(status_code=400, detail='body must be '
+                            '{"geometry": <GeoJSON Polygon|MultiPolygon>}')
+    try:
+        geom = shape(geom_json)
+    except Exception:
+        raise HTTPException(status_code=400, detail="unparseable geometry")
+    if geom.geom_type not in ("Polygon", "MultiPolygon"):
+        raise HTTPException(status_code=400, detail="geometry must be a "
+                            f"Polygon or MultiPolygon, got {geom.geom_type}")
+    if geom.is_empty:
+        raise HTTPException(status_code=400, detail="geometry is empty")
+    poly = shp_transform(_TO_3310.transform, geom)
+
+    # c0: parcel centroid. Holes/concave shapes can put the centroid outside
+    # the parcel — representative_point() guarantees an interior point.
+    c0 = poly.centroid
+    if not poly.covers(c0):
+        c0 = poly.representative_point()
+    lng0, lat0 = _TO_4326.transform(c0.x, c0.y)
+    c0_analysis = _analyze(lat0, lng0)
+
+    # The boundary targets c0's access point; the closest point rides on the
+    # transmission/substation entry named by access.kind.
+    access_pt = None
+    kind = c0_analysis["access"].get("kind")
+    if kind:
+        closest = (c0_analysis.get(kind) or {}).get("closest")
+        if closest:
+            access_pt = shp_transform(_TO_3310.transform, shape(
+                {"type": "Point",
+                 "coordinates": [closest["lng"], closest["lat"]]}))
+    if access_pt is None:
+        # Nothing within 200 km: scanning edges is meaningless off-grid.
+        candidates = [{"id": "c0", "kind": "centroid",
+                       "point": {"lat": round(lat0, 6), "lng": round(lng0, 6)},
+                       **c0_analysis}]
+        return {"candidates": candidates, "best": "c0"}
+
+    # c1: boundary point nearest the access point — a pad sits inside the
+    # fence line, not on it, so pull 2% back toward c0 along the segment.
+    # c2: midpoint of the c0→c1 segment.
+    seg = LineString([c0, nearest_points(access_pt, poly.boundary)[1]])
+    if seg.length > 0:
+        c1 = seg.interpolate(seg.length * 0.98)
+        c2 = seg.interpolate(seg.length * 0.5)
+    else:
+        c1 = c2 = c0
+    specs = [("c0", "centroid", c0), ("c1", "edge-nearest", c1),
+             ("c2", "mid", c2)]
+    kept = []  # contract cap is 4; three specs never reach it
+    for cid, ckind, pt in specs:
+        if any(pt.distance(p) < SCAN_DEDUPE_M for _, _, p in kept):
+            continue
+        kept.append((cid, ckind, pt))
+
+    candidates = []
+    for cid, ckind, pt in kept:
+        clng, clat = _TO_4326.transform(pt.x, pt.y)
+        analysis = c0_analysis if cid == "c0" else _analyze(clat, clng)
+        candidates.append({"id": cid, "kind": ckind,
+                           "point": {"lat": round(clat, 6),
+                                     "lng": round(clng, 6)},
+                           **analysis})
+    return {"candidates": candidates,
+            "best": min(candidates, key=_scan_rank)["id"]}
 
 
 @router.get("/api/grid/tiles/grid.pmtiles")

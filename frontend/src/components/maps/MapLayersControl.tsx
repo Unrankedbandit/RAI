@@ -139,12 +139,20 @@ export function useMapLayers(storageKey: string): {
     [storageKey],
   );
 
+  // Effective on/off: the persisted toggle wins; an OverlayDef with
+  // `defaultOn` (e.g. the power grid) starts checked until toggled.
+  const effectiveOn = (overlays: Record<string, boolean>, id: string) =>
+    overlays[id] ??
+    MAP_OVERLAYS.find((d) => d.id === id)?.defaultOn === true;
+
   const toggleOverlay = useCallback(
     (id: string) => {
       setState((prev) => {
+        // Toggle the EFFECTIVE state — `!prev.overlays[id]` alone would turn
+        // a default-on overlay ON on the first click instead of off.
         const next = {
           ...prev,
-          overlays: { ...prev.overlays, [id]: !prev.overlays[id] },
+          overlays: { ...prev.overlays, [id]: !effectiveOn(prev.overlays, id) },
         };
         writeStored(storageKey, next);
         return next;
@@ -154,7 +162,7 @@ export function useMapLayers(storageKey: string): {
   );
 
   const isOverlayOn = useCallback(
-    (id: string) => state.overlays[id] === true,
+    (id: string) => effectiveOn(state.overlays, id),
     [state.overlays],
   );
 

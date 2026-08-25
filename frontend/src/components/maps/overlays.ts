@@ -33,9 +33,35 @@ export interface OverlayDef {
   maxzoom?: number;
   note?: string; // extra user-facing caveat line in the panel
   enabled: boolean; // ONLY verified endpoints get true
+  defaultOn?: boolean; // checked until the user toggles (persisted choice wins)
 }
 
 export const MAP_OVERLAYS: OverlayDef[] = [
+  // Power grid FIRST: it's the product's primary overlay — top of the panel
+  // list under the basemap modes, and on by default. NOTE: array order is
+  // also map draw order (later entries paint above); grid's vector lines
+  // sit fine under the semi-transparent raster overlays.
+  {
+    id: "grid",
+    label: "Power grid",
+    attribution: "CEC · HIFLD · OpenStreetMap",
+    // GRID V1 contract §4: vector layers (transmission lines by kV, substation
+    // dots) from the backend-baked pmtiles archive — styles + protocol
+    // registration live in maps/gridOverlay.ts.
+    kind: "vector-grid",
+    pmtiles: GRID_PMTILES_URL,
+    tiles: [], // no raster tile sets — vector source via pmtiles
+    opacity: 1, // unused for vector layers (their paint owns opacity)
+    note: "Screening aid — mapped grid infrastructure, not capacity.",
+    // VERIFIED 2026-08-24 against the branch backend (agent_backend/grid.py)
+    // serving the real archive: GET /api/grid/tiles/grid.pmtiles with
+    // Range: bytes=0-255 → 206 + 256 bytes; /api/grid/status loaded:true
+    // (8,973 lines / 3,999 substations). REQUIRES the branch backend to be
+    // deployed wherever the frontend points — a backend without the grid
+    // routes logs pmtiles fetch errors and renders nothing for this layer.
+    enabled: true,
+    defaultOn: true,
+  },
   {
     id: "reference",
     label: "Roads & labels",
@@ -135,26 +161,6 @@ export const MAP_OVERLAYS: OverlayDef[] = [
     ],
     opacity: 0.5,
     note: "2007/2011 vintage zones — not the 2025 FHSZ update.",
-    enabled: true,
-  },
-  {
-    id: "grid",
-    label: "Power grid",
-    attribution: "CEC · HIFLD · OpenStreetMap",
-    // GRID V1 contract §4: vector layers (transmission lines by kV, substation
-    // dots) from the backend-baked pmtiles archive — styles + protocol
-    // registration live in maps/gridOverlay.ts.
-    kind: "vector-grid",
-    pmtiles: GRID_PMTILES_URL,
-    tiles: [], // no raster tile sets — vector source via pmtiles
-    opacity: 1, // unused for vector layers (their paint owns opacity)
-    note: "Screening aid — mapped grid infrastructure, not capacity.",
-    // VERIFIED 2026-08-24 against the branch backend (agent_backend/grid.py)
-    // serving the real archive: GET /api/grid/tiles/grid.pmtiles with
-    // Range: bytes=0-255 → 206 + 256 bytes; /api/grid/status loaded:true
-    // (8,973 lines / 3,999 substations). REQUIRES the branch backend to be
-    // deployed wherever the frontend points — a backend without the grid
-    // routes logs pmtiles fetch errors and renders nothing for this layer.
     enabled: true,
   },
 ];

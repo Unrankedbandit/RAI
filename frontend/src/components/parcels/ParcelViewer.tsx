@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import MapGL, { Layer, Source } from "react-map-gl/maplibre";
+import MapGL, { Layer, Marker, Source } from "react-map-gl/maplibre";
 import type { MapRef } from "react-map-gl/maplibre";
 import type { Feature } from "geojson";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -11,7 +11,9 @@ import {
   analyze,
   getGridNearest,
   gridAccessClosest,
+  postGridScan,
   type GridNearest,
+  type GridScanCandidate,
 } from "@/lib/agent/client";
 import { slugify } from "@/lib/agent/liveStore";
 import { BASEMAP_STYLES } from "@/components/maps/basemaps";
@@ -267,6 +269,13 @@ export default function ParcelViewer() {
   // Nearest-grid lookup for the selected parcel (GRID V1 §4). Null until the
   // backend answers — silent degradation: no connector line, no rail chip.
   const [gridNearest, setGridNearest] = useState<GridNearest | null>(null);
+  // Movable gen-tie origin (GRID V1 §6b): null = the parcel centroid.
+  // `candidates`/`bestCandidateId` come from the backend origin scan
+  // (POST /api/grid/scan); scan failure leaves them null and the feature
+  // (candidate dots, recommended ring, rail origin line) simply hides.
+  const [origin, setOrigin] = useState<[number, number] | null>(null);
+  const [candidates, setCandidates] = useState<GridScanCandidate[] | null>(null);
+  const [bestCandidateId, setBestCandidateId] = useState<string | null>(null);
   const [searchText, setSearchText] = useState("");
   // Why the last search came up empty (no match vs county has no attribute
   // search) — shown as a small caption, since the rail only gets panelStatus.
@@ -327,7 +336,27 @@ export default function ParcelViewer() {
   );
 
   const handleMapClick = useCallback(
-    async (lng: number, lat: number) => {
+    async (lng: number, lat: number, point?: { x: number; y: number }) => {
+      // Candidate-dot hit-test FIRST (GRID V1 §6b): clicking a scanned origin
+      // dot re-sites the gen-tie origin and consumes the click — no parcel
+      // identify. Anything else falls through to the identify path.
+      const map = mapRef.current;
+      if (map && point && candidates) {
+        const dotLayers = ["grid-origins-dot", "grid-origins-best-ring"].filter(
+          (id) => map.getLayer(id),
+        );
+        if (dotLayers.length > 0) {
+          const hitId = map
+            .queryRenderedFeatures([point.x, point.y], { layers: dotLayers })
+            .map((f) => f.properties?.id)
+            .find((id) => candidates.some((c) => c.id === id));
+          const cand = candidates.find((c) => c.id === hitId);
+          if (cand) {
+            setOrigin([cand.point.lng, cand.point.lat]);
+            return;
+          }
+        }
+      }
       const req = ++requestRef.current;
       // Route the click to the county under the cursor (not the dropdown's
       // county): in statewide mode every click used to hit the DWR mosaic,
@@ -360,7 +389,7 @@ export default function ParcelViewer() {
         setPanel({ status: "error" });
       }
     },
-    [selectedCounty, countyByName],
+    [selectedCounty, countyByName, candidates],
   );
 
   // Text search runs against the currently selected county only.
@@ -702,8 +731,44 @@ export default function ParcelViewer() {
     return { type: "Feature", geometry: panel.result.geometry, properties: {} };
   }, [panel]);
 
-  // Distance-to-grid lookup (GRID V1 §4): on every selection, fetch the
-  // nearest grid infrastructure for the parcel centroid. The cleanup aborts
+  // Effective gen-tie origin (GRID V1 §6b): the user's candidate pick or
+  // marker drag, else the parcel centroid. Every grid analysis (nearest,
+  // connector, corridor, rail) keys on this point.
+  const effectiveOrigin = useMemo<[number, number] | null>(() => {
+    if (panel.status !== "found") return null;
+    return origin ?? geometryCenter(panel.result.geometry);
+  }, [panel, origin]);
+
+  // Origin scan (GRID V1 §6a/6b): every selection change resets the origin
+  // state and POSTs the parcel geometry to the scan endpoint once.
+  // Abort-guarded like the nearest lookup (deferred a tick so setState
+  // stays out of the effect body); a failed scan leaves candidates null,
+  // which hides the whole feature.
+  useEffect(() => {
+    const ctrl = new AbortController();
+    const t = setTimeout(async () => {
+      setOrigin(null);
+      setCandidates(null);
+      setBestCandidateId(null);
+      if (panel.status !== "found" || !panel.result.geometry) return;
+      const res = await postGridScan(panel.result.geometry, ctrl.signal);
+      if (ctrl.signal.aborted || !res) return;
+      setCandidates(
+        Array.isArray(res.candidates) && res.candidates.length > 0
+          ? res.candidates
+          : null,
+      );
+      setBestCandidateId(res.best ?? null);
+    }, 0);
+    return () => {
+      ctrl.abort();
+      clearTimeout(t);
+    };
+  }, [panel]);
+
+  // Distance-to-grid lookup (GRID V1 §4/§6b): on every selection — and
+  // every origin move (candidate pick or marker drag) — fetch the nearest
+  // grid infrastructure for the EFFECTIVE origin. The cleanup aborts
   // any in-flight request on a new selection, and any panel change that
   // isn't "found" (deselect, new search, county switch) clears the result.
   // Deferred a tick so setState stays out of the effect body
@@ -711,23 +776,22 @@ export default function ParcelViewer() {
   useEffect(() => {
     const ctrl = new AbortController();
     const t = setTimeout(async () => {
-      if (panel.status !== "found") {
+      if (panel.status !== "found" || !effectiveOrigin) {
         setGridNearest(null);
         return;
       }
-      const center = geometryCenter(panel.result.geometry);
-      if (!center) {
-        setGridNearest(null);
-        return;
-      }
-      const res = await getGridNearest(center[1], center[0], ctrl.signal);
+      const res = await getGridNearest(
+        effectiveOrigin[1],
+        effectiveOrigin[0],
+        ctrl.signal,
+      );
       if (!ctrl.signal.aborted) setGridNearest(res);
     }, 0);
     return () => {
       ctrl.abort();
       clearTimeout(t);
     };
-  }, [panel]);
+  }, [panel, effectiveOrigin]);
 
   // Connector GeoJSON: dashed line parcel-centroid → nearest grid asset,
   // a midpoint point carrying the short distance label, and — when the
@@ -736,7 +800,7 @@ export default function ParcelViewer() {
   // switchyard at a line tap). Null clears the source.
   const gridConnector = useMemo<GeoJSON.FeatureCollection | null>(() => {
     if (panel.status !== "found" || !gridNearest?.access) return null;
-    const center = geometryCenter(panel.result.geometry);
+    const center = effectiveOrigin;
     const closest = gridAccessClosest(gridNearest);
     if (!center || !closest) return null;
     const from: [number, number] = center;
@@ -774,7 +838,7 @@ export default function ParcelViewer() {
       });
     }
     return { type: "FeatureCollection", features };
-  }, [panel, gridNearest]);
+  }, [panel, gridNearest, effectiveOrigin]);
 
   // Connection-corridor render (GRID V1 §5b/5c): the backend's path.render
   // FeatureCollection passes through verbatim — blocked subsegments, their
@@ -786,6 +850,43 @@ export default function ParcelViewer() {
     if (panel.status !== "found") return null;
     return gridNearest?.path?.render ?? null;
   }, [panel, gridNearest]);
+
+  // Pre-scanned origin candidates (GRID V1 §6b): ink dots with a 1-based
+  // rank label. The backend's `best` candidate gets the risk-orange
+  // "recommended" ring — the ring belongs to the scan result, so a manual
+  // origin drag leaves it in place.
+  const gridOrigins = useMemo<GeoJSON.FeatureCollection | null>(() => {
+    if (panel.status !== "found" || !candidates) return null;
+    return {
+      type: "FeatureCollection",
+      features: candidates.map((c, i) => ({
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [c.point.lng, c.point.lat],
+        },
+        properties: {
+          id: c.id,
+          rank: String(i + 1),
+          best: c.id === bestCandidateId,
+        },
+      })),
+    };
+  }, [panel, candidates, bestCandidateId]);
+
+  // Rail explainer line (§6b): which point the grid analysis describes —
+  // a scanned candidate, or a manually dragged ("custom") origin. Null
+  // (renders nothing) at the default centroid origin or when the scan
+  // produced no candidates.
+  const originLabel = useMemo<string | null>(() => {
+    if (panel.status !== "found" || !origin || !candidates) return null;
+    const idx = candidates.findIndex(
+      (c) => c.point.lng === origin[0] && c.point.lat === origin[1],
+    );
+    if (idx < 0) return "Origin: custom — drag the dot on the parcel";
+    const best = candidates[idx].id === bestCandidateId;
+    return `Origin: Candidate ${idx + 1}${best ? " (recommended)" : ""}`;
+  }, [panel, origin, candidates, bestCandidateId]);
 
   // Tap-point node glyphs (canvas-drawn, registered on the map): a square
   // "bus" node marks a substation gen-tie connection; a diamond marks the
@@ -830,7 +931,9 @@ export default function ParcelViewer() {
         // but no longer pitches; two-finger touch pitch off too.
         pitchWithRotate={false}
         touchPitch={false}
-        onClick={(e) => void handleMapClick(e.lngLat.lng, e.lngLat.lat)}
+        onClick={(e) =>
+          void handleMapClick(e.lngLat.lng, e.lngLat.lat, e.point)
+        }
         onMoveEnd={handleMoveEnd}
         onLoad={handleMapLoad}
       >
@@ -1078,6 +1181,74 @@ export default function ParcelViewer() {
             />
           </Source>
         )}
+
+        {/* Pre-scanned gen-tie origin candidates (GRID V1 §6b): ink dots
+            with a white rank number; the backend-recommended one wears a
+            risk-orange ring underneath. Ink/white/orange only — the dots
+            must not read as selection (orange fill) or status colors. */}
+        {gridOrigins && (
+          <Source id="grid-origins" type="geojson" data={gridOrigins}>
+            {/* "Recommended" ring — belongs to the scan result, not to a
+                manually dragged origin. */}
+            <Layer
+              id="grid-origins-best-ring"
+              type="circle"
+              filter={["==", ["get", "best"], true]}
+              paint={{
+                "circle-color": "rgba(0, 0, 0, 0)",
+                "circle-radius": 9,
+                "circle-stroke-color": ORANGE,
+                "circle-stroke-width": 2.5,
+              }}
+            />
+            <Layer
+              id="grid-origins-dot"
+              type="circle"
+              paint={{
+                "circle-color": INK,
+                "circle-radius": 6,
+                "circle-stroke-color": "#ffffff",
+                "circle-stroke-width": 1.5,
+              }}
+            />
+            <Layer
+              id="grid-origins-rank"
+              type="symbol"
+              layout={{
+                "text-field": ["get", "rank"],
+                "text-font": ["Open Sans Regular"],
+                "text-size": 10,
+                "text-allow-overlap": true,
+              }}
+              paint={{ "text-color": "#ffffff" }}
+            />
+          </Source>
+        )}
+
+        {/* Draggable gen-tie origin (§6b): the point every grid analysis
+            runs from. Small ink circle with a white outline — not orange,
+            so it never reads as the parcel selection. */}
+        {panel.status === "found" && effectiveOrigin && (
+          <Marker
+            longitude={effectiveOrigin[0]}
+            latitude={effectiveOrigin[1]}
+            draggable
+            anchor="center"
+            onDragEnd={(e) => setOrigin([e.lngLat.lng, e.lngLat.lat])}
+          >
+            <div
+              title="Gen-tie origin — drag to re-run the grid analysis from a new point"
+              style={{
+                width: 14,
+                height: 14,
+                borderRadius: "50%",
+                background: INK,
+                border: "2px solid #ffffff",
+                cursor: "grab",
+              }}
+            />
+          </Marker>
+        )}
       </MapGL>
 
       {/* top bar */}
@@ -1295,6 +1466,7 @@ export default function ParcelViewer() {
           selected={panel.status === "found" ? panel.result : null}
           panelStatus={panel.status}
           gridAccess={gridNearest}
+          originLabel={originLabel}
           onCloseSelected={handleCloseSelected}
           onResearch={(p) => void handleResearch(p)}
           onFlyTo={handleFlyTo}

@@ -54,6 +54,10 @@ export function ParcelRail(props: {
   /** Nearest-grid lookup for the selected parcel — null until the backend
    *  answers (or on failure): the "Nearest grid" cell simply doesn't render. */
   gridAccess: GridNearest | null;
+  /** Which point the grid analysis describes (GRID V1 §6b): "Origin:
+   *  Candidate N (recommended)" for a scanned candidate, "Origin: custom…"
+   *  after a manual drag, null = the default centroid (renders nothing). */
+  originLabel?: string | null;
   onCloseSelected: () => void;
   onResearch: (p: ParcelResult) => void;
   onFlyTo: (lng: number, lat: number) => void;
@@ -62,6 +66,7 @@ export function ParcelRail(props: {
     selected,
     panelStatus,
     gridAccess,
+    originLabel,
     onCloseSelected,
     onResearch,
     onFlyTo,
@@ -126,6 +131,7 @@ export function ParcelRail(props: {
               parcel={selected}
             reportId={reportId}
               gridAccess={gridAccess}
+              originLabel={originLabel}
               justWatched={justWatched}
               onWatch={handleWatch}
               onResearch={onResearch}
@@ -201,6 +207,7 @@ function SelectedParcel({
   onResearch,
   reportId,
   gridAccess,
+  originLabel,
 }: {
   parcel: ParcelResult;
   justWatched: boolean;
@@ -208,6 +215,7 @@ function SelectedParcel({
   onResearch: (p: ParcelResult) => void;
   reportId?: string | null;
   gridAccess?: GridNearest | null;
+  originLabel?: string | null;
 }) {
   const title = parcel.address ?? parcel.apn ?? "Unnamed parcel";
   // Connection-path feasibility (GRID V1 §5) — null on backends without the
@@ -375,6 +383,10 @@ function SelectedParcel({
           )}
         </div>
       )}
+
+      {/* Origin explainer (GRID V1 §6b): which point the grid analysis
+          describes — a scanned candidate or a manually dragged origin. */}
+      {originLabel && <p className="mt-2 text-xs text-faint">{originLabel}</p>}
 
       <ViabilityPreview parcel={parcel} />
 

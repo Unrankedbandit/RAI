@@ -330,6 +330,47 @@ export async function getGridNearest(
   }
 }
 
+/* ---------- Grid origin scan (GRID V1 contract §6a) ---------- */
+
+/** One pre-scanned gen-tie origin candidate for a parcel: the full
+ *  /api/grid/nearest analysis payload at that point (access/hookup/path),
+ *  plus the scan's own id/kind/point. */
+export interface GridScanCandidate {
+  id: string;
+  kind: "centroid" | "edge-nearest" | "mid" | string;
+  point: GridPoint;
+  access: GridNearest["access"];
+  hookup?: GridNearest["hookup"];
+  path?: GridNearest["path"];
+  disclaimer?: GridNearest["disclaimer"];
+}
+
+export interface GridScanResponse {
+  candidates: GridScanCandidate[];
+  /** Id of the recommended candidate — the one the "recommended" ring marks. */
+  best: string | null;
+}
+
+/**
+ * Pre-scans candidate gen-tie origins on a parcel (POST /api/grid/scan, §6a).
+ * Returns null — never throws — on any failure: the candidate dots and the
+ * rail's origin line simply don't render (silent degradation, §6b).
+ */
+export async function postGridScan(
+  geometry: GeoJSON.Geometry,
+  signal?: AbortSignal,
+): Promise<GridScanResponse | null> {
+  try {
+    return await request<GridScanResponse>("/api/grid/scan", {
+      method: "POST",
+      body: JSON.stringify({ geometry }),
+      signal,
+    });
+  } catch {
+    return null;
+  }
+}
+
 /** One grounded answer from the analyst, with the findings it leaned on. */
 export interface ChatAnswer {
   answer: string;
