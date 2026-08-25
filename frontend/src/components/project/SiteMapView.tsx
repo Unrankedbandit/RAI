@@ -236,6 +236,9 @@ export default function SiteMapView({
             mapStyle={BASEMAP_STYLES[mapLayers.basemap]}
             style={{ width: "100%", height: "100%", touchAction: "none" }}
             attributionControl={{ compact: true }}
+            // No 3D tilt (right-drag/Ctrl-drag keeps 2D bearing rotation only).
+            pitchWithRotate={false}
+            touchPitch={false}
           >
             <MapLayersControl state={mapLayers} />
 

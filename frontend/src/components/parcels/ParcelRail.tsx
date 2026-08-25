@@ -2,6 +2,14 @@
 
 import { useEffect, useState, type JSX, type ReactNode } from "react";
 import { useResearchedParcels } from "@/lib/agent/researched";
+import type {
+  GridBucket,
+  GridHookup,
+  GridNearest,
+  GridVerdictCode,
+} from "@/lib/agent/client";
+
+type GridHookupMethod = NonNullable<GridHookup["method"]>;
 
 import { ViabilityPreview } from "@/components/parcels/ViabilityPreview";
 import { clsx } from "@/lib/clsx";
@@ -43,11 +51,26 @@ function matchReportId(
 export function ParcelRail(props: {
   selected: ParcelResult | null;
   panelStatus: "idle" | "loading" | "found" | "empty" | "error";
+  /** Nearest-grid lookup for the selected parcel — null until the backend
+   *  answers (or on failure): the "Nearest grid" cell simply doesn't render. */
+  gridAccess: GridNearest | null;
+  /** Which point the grid analysis describes (GRID V1 §6b): "Origin:
+   *  Candidate N (recommended)" for a scanned candidate, "Origin: custom…"
+   *  after a manual drag, null = the default centroid (renders nothing). */
+  originLabel?: string | null;
   onCloseSelected: () => void;
   onResearch: (p: ParcelResult) => void;
   onFlyTo: (lng: number, lat: number) => void;
 }): JSX.Element {
-  const { selected, panelStatus, onCloseSelected, onResearch, onFlyTo } = props;
+  const {
+    selected,
+    panelStatus,
+    gridAccess,
+    originLabel,
+    onCloseSelected,
+    onResearch,
+    onFlyTo,
+  } = props;
   const researchedRows = useResearchedParcels();
   const reportId = matchReportId(
     selected,
@@ -107,6 +130,8 @@ export function ParcelRail(props: {
             <SelectedParcel
               parcel={selected}
             reportId={reportId}
+              gridAccess={gridAccess}
+              originLabel={originLabel}
               justWatched={justWatched}
               onWatch={handleWatch}
               onResearch={onResearch}
@@ -143,6 +168,37 @@ export function ParcelRail(props: {
   );
 }
 
+/** Bucket chip styling (GRID V1 §4): the app's no-red/no-green status
+ *  palette — near reads cleared/strong (grey), moderate ink (near-black),
+ *  far/remote flagged (risk orange; remote bold). */
+const BUCKET_CHIP: Record<GridBucket, string> = {
+  near: "bg-strong-soft text-strong-ink",
+  moderate: "bg-watch-soft text-watch-ink",
+  far: "bg-risk-soft text-risk-ink",
+  remote: "bg-risk-soft text-risk-ink font-semibold",
+};
+
+/** Hookup-method chip styling (GRID V1 §2b): gen-tie to a substation is the
+ *  simple path (neutral); a line tap means building a new switchyard, so it
+ *  gets the flagged/risk-orange treatment like far/remote buckets. */
+const METHOD_CHIP: Record<GridHookupMethod, { label: string; cls: string }> = {
+  substation: { label: "Substation gen-tie", cls: "bg-strong-soft text-strong-ink" },
+  "line-tap": { label: "Line tap + new switchyard", cls: "bg-risk-soft text-risk-ink" },
+  none: { label: "No mapped access", cls: "bg-strong-soft text-strong-ink" },
+};
+
+/** Verdict chip styling (GRID V1 §5c): clear rural reads strong (grey),
+ *  review/constrained urban are watch (ink), and municipal path /
+ *  protected conflict / remote are flagged (risk orange). */
+const VERDICT_CHIP: Record<GridVerdictCode, { label: string; cls: string }> = {
+  clear_rural: { label: "Clear rural", cls: "bg-strong-soft text-strong-ink" },
+  review: { label: "Review", cls: "bg-watch-soft text-watch-ink" },
+  constrained_urban: { label: "Constrained urban", cls: "bg-watch-soft text-watch-ink" },
+  municipal_path: { label: "Municipal path", cls: "bg-risk-soft text-risk-ink" },
+  protected_conflict: { label: "Protected conflict", cls: "bg-risk-soft text-risk-ink" },
+  remote: { label: "Remote", cls: "bg-risk-soft text-risk-ink" },
+};
+
 /** At-a-glance selected-parcel layout — title, stat grid, research CTA, watch. */
 function SelectedParcel({
   parcel,
@@ -150,14 +206,42 @@ function SelectedParcel({
   onWatch,
   onResearch,
   reportId,
+  gridAccess,
+  originLabel,
 }: {
   parcel: ParcelResult;
   justWatched: boolean;
   onWatch: () => void;
   onResearch: (p: ParcelResult) => void;
   reportId?: string | null;
+  gridAccess?: GridNearest | null;
+  originLabel?: string | null;
 }) {
   const title = parcel.address ?? parcel.apn ?? "Unnamed parcel";
+  // Connection-path feasibility (GRID V1 §5) — null on backends without the
+  // key, in which case the verdict block below simply doesn't render.
+  const path = gridAccess?.path ?? null;
+  // Compact "Crosses {name} · {mi} mi" lines for the corridor's flagged
+  // crossings (unavailable layers contribute nothing).
+  const crossings: string[] = path
+    ? [
+        ...(path.urban.available &&
+        path.urban.crossing_mi > 0 &&
+        path.urban.areas.length > 0
+          ? [
+              `Crosses ${path.urban.areas.join(", ")} · ${path.urban.crossing_mi.toFixed(1)} mi`,
+            ]
+          : []),
+        ...(path.protected.available
+          ? path.protected.crossings.map(
+              (c) => `Crosses ${c.name ?? "protected land"} · ${c.mi.toFixed(1)} mi`,
+            )
+          : []),
+        ...(path.water.available
+          ? path.water.crossings.map((c) => `Crosses water · ${c.mi.toFixed(1)} mi`)
+          : []),
+      ]
+    : [];
   return (
     <div>
       <div className="text-sm font-semibold text-ink">{title}</div>
@@ -185,7 +269,146 @@ function SelectedParcel({
             {parcel.owner}
           </StatCell>
         )}
+        {gridAccess?.access && (
+          <StatCell
+            label="Nearest grid"
+            title={`${gridAccess.access.label} — ${gridAccess.disclaimer}`}
+          >
+            <span className="flex items-center gap-1.5">
+              <span className="truncate">{gridAccess.access.label}</span>
+              <span
+                className={clsx(
+                  "flex-none rounded-full px-1.5 py-px text-[10px] font-medium",
+                  BUCKET_CHIP[gridAccess.access.bucket],
+                )}
+                title={gridAccess.disclaimer}
+                aria-label={`Grid access: ${gridAccess.access.bucket}`}
+              >
+                {gridAccess.access.bucket}
+              </span>
+            </span>
+          </StatCell>
+        )}
       </div>
+
+      {/* Required hookup (GRID V1 §2b): how a project on this parcel would
+          physically connect — gen-tie to a substation bus vs a line tap
+          with a new switchyard, plus the cheaper-alternative note. */}
+      {gridAccess?.access && gridAccess.hookup && (
+        <div
+          className="mt-2 rounded-[5px] bg-surface-2 px-2.5 py-2"
+          title={gridAccess.disclaimer}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs text-faint">Required hookup</span>
+            <span
+              className={clsx(
+                "flex-none rounded-full px-1.5 py-px text-[10px] font-medium",
+                METHOD_CHIP[gridAccess.hookup.method].cls,
+              )}
+            >
+              {METHOD_CHIP[gridAccess.hookup.method].label}
+            </span>
+          </div>
+          <div className="mt-1 text-[13px] font-semibold text-ink">
+            {gridAccess.hookup.summary}
+          </div>
+          <div className="mt-1 text-xs leading-relaxed text-faint">
+            {gridAccess.hookup.detail}
+          </div>
+          {gridAccess.hookup.alternative && (
+            <div className="mt-1 text-xs leading-relaxed text-faint">
+              {gridAccess.hookup.alternative}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Connection-path verdict (GRID V1 §5c): what the parcel→grid
+          corridor crosses — urbanized area, protected land, water — and,
+          on a municipal path, the serving utility that runs the actual
+          interconnection process. */}
+      {path?.verdict && (
+        <div
+          className="mt-2 rounded-[5px] bg-surface-2 px-2.5 py-2"
+          title={gridAccess?.disclaimer}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs text-faint">Connection path</span>
+            <span
+              className={clsx(
+                "flex-none rounded-full px-1.5 py-px text-[10px] font-medium",
+                VERDICT_CHIP[path.verdict.code].cls,
+              )}
+            >
+              {VERDICT_CHIP[path.verdict.code].label}
+            </span>
+          </div>
+          <div className="mt-1 text-[13px] font-semibold text-ink">
+            {path.verdict.summary}
+          </div>
+          <div className="mt-1 text-xs leading-relaxed text-faint">
+            {path.verdict.detail}
+          </div>
+          {crossings.length > 0 && (
+            <ul className="mt-1 space-y-0.5">
+              {crossings.map((line) => (
+                <li key={line} className="text-xs leading-relaxed text-faint">
+                  {line}
+                </li>
+              ))}
+            </ul>
+          )}
+          {path.municipal && (
+            <div className="mt-1 text-xs leading-relaxed text-faint">
+              Local utility:{" "}
+              <span className="font-medium text-ink">
+                {path.municipal.utility}
+              </span>{" "}
+              ({path.municipal.kind})
+              {path.municipal.portal_url && (
+                <>
+                  {" — "}
+                  <a
+                    href={path.municipal.portal_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-brand underline"
+                  >
+                    interconnection portal
+                  </a>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Off-limits siting (GRID V1 §7c): parcel centroid point-in-polygon
+          against protected land / water — a risk-orange "off-limits" chip on
+          an xs faint line under the verdict block. Silent when the backend
+          omits the key (layers unavailable). */}
+      {gridAccess?.siting?.protected && (
+        <p className="mt-2 text-xs text-faint">
+          Parcel sits in protected land ({gridAccess.siting.protected}) —
+          likely off-limits{" "}
+          <span className="rounded-full bg-risk-soft px-1.5 py-px text-[10px] font-medium text-risk-ink">
+            off-limits
+          </span>
+        </p>
+      )}
+      {gridAccess?.siting?.water && (
+        <p className="mt-2 text-xs text-faint">
+          Parcel centroid is on mapped water{" "}
+          <span className="rounded-full bg-risk-soft px-1.5 py-px text-[10px] font-medium text-risk-ink">
+            off-limits
+          </span>
+        </p>
+      )}
+
+      {/* Origin explainer (GRID V1 §6b): which point the grid analysis
+          describes — a scanned candidate or a manually dragged origin. */}
+      {originLabel && <p className="mt-2 text-xs text-faint">{originLabel}</p>}
 
       <ViabilityPreview parcel={parcel} />
 

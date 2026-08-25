@@ -16,7 +16,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from . import memo, review, share
+from . import grid, memo, review, share
 from .agents.base import Agent
 from .agents.roles import ANALYST, ROLE_TOOLS
 from .gate import GapGate
@@ -71,6 +71,7 @@ init_telemetry(app)
 # modules so this surface stays a thin composition root.
 app.include_router(memo.router)
 app.include_router(share.router)
+app.include_router(grid.router)
 
 STORE = Path(__file__).resolve().parent / "reports"
 STORE.mkdir(exist_ok=True)

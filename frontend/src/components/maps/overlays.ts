@@ -1,3 +1,12 @@
+import type { LayerProps } from "react-map-gl/maplibre";
+
+import { gridLayers, GRID_PMTILES_URL } from "@/components/maps/gridOverlay";
+import type { BasemapId } from "@/components/maps/basemaps";
+import {
+  offlimitsLayers,
+  OFFLIMITS_PMTILES_URL,
+} from "@/components/maps/offlimitsOverlay";
+
 /**
  * Optional GIS overlays for the map surfaces, drawn as raster Sources above
  * the basemap (MapLayersControl renders one Source/Layer per tile set of
@@ -12,21 +21,83 @@
  * bytes). Verification round: 2026-08-23, SF Bay Area sample tiles.
  * Failed endpoints are NOT in the panel — they appear here only as comments
  * explaining why.
+ *
+ * Entries default to raster; `kind: "vector-grid"` is the one discriminant:
+ * the entry renders VECTOR layers from a pmtiles archive instead of raster
+ * tile sets, so `tiles` is unused (pass []), `pmtiles` carries the
+ * pmtiles:// archive URL, and `vectorLayers` carries the entry's own style
+ * layers (grid's live in maps/gridOverlay.ts, off-limits' in
+ * maps/offlimitsOverlay.ts).
  */
 export interface OverlayDef {
-  id: string; // stable id: "reference" | "counties" | "jurisdictions" | "wetlands" | "flood" | "fire"
+  id: string; // stable id: "reference" | "counties" | "jurisdictions" | "wetlands" | "flood" | "fire" | "grid"
   label: string; // panel checkbox label
-  attribution: string; // required credit, passed to the raster Source
+  attribution: string; // required credit, passed to the raster/vector Source
   tiles: string[]; // primary tile set: XYZ template OR WMS/export template with {bbox-epsg-3857}
+  kind?: "vector-grid"; // absent = raster (the default); see header comment
+  pmtiles?: string; // pmtiles:// archive URL — required when kind is "vector-grid"
+  // The entry's vector style layers — required when kind is "vector-grid".
+  // A function makes the palette basemap-adaptive (ink washes vanish on the
+  // dark basemap); MapLayersControl resolves it with the current basemap.
+  vectorLayers?: LayerProps[] | ((basemap: BasemapId) => LayerProps[]);
   extraTileSets?: string[][]; // additional stacked tile sets under the same checkbox
-  opacity: number; // raster layer opacity 0..1
+  opacity: number; // raster layer opacity 0..1 (vector styles own their paint)
   minzoom?: number; // raster source minzoom — the service draws nothing below it
   maxzoom?: number;
   note?: string; // extra user-facing caveat line in the panel
   enabled: boolean; // ONLY verified endpoints get true
+  defaultOn?: boolean; // checked until the user toggles (persisted choice wins)
 }
 
 export const MAP_OVERLAYS: OverlayDef[] = [
+  // Power grid FIRST: it's the product's primary overlay — top of the panel
+  // list under the basemap modes, and on by default. NOTE: array order is
+  // also map draw order (later entries paint above); grid's vector lines
+  // sit fine under the semi-transparent raster overlays.
+  {
+    id: "grid",
+    label: "Power grid",
+    attribution: "CEC · HIFLD · OpenStreetMap",
+    // GRID V1 contract §4: vector layers (transmission lines by kV, substation
+    // dots) from the backend-baked pmtiles archive — styles + protocol
+    // registration live in maps/gridOverlay.ts.
+    kind: "vector-grid",
+    pmtiles: GRID_PMTILES_URL,
+    vectorLayers: gridLayers,
+    tiles: [], // no raster tile sets — vector source via pmtiles
+    opacity: 1, // unused for vector layers (their paint owns opacity)
+    note: "Screening aid — mapped grid infrastructure, not capacity.",
+    // VERIFIED 2026-08-24 against the branch backend (agent_backend/grid.py)
+    // serving the real archive: GET /api/grid/tiles/grid.pmtiles with
+    // Range: bytes=0-255 → 206 + 256 bytes; /api/grid/status loaded:true
+    // (8,973 lines / 3,999 substations). REQUIRES the branch backend to be
+    // deployed wherever the frontend points — a backend without the grid
+    // routes logs pmtiles fetch errors and renders nothing for this layer.
+    enabled: true,
+    defaultOn: true,
+  },
+  {
+    // GRID V1 contract §7c: directly AFTER "Power grid". No-go land classes
+    // (protected / water / military / tribal) from the offlimits pmtiles
+    // archive — styles in maps/offlimitsOverlay.ts (ink wash + hairline
+    // outline). Heavy visual, so NOT defaultOn.
+    id: "offlimits",
+    label: "Off-limits land",
+    attribution: "CPAD 2026a · US Census Bureau",
+    kind: "vector-grid",
+    pmtiles: OFFLIMITS_PMTILES_URL,
+    vectorLayers: offlimitsLayers,
+    tiles: [], // no raster tile sets — vector source via pmtiles
+    opacity: 1, // unused for vector layers (their paint owns opacity)
+    note: "Generally no-go for development — protected, water, military, tribal. Screening aid.",
+    // VERIFIED 2026-08-24 against the branch backend (agent_backend/grid.py)
+    // serving the real archive: GET /api/grid/tiles/offlimits.pmtiles with
+    // Range: bytes=0-255 → 206 + 256 bytes (Content-Range
+    // bytes 0-255/6534815); /api/grid/status reports
+    // offlimits_pmtiles_bytes: 6534815. Same deploy caveat as the grid
+    // overlay — a backend without the archive serves 503 here.
+    enabled: true,
+  },
   {
     id: "reference",
     label: "Roads & labels",

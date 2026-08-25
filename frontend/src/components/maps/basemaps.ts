@@ -18,6 +18,11 @@ export type BasemapId = "satellite" | "light" | "dark";
 // services.arcgisonline.com both serve the identical tiles (200, image/jpeg).
 const SATELLITE_STYLE: StyleSpecification = {
   version: 8,
+  // Keyless CARTO glyph PBFs — the same host the Positron/Dark Matter styles
+  // use. Without a glyphs URL, symbol layers with text-field (e.g. the grid
+  // distance label in ParcelViewer) silently render nothing on this basemap.
+  // VERIFIED 2026-08-24: Open Sans Regular 0-255.pbf → 200, 40KB.
+  glyphs: "https://tiles.basemaps.cartocdn.com/fonts/{fontstack}/{range}.pbf",
   sources: {
     satellite: {
       type: "raster",

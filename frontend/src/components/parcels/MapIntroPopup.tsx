@@ -18,6 +18,15 @@ export function MapIntroPopup() {
     // renders (react-hooks/set-state-in-effect) — the popup appears post-paint
     // either way, which reads as intentional.
     const t = setTimeout(() => {
+      // Installed PWA (standalone display mode): the user has already been
+      // onboarded, and their localStorage is partitioned from the browser
+      // anyway — never show the intro (its overlay blocks map taps).
+      if (
+        window.matchMedia("(display-mode: standalone)").matches ||
+        (navigator as unknown as { standalone?: boolean }).standalone === true
+      ) {
+        return;
+      }
       try {
         if (!window.localStorage.getItem(KEY)) setShow(true);
       } catch {
@@ -41,17 +50,22 @@ export function MapIntroPopup() {
     <AnimatePresence>
       {show && (
         <motion.div
-          className="fixed inset-0 z-[100] flex items-end justify-center bg-[rgba(11,8,41,.3)] p-4 sm:items-center"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) dismiss();
-          }}
+          className="pointer-events-none fixed inset-0 z-[100] flex items-end justify-center p-4 sm:items-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
         >
+          {/* Backdrop: the wrapper is pointer-events-none, so only this
+              backdrop (click-to-dismiss) and the card below can ever
+              receive pointer events — the positioning container itself
+              can never swallow a tap. */}
+          <div
+            className="pointer-events-auto absolute inset-0 bg-[rgba(11,8,41,.3)]"
+            onClick={dismiss}
+          />
           <motion.div
-            className="w-full max-w-[420px] rounded-[11px] border border-hairline bg-canvas p-6 shadow-pop"
+            className="pointer-events-auto relative w-full max-w-[420px] rounded-[11px] border border-hairline bg-canvas p-6 shadow-pop"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 12 }}

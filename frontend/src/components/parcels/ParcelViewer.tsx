@@ -2,12 +2,18 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import MapGL, { Layer, Source } from "react-map-gl/maplibre";
+import MapGL, { Layer, Marker, Source } from "react-map-gl/maplibre";
 import type { MapRef } from "react-map-gl/maplibre";
 import type { Feature } from "geojson";
 import "maplibre-gl/dist/maplibre-gl.css";
 
-import { analyze } from "@/lib/agent/client";
+import {
+  analyze,
+  getGridNearest,
+  gridAccessClosest,
+  postGridScan,
+  type GridNearest,
+} from "@/lib/agent/client";
 import { slugify } from "@/lib/agent/liveStore";
 import { BASEMAP_STYLES } from "@/components/maps/basemaps";
 import {
@@ -19,6 +25,7 @@ import { recordRecent, type SavedParcel } from "@/lib/parcels/watchlist";
 import {
   COUNTIES,
   STATEWIDE_COUNTY_NAME,
+  countyNameAtPoint,
   queryParcelAtPoint,
   searchParcels,
   type CountyConfig,
@@ -50,6 +57,48 @@ const REGRID_TILES =
   "https://tiles.arcgis.com/tiles/KzeiCaQsMoeCfoCq/arcgis/rest/services/Regrid_Nationwide_Parcel_Boundaries_v1/MapServer/tile/{z}/{y}/{x}";
 
 const ORANGE = "#ff8400";
+// Neutral near-black (--color-watch) — grid distance connector/label, a
+// data-viz element that must not read as selection (orange), status
+// (red/green), or blue (brand ink #0b0829 is navy-leaning on canvas).
+const INK = "#1e1e26";
+
+/** Tap-point glyphs for the grid connection diagram: square = existing
+ *  substation bus, diamond = new switchyard a line tap requires,
+ *  triangle = local-grid entry point on a municipal path (§5c). Returns
+ *  ImageData because MapLibre's addImage types don't accept a canvas. */
+function makeNodeImage(kind: "substation" | "line-tap" | "entry"): ImageData {
+  const S = 28;
+  const c = document.createElement("canvas");
+  c.width = S;
+  c.height = S;
+  const ctx = c.getContext("2d");
+  if (!ctx) return new ImageData(S, S);
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = INK;
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  if (kind === "substation") {
+    ctx.rect(4, 4, S - 8, S - 8); // bus node
+  } else if (kind === "line-tap") {
+    ctx.moveTo(S / 2, 3); // switchyard diamond
+    ctx.lineTo(S - 3, S / 2);
+    ctx.lineTo(S / 2, S - 3);
+    ctx.lineTo(3, S / 2);
+    ctx.closePath();
+  } else {
+    ctx.moveTo(S / 2, 3); // local-grid entry triangle (points up-corridor)
+    ctx.lineTo(S - 3, S - 3);
+    ctx.lineTo(3, S - 3);
+    ctx.closePath();
+  }
+  ctx.fill();
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(S / 2, S / 2, 3.5, 0, Math.PI * 2); // ink core
+  ctx.fillStyle = INK;
+  ctx.fill();
+  return ctx.getImageData(0, 0, S, S);
+}
 
 // Brand-orange crosshair/dot cursor for the map canvas (inline SVG data-uri).
 // Passed to MapGL's `cursor` prop (sets it on the canvas) and inherited from
@@ -216,6 +265,17 @@ export default function ParcelViewer() {
     STATEWIDE_COUNTY_NAME,
   );
   const [panel, setPanel] = useState<PanelState>({ status: "idle" });
+  // Nearest-grid lookup for the selected parcel (GRID V1 §4). Null until the
+  // backend answers — silent degradation: no connector line, no rail chip.
+  const [gridNearest, setGridNearest] = useState<GridNearest | null>(null);
+  // Movable gen-tie origin (GRID V1 §6b, simplified 2026-08-24): null =
+  // the parcel centroid. The backend origin scan (§6a) auto-sites it at
+  // the best (usually closest-edge) point on the parcel; the user adjusts
+  // by dragging the origin marker (originCustom=true). No candidate dots
+  // — the scan result applies silently. Scan failure leaves origin null
+  // (centroid) and the feature hides.
+  const [origin, setOrigin] = useState<[number, number] | null>(null);
+  const [originCustom, setOriginCustom] = useState(false);
   const [searchText, setSearchText] = useState("");
   // Why the last search came up empty (no match vs county has no attribute
   // search) — shown as a small caption, since the rail only gets panelStatus.
@@ -278,7 +338,12 @@ export default function ParcelViewer() {
   const handleMapClick = useCallback(
     async (lng: number, lat: number) => {
       const req = ++requestRef.current;
-      const cfg = countyByName.get(selectedCounty);
+      // Route the click to the county under the cursor (not the dropdown's
+      // county): in statewide mode every click used to hit the DWR mosaic,
+      // which 500s after ~60 s when sick — selection felt broken. County-
+      // direct endpoints answer envelope queries in well under a second.
+      const clickedCounty = countyNameAtPoint(lng, lat);
+      const cfg = countyByName.get(clickedCounty ?? selectedCounty);
       // Mosaic-only (or endpoint-less) counties resolve via the statewide mosaic.
       const queryCounty =
         !cfg || cfg.status === "mosaic-only" || !cfg.endpoint
@@ -646,6 +711,159 @@ export default function ParcelViewer() {
     return { type: "Feature", geometry: panel.result.geometry, properties: {} };
   }, [panel]);
 
+  // Effective gen-tie origin (GRID V1 §6b): the user's candidate pick or
+  // marker drag, else the parcel centroid. Every grid analysis (nearest,
+  // connector, corridor, rail) keys on this point.
+  const effectiveOrigin = useMemo<[number, number] | null>(() => {
+    if (panel.status !== "found") return null;
+    return origin ?? geometryCenter(panel.result.geometry);
+  }, [panel, origin]);
+
+  // Origin scan (GRID V1 §6a/6b, simplified): every selection change resets
+  // the origin state and POSTs the parcel geometry once. The scan's `best`
+  // candidate (best verdict, then shortest gen-tie — usually the parcel
+  // edge nearest the access point) becomes the default origin, and its
+  // ready-made analysis is applied directly (no second nearest round-trip).
+  // Abort-guarded like the nearest lookup; a failed scan leaves the origin
+  // at the centroid and the rail simply skips the origin line.
+  useEffect(() => {
+    const ctrl = new AbortController();
+    const t = setTimeout(async () => {
+      setOrigin(null);
+      setOriginCustom(false);
+      if (panel.status !== "found" || !panel.result.geometry) return;
+      const res = await postGridScan(panel.result.geometry, ctrl.signal);
+      if (ctrl.signal.aborted || !res) return;
+      const best =
+        res.candidates.find((c) => c.id === res.best) ?? res.candidates[0];
+      if (!best) return;
+      setOrigin([best.point.lng, best.point.lat]);
+      setGridNearest(best); // candidate payload IS the nearest-analysis shape
+    }, 0);
+    return () => {
+      ctrl.abort();
+      clearTimeout(t);
+    };
+  }, [panel]);
+
+  // Distance-to-grid lookup (GRID V1 §4/§6b): on every selection — and
+  // every origin move (candidate pick or marker drag) — fetch the nearest
+  // grid infrastructure for the EFFECTIVE origin. The cleanup aborts
+  // any in-flight request on a new selection, and any panel change that
+  // isn't "found" (deselect, new search, county switch) clears the result.
+  // Deferred a tick so setState stays out of the effect body
+  // (react-hooks/set-state-in-effect — the deep-link bootstrap's pattern).
+  useEffect(() => {
+    const ctrl = new AbortController();
+    const t = setTimeout(async () => {
+      if (panel.status !== "found" || !effectiveOrigin) {
+        setGridNearest(null);
+        return;
+      }
+      const res = await getGridNearest(
+        effectiveOrigin[1],
+        effectiveOrigin[0],
+        ctrl.signal,
+      );
+      if (!ctrl.signal.aborted) setGridNearest(res);
+    }, 0);
+    return () => {
+      ctrl.abort();
+      clearTimeout(t);
+    };
+  }, [panel, effectiveOrigin]);
+
+  // Connector GeoJSON: dashed line parcel-centroid → nearest grid asset,
+  // a midpoint point carrying the short distance label, and — when the
+  // hookup (§2b) is known — a tap-point node glyph distinguishing the two
+  // hookup shapes: square bus node (substation gen-tie) vs diamond (new
+  // switchyard at a line tap). Null clears the source.
+  const gridConnector = useMemo<GeoJSON.FeatureCollection | null>(() => {
+    if (panel.status !== "found" || !gridNearest?.access) return null;
+    const center = effectiveOrigin;
+    const closest = gridAccessClosest(gridNearest);
+    if (!center || !closest) return null;
+    const from: [number, number] = center;
+    const to: [number, number] = [closest.lng, closest.lat];
+    const mid: [number, number] = [(from[0] + to[0]) / 2, (from[1] + to[1]) / 2];
+    const { distance_m, distance_mi } = gridNearest.access;
+    const label =
+      distance_mi < 0.1
+        ? `${Math.round(distance_m)} m`
+        : `${distance_mi.toFixed(1)} mi`;
+    const features: GeoJSON.Feature[] = [
+      {
+        type: "Feature",
+        geometry: { type: "LineString", coordinates: [from, to] },
+        properties: {},
+      },
+      {
+        type: "Feature",
+        geometry: { type: "Point", coordinates: mid },
+        properties: { label },
+      },
+    ];
+    const hookup = gridNearest.hookup;
+    const method = hookup?.method;
+    const tap = hookup?.tap_point;
+    if ((method === "substation" || method === "line-tap") && tap) {
+      features.push({
+        type: "Feature",
+        geometry: { type: "Point", coordinates: [tap.lng, tap.lat] },
+        properties: {
+          method, // icon-image id suffix: grid-node-substation / -line-tap
+          methodLabel:
+            method === "substation" ? "Substation" : "New switchyard",
+        },
+      });
+    }
+    return { type: "FeatureCollection", features };
+  }, [panel, gridNearest, effectiveOrigin]);
+
+  // Connection-corridor render (GRID V1 §5b/5c): the backend's path.render
+  // FeatureCollection passes through verbatim — blocked subsegments, their
+  // label midpoints, the municipal via-segment, and the local-grid entry
+  // point. Null on any selection without a path key (older backends,
+  // out-of-state), so the corridor Source simply never mounts — the same
+  // silent-degradation pattern as the connector.
+  const gridCorridor = useMemo<GeoJSON.FeatureCollection | null>(() => {
+    if (panel.status !== "found") return null;
+    return gridNearest?.path?.render ?? null;
+  }, [panel, gridNearest]);
+
+  // Rail explainer line (§6b, simplified): which point the grid analysis
+  // describes — the scan's auto-sited closest point (the default), or a
+  // manually dragged ("custom") origin. Null (renders nothing) before the
+  // scan lands or when the scan is unavailable.
+  const originLabel = useMemo<string | null>(() => {
+    if (panel.status !== "found" || !origin) return null;
+    return originCustom
+      ? "Origin: custom — drag the dot on the parcel"
+      : "Origin: closest point on parcel — drag the dot to adjust";
+  }, [panel, origin, originCustom]);
+
+  // Tap-point node glyphs (canvas-drawn, registered on the map): a square
+  // "bus" node marks a substation gen-tie connection; a diamond marks the
+  // NEW switchyard a line tap requires; a triangle marks the local-grid
+  // entry point on a municipal path (§5c). White fill + ink stroke + ink
+  // core reads on light and satellite basemaps, matching the
+  // connector/label. Re-registered on styledata because a basemap switch
+  // wipes map images.
+  const handleMapLoad = useCallback(() => {
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+    const register = () => {
+      if (!map.hasImage("grid-node-substation"))
+        map.addImage("grid-node-substation", makeNodeImage("substation"));
+      if (!map.hasImage("grid-node-line-tap"))
+        map.addImage("grid-node-line-tap", makeNodeImage("line-tap"));
+      if (!map.hasImage("grid-node-entry"))
+        map.addImage("grid-node-entry", makeNodeImage("entry"));
+    };
+    register();
+    map.on("styledata", register);
+  }, [mapRef]);
+
   return (
     <div className="relative h-full w-full overflow-hidden bg-canvas">
       <MapGL
@@ -663,8 +881,13 @@ export default function ParcelViewer() {
         style={{ width: "100%", height: "100%", cursor: MAP_CURSOR, touchAction: "none" }}
         cursor={MAP_CURSOR}
         attributionControl={{ compact: true }}
+        // No 3D tilt: right-drag (or Ctrl-drag) still rotates bearing (2D)
+        // but no longer pitches; two-finger touch pitch off too.
+        pitchWithRotate={false}
+        touchPitch={false}
         onClick={(e) => void handleMapClick(e.lngLat.lng, e.lngLat.lat)}
         onMoveEnd={handleMoveEnd}
+        onLoad={handleMapLoad}
       >
         {/* Shared layers tool FIRST: its overlay rasters must draw below the
             Regrid parcel boundaries and the selection highlight (react-map-gl
@@ -705,6 +928,240 @@ export default function ParcelViewer() {
               }}
             />
           </Source>
+        )}
+
+        {/* Parcel→grid distance connector (dashed ink) + midpoint label.
+            Draws only while a selection's nearest-grid lookup has a closest
+            point; unmounting the Source clears it. The label font is a
+            glyph-PBF fontstack (Open Sans Regular, hosted keyless by CARTO —
+            now referenced by every basemap, see basemaps.ts), not a CSS
+            font, so JetBrains Mono isn't available here. */}
+        {gridConnector && (
+          <Source id="grid-distance" type="geojson" data={gridConnector}>
+            {/* White casing under the dashed ink core — the connector was
+                unreadable on satellite basemaps at 1.5px. */}
+            <Layer
+              id="grid-distance-casing"
+              type="line"
+              filter={["==", ["geometry-type"], "LineString"]}
+              paint={{
+                "line-color": "#ffffff",
+                "line-width": 5,
+                "line-opacity": 0.85,
+              }}
+            />
+            <Layer
+              id="grid-distance-line"
+              type="line"
+              filter={["==", ["geometry-type"], "LineString"]}
+              paint={{
+                "line-color": INK,
+                "line-width": 2.5,
+                "line-opacity": 0.95,
+                "line-dasharray": [2, 2],
+              }}
+            />
+            <Layer
+              id="grid-distance-label"
+              type="symbol"
+              filter={["has", "label"]}
+              layout={{
+                "text-field": ["get", "label"],
+                "text-font": ["Open Sans Regular"],
+                "text-size": 13,
+                "text-offset": [0, -0.9],
+              }}
+              paint={{
+                "text-color": INK,
+                "text-halo-color": "#ffffff",
+                "text-halo-width": 2,
+              }}
+            />
+            {/* Tap-point node: square glyph + "Substation" for a gen-tie,
+                diamond + "New switchyard" for a line tap. The icon id is
+                built from the feature's method property. */}
+            <Layer
+              id="grid-tap-node"
+              type="symbol"
+              filter={["has", "method"]}
+              layout={{
+                "icon-image": ["concat", "grid-node-", ["get", "method"]],
+                "icon-size": 1,
+                "icon-allow-overlap": true,
+                "icon-ignore-placement": true,
+                "text-field": ["get", "methodLabel"],
+                "text-font": ["Open Sans Regular"],
+                "text-size": 11,
+                "text-offset": [0, 1.5],
+                "text-anchor": "top",
+                "text-allow-overlap": true,
+              }}
+              paint={{
+                "text-color": INK,
+                "text-halo-color": "#ffffff",
+                "text-halo-width": 1.5,
+              }}
+            />
+          </Source>
+        )}
+
+        {/* Connection corridor (GRID V1 §5c): blocked subsegments flagged
+            in brand risk-orange (a flag, not red/green status) over a white
+            casing; the municipal via-segment dotted; ink-halo'd crossing
+            labels; the local-grid entry point marked with the triangle
+            glyph. Renders only when the backend returned a path — no path
+            key, no corridor. */}
+        {gridCorridor && (
+          <Source id="grid-corridor" type="geojson" data={gridCorridor}>
+            {/* White casing under the orange core, only under the blocked
+                subsegments (urban/protected/water crossings). */}
+            <Layer
+              id="grid-corridor-casing"
+              type="line"
+              filter={[
+                "all",
+                ["==", ["geometry-type"], "LineString"],
+                ["match", ["get", "kind"], ["urban", "protected", "water"], true, false],
+              ]}
+              paint={{
+                "line-color": "#ffffff",
+                "line-width": 7,
+                "line-opacity": 0.9,
+              }}
+            />
+            <Layer
+              id="grid-corridor-blocked"
+              type="line"
+              filter={[
+                "all",
+                ["==", ["geometry-type"], "LineString"],
+                ["match", ["get", "kind"], ["urban", "protected", "water"], true, false],
+              ]}
+              paint={{
+                "line-color": ORANGE,
+                "line-width": 4,
+              }}
+            />
+            {/* Municipal path: entry→access segment rides the local
+                utility's distribution grid, which we don't map — dotted,
+                and labeled as illustrative. Zero-length dashes with a
+                round cap render as dots. */}
+            <Layer
+              id="grid-corridor-via"
+              type="line"
+              filter={[
+                "all",
+                ["==", ["geometry-type"], "LineString"],
+                ["==", ["get", "kind"], "via"],
+              ]}
+              layout={{ "line-cap": "round" }}
+              paint={{
+                "line-color": ORANGE,
+                "line-width": 3,
+                "line-dasharray": [0, 2],
+              }}
+            />
+            <Layer
+              id="grid-corridor-via-label"
+              type="symbol"
+              filter={["==", ["get", "kind"], "via"]}
+              layout={{
+                "symbol-placement": "line",
+                "text-field": [
+                  "concat",
+                  "via ",
+                  ["get", "utility"],
+                  " local grid — route illustrative",
+                ],
+                "text-font": ["Open Sans Regular"],
+                "text-size": 11,
+              }}
+              paint={{
+                "text-color": INK,
+                "text-halo-color": "#ffffff",
+                "text-halo-width": 1.5,
+              }}
+            />
+            {/* Crossing label midpoints ("crosses {name} · {mi} mi" —
+                text composed by the backend in the label property). */}
+            <Layer
+              id="grid-corridor-label"
+              type="symbol"
+              filter={[
+                "all",
+                ["==", ["geometry-type"], "Point"],
+                ["has", "label"],
+              ]}
+              layout={{
+                "text-field": ["get", "label"],
+                "text-font": ["Open Sans Regular"],
+                "text-size": 12,
+                "text-offset": [0, -0.9],
+                "text-allow-overlap": true,
+              }}
+              paint={{
+                "text-color": INK,
+                "text-halo-color": "#ffffff",
+                "text-halo-width": 2,
+              }}
+            />
+            {/* Local-grid entry point: where the corridor meets the
+                urbanized area and the connector hands off to the
+                utility's (unmapped) distribution grid. Same glyph idiom
+                as the tap nodes. */}
+            <Layer
+              id="grid-corridor-entry"
+              type="symbol"
+              filter={["==", ["get", "kind"], "entry"]}
+              layout={{
+                "icon-image": "grid-node-entry",
+                "icon-size": 1,
+                "icon-allow-overlap": true,
+                "icon-ignore-placement": true,
+                "text-field": "Local grid entry (approx.)",
+                "text-font": ["Open Sans Regular"],
+                "text-size": 11,
+                "text-offset": [0, 1.5],
+                "text-anchor": "top",
+                "text-allow-overlap": true,
+              }}
+              paint={{
+                "text-color": INK,
+                "text-halo-color": "#ffffff",
+                "text-halo-width": 1.5,
+              }}
+            />
+          </Source>
+        )}
+
+        {/* Draggable gen-tie origin (§6b): the point every grid analysis
+            runs from — auto-sited by the origin scan at the best/closest
+            point on the parcel, draggable to override. Small ink circle
+            with a white outline — not orange, so it never reads as the
+            parcel selection. */}
+        {panel.status === "found" && effectiveOrigin && (
+          <Marker
+            longitude={effectiveOrigin[0]}
+            latitude={effectiveOrigin[1]}
+            draggable
+            anchor="center"
+            onDragEnd={(e) => {
+              setOrigin([e.lngLat.lng, e.lngLat.lat]);
+              setOriginCustom(true);
+            }}
+          >
+            <div
+              title="Gen-tie origin — drag to re-run the grid analysis from a new point"
+              style={{
+                width: 14,
+                height: 14,
+                borderRadius: "50%",
+                background: INK,
+                border: "2px solid #ffffff",
+                cursor: "grab",
+              }}
+            />
+          </Marker>
         )}
       </MapGL>
 
@@ -922,6 +1379,8 @@ export default function ParcelViewer() {
         <ParcelRail
           selected={panel.status === "found" ? panel.result : null}
           panelStatus={panel.status}
+          gridAccess={gridNearest}
+          originLabel={originLabel}
           onCloseSelected={handleCloseSelected}
           onResearch={(p) => void handleResearch(p)}
           onFlyTo={handleFlyTo}

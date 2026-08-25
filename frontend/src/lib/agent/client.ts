@@ -9,6 +9,8 @@
 // verification, previews) are blocked — point NEXT_PUBLIC_AGENT_API elsewhere
 // (e.g. http://localhost:8000) for local dev.
 
+import type { FeatureCollection } from "geojson";
+
 import type { AgentReport } from "./report";
 
 export const AGENT_API =
@@ -204,6 +206,179 @@ export async function submitReview(
 
 export function listProjects(): Promise<PortfolioRow[]> {
   return request<PortfolioRow[]>("/api/projects");
+}
+
+/* ---------- Grid proximity (GRID V1 contract §2) ---------- */
+
+export type GridBucket = "near" | "moderate" | "far" | "remote";
+
+export interface GridPoint {
+  lat: number;
+  lng: number;
+}
+
+/** The screening-relevant nearest asset — what the rail chip and the map
+ *  connector describe. `closest` is optional: the contract shows it on
+ *  transmission/substation, but the connector brief reads it off access, so
+ *  both spellings are accepted (gridAccessClosest resolves). */
+export interface GridAccess {
+  kind: "substation" | "transmission";
+  distance_m: number;
+  distance_mi: number;
+  bucket: GridBucket;
+  label: string;
+  closest?: GridPoint | null;
+}
+
+/** Required physical hookup for the parcel (GRID V1 §2b). `substation` =
+ *  gen-tie to an existing substation bus; `line-tap` = new tap switchyard at
+ *  the line + gen-tie spur; `none` = nothing mapped in screening range.
+ *  Optional: older backends without the field just don't render the block. */
+export interface GridHookup {
+  method: "substation" | "line-tap" | "none";
+  gentie_mi: number | null;
+  tap_point: GridPoint | null;
+  summary: string;
+  detail: string;
+  alternative: string | null;
+}
+
+/** Verdict codes for the parcel→grid connection corridor (GRID V1 §5b;
+ *  precedence remote > protected_conflict > municipal_path >
+ *  constrained_urban > review > clear_rural). */
+export type GridVerdictCode =
+  | "clear_rural"
+  | "review"
+  | "constrained_urban"
+  | "municipal_path"
+  | "protected_conflict"
+  | "remote";
+
+/** Route-screening of the parcel-centroid → nearest-access corridor against
+ *  urban / protected / water blockers plus the serving-utility overlay
+ *  (GRID V1 §5b). Each blocker layer is individually optional server-side
+ *  (`available: false` = that check was skipped, verdict capped at review);
+ *  the whole `path` key is absent on older backends, so everything that
+ *  reads it must no-op without it. */
+export interface GridPath {
+  total_mi: number;
+  urban: {
+    available: boolean;
+    crossing_mi: number;
+    fraction: number;
+    areas: string[];
+  };
+  protected: {
+    available: boolean;
+    crossings: { name: string | null; mi: number }[];
+  };
+  water: { available: boolean; crossings: { mi: number }[] };
+  municipal: {
+    utility: string;
+    kind: string;
+    portal_url: string | null;
+  } | null;
+  /** Render-ready EPSG:4326 features: blocked subsegments
+   *  {kind:"urban"|"protected"|"water", label}, their label midpoints
+   *  {label}, the local-grid entry point {kind:"entry"}, and the municipal
+   *  via-segment LineString {kind:"via", utility}. */
+  render: FeatureCollection;
+  verdict: { code: GridVerdictCode; summary: string; detail: string };
+}
+
+/** Off-limits siting flag (GRID V1 §7b): centroid point-in-polygon against
+ *  the protected-holdings and water layers. `protected` is the holding name
+ *  (null = not in mapped protected land / layer unavailable); `water` true
+ *  means the centroid is on mapped water. The whole key is absent when both
+ *  layers are unavailable — missing data is never faked. */
+export interface GridSiting {
+  protected: string | null;
+  water: boolean;
+}
+
+export interface GridNearest {
+  transmission: { closest?: GridPoint | null } | null;
+  substation: { closest?: GridPoint | null } | null;
+  access: GridAccess | null;
+  hookup?: GridHookup | null;
+  /** Connection-path feasibility (§5) — absent on backends that predate it;
+   *  the corridor overlay and verdict block silently skip when missing. */
+  path?: GridPath | null;
+  /** Off-limits siting flag (§7b) — absent on backends without the layers;
+   *  the rail's siting lines silently skip when missing. */
+  siting?: GridSiting | null;
+  disclaimer: string;
+}
+
+/** The point a parcel→grid connector draws to: access.closest when present,
+ *  else the closest of the access.kind asset. Null = no connector. */
+export function gridAccessClosest(n: GridNearest): GridPoint | null {
+  const a = n.access;
+  if (!a) return null;
+  return (
+    a.closest ??
+    (a.kind === "substation"
+      ? (n.substation?.closest ?? null)
+      : (n.transmission?.closest ?? null))
+  );
+}
+
+/**
+ * Nearest mapped grid infrastructure to a point. Returns null — never
+ * throws — on any failure (silent degradation per contract §4: no chip, no
+ * connector, the tile overlay is unaffected).
+ */
+export async function getGridNearest(
+  lat: number,
+  lng: number,
+  signal?: AbortSignal,
+): Promise<GridNearest | null> {
+  try {
+    return await request<GridNearest>(
+      `/api/grid/nearest?lat=${lat}&lng=${lng}`,
+      { signal },
+    );
+  } catch {
+    return null;
+  }
+}
+
+/* ---------- Grid origin scan (GRID V1 contract §6a) ---------- */
+
+/** One pre-scanned gen-tie origin candidate for a parcel: the full
+ *  /api/grid/nearest analysis payload at that point (transmission/
+ *  substation/access/hookup/path/siting/disclaimer — the backend emits the
+ *  identical shape per candidate), plus the scan's own id/kind/point. */
+export interface GridScanCandidate extends GridNearest {
+  id: string;
+  kind: "centroid" | "edge-nearest" | "mid" | string;
+  point: GridPoint;
+}
+
+export interface GridScanResponse {
+  candidates: GridScanCandidate[];
+  /** Id of the recommended candidate — the one the "recommended" ring marks. */
+  best: string | null;
+}
+
+/**
+ * Pre-scans candidate gen-tie origins on a parcel (POST /api/grid/scan, §6a).
+ * Returns null — never throws — on any failure: the candidate dots and the
+ * rail's origin line simply don't render (silent degradation, §6b).
+ */
+export async function postGridScan(
+  geometry: GeoJSON.Geometry,
+  signal?: AbortSignal,
+): Promise<GridScanResponse | null> {
+  try {
+    return await request<GridScanResponse>("/api/grid/scan", {
+      method: "POST",
+      body: JSON.stringify({ geometry }),
+      signal,
+    });
+  } catch {
+    return null;
+  }
 }
 
 /** One grounded answer from the analyst, with the findings it leaned on. */

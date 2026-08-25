@@ -51,6 +51,14 @@ interface MapLayersState {
 
 const DEFAULT_STATE: MapLayersState = { basemap: "satellite", overlays: {} };
 
+/**
+ * Overlay that only makes sense over the raster-only satellite basemap —
+ * the light/dark CARTO vector basemaps draw their own roads/labels, so
+ * leaving it on there renders doubled, mismatched labels. It is force-off
+ * (and its panel row disabled) on any other basemap.
+ */
+const SATELLITE_ONLY_OVERLAY = "reference";
+
 function storageKeyFor(key: string): string {
   return `rai.mapLayers.${key}`;
 }
@@ -69,6 +77,11 @@ function readStored(key: string): MapLayersState {
     const overlays: Record<string, boolean> = {};
     if (parsed.overlays && typeof parsed.overlays === "object") {
       for (const def of MAP_OVERLAYS) {
+        // Drop stale enables (written before the satellite-only rule) so a
+        // persisted reference-on-vector state never reaches the UI.
+        if (def.id === SATELLITE_ONLY_OVERLAY && basemap !== "satellite") {
+          continue;
+        }
         const v = parsed.overlays[def.id];
         if (typeof v === "boolean") overlays[def.id] = v;
       }
@@ -109,7 +122,15 @@ export function useMapLayers(storageKey: string): {
     (basemap: BasemapId) => {
       setState((prev) => {
         if (prev.basemap === basemap) return prev;
-        const next = { ...prev, basemap };
+        // The satellite-only overlay (roads/labels) must not ride onto a
+        // vector basemap that draws its own — drop it when leaving
+        // satellite. Switching back to satellite does NOT re-enable it;
+        // the user re-checks it.
+        const overlays =
+          basemap !== "satellite" && prev.overlays[SATELLITE_ONLY_OVERLAY]
+            ? { ...prev.overlays, [SATELLITE_ONLY_OVERLAY]: false }
+            : prev.overlays;
+        const next = { ...prev, basemap, overlays };
         writeStored(storageKey, next);
         return next;
       });
@@ -117,12 +138,20 @@ export function useMapLayers(storageKey: string): {
     [storageKey],
   );
 
+  // Effective on/off: the persisted toggle wins; an OverlayDef with
+  // `defaultOn` (e.g. the power grid) starts checked until toggled.
+  const effectiveOn = (overlays: Record<string, boolean>, id: string) =>
+    overlays[id] ??
+    MAP_OVERLAYS.find((d) => d.id === id)?.defaultOn === true;
+
   const toggleOverlay = useCallback(
     (id: string) => {
       setState((prev) => {
+        // Toggle the EFFECTIVE state — `!prev.overlays[id]` alone would turn
+        // a default-on overlay ON on the first click instead of off.
         const next = {
           ...prev,
-          overlays: { ...prev.overlays, [id]: !prev.overlays[id] },
+          overlays: { ...prev.overlays, [id]: !effectiveOn(prev.overlays, id) },
         };
         writeStored(storageKey, next);
         return next;
@@ -132,7 +161,7 @@ export function useMapLayers(storageKey: string): {
   );
 
   const isOverlayOn = useCallback(
-    (id: string) => state.overlays[id] === true,
+    (id: string) => effectiveOn(state.overlays, id),
     [state.overlays],
   );
 
@@ -188,16 +217,24 @@ function PanelContents({
       <div className="mt-0.5">
         {MAP_OVERLAYS.filter((def) => def.enabled).map((def) => {
           const inputId = `${idBase}-overlay-${def.id}`;
+          // Satellite-only overlay: locked off on the vector basemaps,
+          // which draw their own roads/labels.
+          const locked =
+            def.id === SATELLITE_ONLY_OVERLAY &&
+            state.basemap !== "satellite";
           return (
             <label
               key={def.id}
               htmlFor={inputId}
-              className="flex cursor-pointer items-start gap-2 py-1.5"
+              className={`flex items-start gap-2 py-1.5 ${
+                locked ? "cursor-not-allowed opacity-60" : "cursor-pointer"
+              }`}
             >
               <input
                 id={inputId}
                 type="checkbox"
                 checked={state.isOverlayOn(def.id)}
+                disabled={locked}
                 onChange={() => state.toggleOverlay(def.id)}
                 className="mt-[3px] accent-oxford"
               />
@@ -211,6 +248,11 @@ function PanelContents({
                 {def.note && (
                   <span className="block text-[11px] italic text-faint">
                     {def.note}
+                  </span>
+                )}
+                {locked && (
+                  <span className="block text-[11px] italic text-faint">
+                    Satellite basemap only
                   </span>
                 )}
               </span>
@@ -315,7 +357,12 @@ export function MapLayersControl({
       {MAP_OVERLAYS.map(
         (def) =>
           def.enabled &&
+          def.kind !== "vector-grid" &&
           state.isOverlayOn(def.id) &&
+          // Never render the satellite-only overlay over a vector basemap,
+          // even from stale persisted state (guards the hydration window).
+          (def.id !== SATELLITE_ONLY_OVERLAY ||
+            state.basemap === "satellite") &&
           [def.tiles, ...(def.extraTileSets ?? [])].map((tiles, i) => (
             <Source
               key={i === 0 ? def.id : `${def.id}-${i}`}
@@ -335,6 +382,43 @@ export function MapLayersControl({
             </Source>
           )),
       )}
+
+      {/* Vector overlays (kind "vector-grid"): one pmtiles vector Source per
+          entry, each carrying its own style layers on the OverlayDef
+          (vectorLayers — grid's kv-scaled lines + substation dots live in
+          maps/gridOverlay.ts, off-limits land's ink washes in
+          maps/offlimitsOverlay.ts). An entry may carry a FUNCTION of the
+          current basemap (basemap-adaptive palette — ink washes vanish on
+          the dark basemap). Same declarative re-add-on-style-swap behavior
+          as the raster branch above. */}
+      {MAP_OVERLAYS.map((def) => {
+        if (
+          def.kind !== "vector-grid" ||
+          !def.enabled ||
+          !def.pmtiles ||
+          !def.vectorLayers ||
+          !state.isOverlayOn(def.id)
+        ) {
+          return null;
+        }
+        const layers =
+          typeof def.vectorLayers === "function"
+            ? def.vectorLayers(state.basemap)
+            : def.vectorLayers;
+        return (
+          <Source
+            key={def.id}
+            id={`ovl-${def.id}`}
+            type="vector"
+            url={def.pmtiles}
+            attribution={def.attribution}
+          >
+            {layers.map((layer) => (
+              <Layer key={layer.id} {...layer} />
+            ))}
+          </Source>
+        );
+      })}
 
       {/* 44px-tall hit area (WCAG target size) around the compact pill —
           the wrapper's transparent flex box takes the tap, desktop appearance
