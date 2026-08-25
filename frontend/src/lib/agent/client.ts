@@ -9,6 +9,8 @@
 // verification, previews) are blocked — point NEXT_PUBLIC_AGENT_API elsewhere
 // (e.g. http://localhost:8000) for local dev.
 
+import type { FeatureCollection } from "geojson";
+
 import type { AgentReport } from "./report";
 
 export const AGENT_API =
@@ -241,11 +243,57 @@ export interface GridHookup {
   alternative: string | null;
 }
 
+/** Verdict codes for the parcel→grid connection corridor (GRID V1 §5b;
+ *  precedence remote > protected_conflict > municipal_path >
+ *  constrained_urban > review > clear_rural). */
+export type GridVerdictCode =
+  | "clear_rural"
+  | "review"
+  | "constrained_urban"
+  | "municipal_path"
+  | "protected_conflict"
+  | "remote";
+
+/** Route-screening of the parcel-centroid → nearest-access corridor against
+ *  urban / protected / water blockers plus the serving-utility overlay
+ *  (GRID V1 §5b). Each blocker layer is individually optional server-side
+ *  (`available: false` = that check was skipped, verdict capped at review);
+ *  the whole `path` key is absent on older backends, so everything that
+ *  reads it must no-op without it. */
+export interface GridPath {
+  total_mi: number;
+  urban: {
+    available: boolean;
+    crossing_mi: number;
+    fraction: number;
+    areas: string[];
+  };
+  protected: {
+    available: boolean;
+    crossings: { name: string | null; mi: number }[];
+  };
+  water: { available: boolean; crossings: { mi: number }[] };
+  municipal: {
+    utility: string;
+    kind: string;
+    portal_url: string | null;
+  } | null;
+  /** Render-ready EPSG:4326 features: blocked subsegments
+   *  {kind:"urban"|"protected"|"water", label}, their label midpoints
+   *  {label}, the local-grid entry point {kind:"entry"}, and the municipal
+   *  via-segment LineString {kind:"via", utility}. */
+  render: FeatureCollection;
+  verdict: { code: GridVerdictCode; summary: string; detail: string };
+}
+
 export interface GridNearest {
   transmission: { closest?: GridPoint | null } | null;
   substation: { closest?: GridPoint | null } | null;
   access: GridAccess | null;
   hookup?: GridHookup | null;
+  /** Connection-path feasibility (§5) — absent on backends that predate it;
+   *  the corridor overlay and verdict block silently skip when missing. */
+  path?: GridPath | null;
   disclaimer: string;
 }
 

@@ -6,6 +6,7 @@ import type {
   GridBucket,
   GridHookup,
   GridNearest,
+  GridVerdictCode,
 } from "@/lib/agent/client";
 
 type GridHookupMethod = NonNullable<GridHookup["method"]>;
@@ -180,6 +181,18 @@ const METHOD_CHIP: Record<GridHookupMethod, { label: string; cls: string }> = {
   none: { label: "No mapped access", cls: "bg-strong-soft text-strong-ink" },
 };
 
+/** Verdict chip styling (GRID V1 §5c): clear rural reads strong (grey),
+ *  review/constrained urban are watch (ink), and municipal path /
+ *  protected conflict / remote are flagged (risk orange). */
+const VERDICT_CHIP: Record<GridVerdictCode, { label: string; cls: string }> = {
+  clear_rural: { label: "Clear rural", cls: "bg-strong-soft text-strong-ink" },
+  review: { label: "Review", cls: "bg-watch-soft text-watch-ink" },
+  constrained_urban: { label: "Constrained urban", cls: "bg-watch-soft text-watch-ink" },
+  municipal_path: { label: "Municipal path", cls: "bg-risk-soft text-risk-ink" },
+  protected_conflict: { label: "Protected conflict", cls: "bg-risk-soft text-risk-ink" },
+  remote: { label: "Remote", cls: "bg-risk-soft text-risk-ink" },
+};
+
 /** At-a-glance selected-parcel layout — title, stat grid, research CTA, watch. */
 function SelectedParcel({
   parcel,
@@ -197,6 +210,30 @@ function SelectedParcel({
   gridAccess?: GridNearest | null;
 }) {
   const title = parcel.address ?? parcel.apn ?? "Unnamed parcel";
+  // Connection-path feasibility (GRID V1 §5) — null on backends without the
+  // key, in which case the verdict block below simply doesn't render.
+  const path = gridAccess?.path ?? null;
+  // Compact "Crosses {name} · {mi} mi" lines for the corridor's flagged
+  // crossings (unavailable layers contribute nothing).
+  const crossings: string[] = path
+    ? [
+        ...(path.urban.available &&
+        path.urban.crossing_mi > 0 &&
+        path.urban.areas.length > 0
+          ? [
+              `Crosses ${path.urban.areas.join(", ")} · ${path.urban.crossing_mi.toFixed(1)} mi`,
+            ]
+          : []),
+        ...(path.protected.available
+          ? path.protected.crossings.map(
+              (c) => `Crosses ${c.name ?? "protected land"} · ${c.mi.toFixed(1)} mi`,
+            )
+          : []),
+        ...(path.water.available
+          ? path.water.crossings.map((c) => `Crosses water · ${c.mi.toFixed(1)} mi`)
+          : []),
+      ]
+    : [];
   return (
     <div>
       <div className="text-sm font-semibold text-ink">{title}</div>
@@ -274,6 +311,66 @@ function SelectedParcel({
           {gridAccess.hookup.alternative && (
             <div className="mt-1 text-xs leading-relaxed text-faint">
               {gridAccess.hookup.alternative}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Connection-path verdict (GRID V1 §5c): what the parcel→grid
+          corridor crosses — urbanized area, protected land, water — and,
+          on a municipal path, the serving utility that runs the actual
+          interconnection process. */}
+      {path?.verdict && (
+        <div
+          className="mt-2 rounded-[5px] bg-surface-2 px-2.5 py-2"
+          title={gridAccess?.disclaimer}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs text-faint">Connection path</span>
+            <span
+              className={clsx(
+                "flex-none rounded-full px-1.5 py-px text-[10px] font-medium",
+                VERDICT_CHIP[path.verdict.code].cls,
+              )}
+            >
+              {VERDICT_CHIP[path.verdict.code].label}
+            </span>
+          </div>
+          <div className="mt-1 text-[13px] font-semibold text-ink">
+            {path.verdict.summary}
+          </div>
+          <div className="mt-1 text-xs leading-relaxed text-faint">
+            {path.verdict.detail}
+          </div>
+          {crossings.length > 0 && (
+            <ul className="mt-1 space-y-0.5">
+              {crossings.map((line) => (
+                <li key={line} className="text-xs leading-relaxed text-faint">
+                  {line}
+                </li>
+              ))}
+            </ul>
+          )}
+          {path.municipal && (
+            <div className="mt-1 text-xs leading-relaxed text-faint">
+              Local utility:{" "}
+              <span className="font-medium text-ink">
+                {path.municipal.utility}
+              </span>{" "}
+              ({path.municipal.kind})
+              {path.municipal.portal_url && (
+                <>
+                  {" — "}
+                  <a
+                    href={path.municipal.portal_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-brand underline"
+                  >
+                    interconnection portal
+                  </a>
+                </>
+              )}
             </div>
           )}
         </div>

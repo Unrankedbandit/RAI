@@ -62,9 +62,10 @@ const ORANGE = "#ff8400";
 const INK = "#1e1e26";
 
 /** Tap-point glyphs for the grid connection diagram: square = existing
- *  substation bus, diamond = new switchyard a line tap requires. Returns
+ *  substation bus, diamond = new switchyard a line tap requires,
+ *  triangle = local-grid entry point on a municipal path (§5c). Returns
  *  ImageData because MapLibre's addImage types don't accept a canvas. */
-function makeNodeImage(kind: "substation" | "line-tap"): ImageData {
+function makeNodeImage(kind: "substation" | "line-tap" | "entry"): ImageData {
   const S = 28;
   const c = document.createElement("canvas");
   c.width = S;
@@ -77,11 +78,16 @@ function makeNodeImage(kind: "substation" | "line-tap"): ImageData {
   ctx.beginPath();
   if (kind === "substation") {
     ctx.rect(4, 4, S - 8, S - 8); // bus node
-  } else {
+  } else if (kind === "line-tap") {
     ctx.moveTo(S / 2, 3); // switchyard diamond
     ctx.lineTo(S - 3, S / 2);
     ctx.lineTo(S / 2, S - 3);
     ctx.lineTo(3, S / 2);
+    ctx.closePath();
+  } else {
+    ctx.moveTo(S / 2, 3); // local-grid entry triangle (points up-corridor)
+    ctx.lineTo(S - 3, S - 3);
+    ctx.lineTo(3, S - 3);
     ctx.closePath();
   }
   ctx.fill();
@@ -770,11 +776,24 @@ export default function ParcelViewer() {
     return { type: "FeatureCollection", features };
   }, [panel, gridNearest]);
 
+  // Connection-corridor render (GRID V1 §5b/5c): the backend's path.render
+  // FeatureCollection passes through verbatim — blocked subsegments, their
+  // label midpoints, the municipal via-segment, and the local-grid entry
+  // point. Null on any selection without a path key (older backends,
+  // out-of-state), so the corridor Source simply never mounts — the same
+  // silent-degradation pattern as the connector.
+  const gridCorridor = useMemo<GeoJSON.FeatureCollection | null>(() => {
+    if (panel.status !== "found") return null;
+    return gridNearest?.path?.render ?? null;
+  }, [panel, gridNearest]);
+
   // Tap-point node glyphs (canvas-drawn, registered on the map): a square
   // "bus" node marks a substation gen-tie connection; a diamond marks the
-  // NEW switchyard a line tap requires. White fill + ink stroke + ink core
-  // reads on light and satellite basemaps, matching the connector/label.
-  // Re-registered on styledata because a basemap switch wipes map images.
+  // NEW switchyard a line tap requires; a triangle marks the local-grid
+  // entry point on a municipal path (§5c). White fill + ink stroke + ink
+  // core reads on light and satellite basemaps, matching the
+  // connector/label. Re-registered on styledata because a basemap switch
+  // wipes map images.
   const handleMapLoad = useCallback(() => {
     const map = mapRef.current?.getMap();
     if (!map) return;
@@ -783,6 +802,8 @@ export default function ParcelViewer() {
         map.addImage("grid-node-substation", makeNodeImage("substation"));
       if (!map.hasImage("grid-node-line-tap"))
         map.addImage("grid-node-line-tap", makeNodeImage("line-tap"));
+      if (!map.hasImage("grid-node-entry"))
+        map.addImage("grid-node-entry", makeNodeImage("entry"));
     };
     register();
     map.on("styledata", register);
@@ -862,14 +883,26 @@ export default function ParcelViewer() {
             font, so JetBrains Mono isn't available here. */}
         {gridConnector && (
           <Source id="grid-distance" type="geojson" data={gridConnector}>
+            {/* White casing under the dashed ink core — the connector was
+                unreadable on satellite basemaps at 1.5px. */}
+            <Layer
+              id="grid-distance-casing"
+              type="line"
+              filter={["==", ["geometry-type"], "LineString"]}
+              paint={{
+                "line-color": "#ffffff",
+                "line-width": 5,
+                "line-opacity": 0.85,
+              }}
+            />
             <Layer
               id="grid-distance-line"
               type="line"
               filter={["==", ["geometry-type"], "LineString"]}
               paint={{
                 "line-color": INK,
-                "line-width": 1.5,
-                "line-opacity": 0.9,
+                "line-width": 2.5,
+                "line-opacity": 0.95,
                 "line-dasharray": [2, 2],
               }}
             />
@@ -880,13 +913,13 @@ export default function ParcelViewer() {
               layout={{
                 "text-field": ["get", "label"],
                 "text-font": ["Open Sans Regular"],
-                "text-size": 12,
+                "text-size": 13,
                 "text-offset": [0, -0.9],
               }}
               paint={{
                 "text-color": INK,
                 "text-halo-color": "#ffffff",
-                "text-halo-width": 1.5,
+                "text-halo-width": 2,
               }}
             />
             {/* Tap-point node: square glyph + "Substation" for a gen-tie,
@@ -902,6 +935,135 @@ export default function ParcelViewer() {
                 "icon-allow-overlap": true,
                 "icon-ignore-placement": true,
                 "text-field": ["get", "methodLabel"],
+                "text-font": ["Open Sans Regular"],
+                "text-size": 11,
+                "text-offset": [0, 1.5],
+                "text-anchor": "top",
+                "text-allow-overlap": true,
+              }}
+              paint={{
+                "text-color": INK,
+                "text-halo-color": "#ffffff",
+                "text-halo-width": 1.5,
+              }}
+            />
+          </Source>
+        )}
+
+        {/* Connection corridor (GRID V1 §5c): blocked subsegments flagged
+            in brand risk-orange (a flag, not red/green status) over a white
+            casing; the municipal via-segment dotted; ink-halo'd crossing
+            labels; the local-grid entry point marked with the triangle
+            glyph. Renders only when the backend returned a path — no path
+            key, no corridor. */}
+        {gridCorridor && (
+          <Source id="grid-corridor" type="geojson" data={gridCorridor}>
+            {/* White casing under the orange core, only under the blocked
+                subsegments (urban/protected/water crossings). */}
+            <Layer
+              id="grid-corridor-casing"
+              type="line"
+              filter={[
+                "all",
+                ["==", ["geometry-type"], "LineString"],
+                ["match", ["get", "kind"], ["urban", "protected", "water"], true, false],
+              ]}
+              paint={{
+                "line-color": "#ffffff",
+                "line-width": 7,
+                "line-opacity": 0.9,
+              }}
+            />
+            <Layer
+              id="grid-corridor-blocked"
+              type="line"
+              filter={[
+                "all",
+                ["==", ["geometry-type"], "LineString"],
+                ["match", ["get", "kind"], ["urban", "protected", "water"], true, false],
+              ]}
+              paint={{
+                "line-color": ORANGE,
+                "line-width": 4,
+              }}
+            />
+            {/* Municipal path: entry→access segment rides the local
+                utility's distribution grid, which we don't map — dotted,
+                and labeled as illustrative. Zero-length dashes with a
+                round cap render as dots. */}
+            <Layer
+              id="grid-corridor-via"
+              type="line"
+              filter={[
+                "all",
+                ["==", ["geometry-type"], "LineString"],
+                ["==", ["get", "kind"], "via"],
+              ]}
+              layout={{ "line-cap": "round" }}
+              paint={{
+                "line-color": ORANGE,
+                "line-width": 3,
+                "line-dasharray": [0, 2],
+              }}
+            />
+            <Layer
+              id="grid-corridor-via-label"
+              type="symbol"
+              filter={["==", ["get", "kind"], "via"]}
+              layout={{
+                "symbol-placement": "line",
+                "text-field": [
+                  "concat",
+                  "via ",
+                  ["get", "utility"],
+                  " local grid — route illustrative",
+                ],
+                "text-font": ["Open Sans Regular"],
+                "text-size": 11,
+              }}
+              paint={{
+                "text-color": INK,
+                "text-halo-color": "#ffffff",
+                "text-halo-width": 1.5,
+              }}
+            />
+            {/* Crossing label midpoints ("crosses {name} · {mi} mi" —
+                text composed by the backend in the label property). */}
+            <Layer
+              id="grid-corridor-label"
+              type="symbol"
+              filter={[
+                "all",
+                ["==", ["geometry-type"], "Point"],
+                ["has", "label"],
+              ]}
+              layout={{
+                "text-field": ["get", "label"],
+                "text-font": ["Open Sans Regular"],
+                "text-size": 12,
+                "text-offset": [0, -0.9],
+                "text-allow-overlap": true,
+              }}
+              paint={{
+                "text-color": INK,
+                "text-halo-color": "#ffffff",
+                "text-halo-width": 2,
+              }}
+            />
+            {/* Local-grid entry point: where the corridor meets the
+                urbanized area and the connector hands off to the
+                utility's (unmapped) distribution grid. Same glyph idiom
+                as the tap nodes. */}
+            <Layer
+              id="grid-corridor-entry"
+              type="symbol"
+              filter={["==", ["get", "kind"], "entry"]}
+              layout={{
+                "icon-image": "grid-node-entry",
+                "icon-size": 1,
+                "icon-allow-overlap": true,
+                "icon-ignore-placement": true,
+                "text-field": "Local grid entry (approx.)",
                 "text-font": ["Open Sans Regular"],
                 "text-size": 11,
                 "text-offset": [0, 1.5],

@@ -19,7 +19,7 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse, Response
 from pyproj import Transformer
-from shapely.geometry import shape
+from shapely.geometry import LineString, mapping, shape
 from shapely.ops import nearest_points
 from shapely.ops import transform as shp_transform
 from shapely.strtree import STRtree
@@ -42,6 +42,54 @@ DISCLAIMER = ("As-the-crow-flies distance to nearest mapped grid "
               "infrastructure. Initial screening only — not a buildable "
               "route, available capacity, or interconnection commitment.")
 
+# --- Connection-path feasibility (contract §5b) ---------------------------
+# Corridor = parcel centroid → access point. The 150 m flat-cap buffer only
+# selects STRtree candidates; reported mileage is always centerline∩polygon.
+CORRIDOR_HALF_WIDTH_M = 150.0
+# Boundary-touch artifacts from dense TIGER/CPAD vertices are not crossings.
+MIN_CROSSING_M = 25.0
+# "Notable" water crossing for the constrained_urban rung (interpretation —
+# the contract says "notable water" without a number).
+NOTABLE_WATER_MI = 0.1
+# protected_conflict fires only on a substantial protected crossing. CPAD
+# includes city parks, and a 0.1 mi clip of one must not preempt municipal
+# guidance for an urban infill parcel (review 14 / report 11: protected ≠
+# impossible). Smaller clips stay in the crossings list as a detail note.
+PROTECTED_CONFLICT_MI = 0.5
+
+# Optional blocker layers (contract §5a), loaded exactly like the grid data.
+_BLOCKER_FILES = {"urban": "urban.geojson", "protected": "protected.geojson",
+                  "water": "water.geojson", "utilities": "utilities.geojson"}
+
+# Big-3 IOUs: portal_url is overridden with their ICA/hosting portals
+# instead of the CEC `url` field (report 12). Needles match both
+# "Pacific Gas & Electric" and "Pacific Gas and Electric" spellings.
+# CEC LSE-layer entities that are NOT retail utilities a parcel can
+# interconnect with: wholesalers, pooling authorities, and port districts
+# whose polygons overlay the real retail territories (accuracy review #14).
+_NON_RETAIL_UTILITIES = frozenset({
+    "Metropolitan Water District of So. Cal",
+    "Power and Water Resource Pooling Authority",
+    "Port of Oakland",
+    "Port of Stockton",
+    "Eastside Power Authority",
+})
+
+_IOU_PORTALS = (
+    ("pacific gas", "https://grip.pge.com"),
+    ("edison", "https://drpep.sce.com/drpep/"),
+    ("san diego gas", "https://interconnectionmapsdge.extweb.sempra.com"),
+)
+
+# Copy rules (contract §5b — accuracy is load-bearing; never quote circuit
+# capacity or upgrade costs as fact).
+ROUTE_SCREENING_SENTENCE = ("Route-screening flags from generalized public "
+                            "boundaries — the path is at least this "
+                            "constrained; not a buildability determination.")
+NO_DISTRIBUTION_SENTENCE = ("We don't map distribution lines; the utility "
+                            "determines the actual point of interconnection "
+                            "and route.")
+
 # None until first use; dict afterwards (loaded flag + trees). Feature props
 # ride alongside their 3310 geometry in parallel lists.
 _state: dict | None = None
@@ -63,7 +111,8 @@ def _load() -> dict:
     if _state is not None:
         return _state
     st = {"loaded": False, "line_geoms": [], "line_props": [],
-          "sub_geoms": [], "sub_props": [], "line_tree": None, "sub_tree": None}
+          "sub_geoms": [], "sub_props": [], "line_tree": None, "sub_tree": None,
+          "blockers": _load_blockers()}
     try:
         lines = json.loads((DATA_DIR / "lines.geojson").read_text(encoding="utf-8"))
         subs = json.loads((DATA_DIR / "substations.geojson").read_text(encoding="utf-8"))
@@ -103,6 +152,34 @@ def _load() -> dict:
     st["loaded"] = True
     _state = st
     return st
+
+
+def _load_blockers() -> dict:
+    """The four optional corridor-blocker layers (contract §5a). Each file is
+    independently optional: missing/unparseable/empty → available False and
+    that check is skipped (missing data is never faked)."""
+    layers = {}
+    for key, fname in _BLOCKER_FILES.items():
+        layer = {"available": False, "geoms": [], "props": [], "tree": None}
+        try:
+            fc = json.loads((DATA_DIR / fname).read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            layers[key] = layer
+            continue
+        for f in fc.get("features", []):
+            try:
+                geom = shp_transform(_TO_3310.transform, shape(f["geometry"]))
+            except Exception:
+                continue
+            if geom.is_empty:
+                continue
+            layer["geoms"].append(geom)
+            layer["props"].append(f.get("properties") or {})
+        if layer["geoms"]:
+            layer["tree"] = STRtree(layer["geoms"])
+            layer["available"] = True
+        layers[key] = layer
+    return layers
 
 
 def _bucket(distance_m: float, kind: str) -> str:
@@ -238,6 +315,280 @@ def _hookup(access: dict, transmission: dict | None,
             "alternative": alternative}
 
 
+def _parts(geom):
+    """Flatten a (multi-part) intersection into LineString parts."""
+    if geom.is_empty:
+        return
+    if geom.geom_type == "LineString":
+        yield geom
+    elif hasattr(geom, "geoms"):
+        for g in geom.geoms:
+            yield from _parts(g)
+
+
+def _round_coords(coords, nd=6):
+    if isinstance(coords[0], (int, float)):
+        return [round(c, nd) for c in coords]
+    return [_round_coords(c, nd) for c in coords]
+
+
+def _render_feature(geom3310, props: dict) -> dict:
+    """One render-FC feature, reprojected to EPSG:4326 (contract §5b)."""
+    geom = mapping(shp_transform(_TO_4326.transform, geom3310))
+    geom["coordinates"] = _round_coords(geom["coordinates"])
+    return {"type": "Feature", "properties": props, "geometry": geom}
+
+
+def _crossings(layer: dict, centerline, corridor):
+    """None when the layer is unavailable (distinguish from zero crossings);
+    else (total_mi, hits) with hits = (props, length_m, intersection geom).
+    The buffer only selects candidates; mileage is centerline∩polygon."""
+    if not layer["available"]:
+        return None
+    hits, total_m = [], 0.0
+    for i in layer["tree"].query(corridor, predicate="intersects"):
+        inter = centerline.intersection(layer["geoms"][int(i)])
+        length = inter.length
+        if length < MIN_CROSSING_M:
+            continue
+        hits.append((layer["props"][int(i)], length, inter))
+        total_m += length
+    return _mi(total_m), hits
+
+
+def _municipal(utilities: dict, pt) -> dict | None:
+    """Point-in-polygon of the QUERY point against the CEC utility layer.
+    Polygons overlap (the Metropolitan Water District wholesaler polygon
+    blankets LADWP retail territory over LA): collect ALL containing hits
+    and take the SMALLEST area — the specific retail territory beats a
+    wholesale overlay (report 12). Big-3 IOU portal_url is overridden with
+    the utility's ICA portal; only those three have ICA portals, so the
+    "ICA portal" wording is emitted for them alone."""
+    if not utilities["available"]:
+        return None
+    hits = [int(i) for i in utilities["tree"].query(pt, predicate="intersects")]
+    hits = [i for i in hits if utilities["props"][i].get("utility")]
+    # Wholesale/pooling/port overlays in the CEC LSE layer aren't retail
+    # providers a parcel can interconnect with — drop them before the
+    # min-area pick, else e.g. the Power and Water Resource Pooling
+    # Authority beats PG&E across the Central Valley.
+    hits = [i for i in hits
+            if utilities["props"][i]["utility"] not in _NON_RETAIL_UTILITIES]
+    if not hits:
+        return None
+    p = utilities["props"][min(hits, key=lambda i: utilities["geoms"][i].area)]
+    utility = p.get("utility")
+    kind = p.get("kind") or "unknown"
+    portal = p.get("url") or None
+    ica = None
+    for needle, ica_url in _IOU_PORTALS:
+        if needle in utility.lower():
+            ica = ica_url
+            break
+    if ica:
+        portal = ica
+    if kind.upper() == "IOU":
+        if ica:
+            link_note = (f" Check hosting capacity on {utility}'s ICA "
+                         f"portal ({portal}).")
+        else:
+            link_note = (f" Interconnection information on {utility}'s "
+                         f"site ({portal or 'see the utility'}).")
+        detail = (f"{utility} is the interconnection decision-maker "
+                  "here. Distribution interconnection runs under CPUC "
+                  f"Rule 21, administered by {utility} — Fast Track "
+                  f"screens first.{link_note} Selling power wholesale (to "
+                  "third parties or the CAISO market) moves the project "
+                  "to FERC jurisdiction — WDAT on distribution, CAISO "
+                  "tariff on transmission. " + NO_DISTRIBUTION_SENTENCE)
+    else:
+        link = f" ({p.get('url')})" if p.get("url") else ""
+        detail = (f"This parcel is in {utility} territory (publicly "
+                  "owned utility). CPUC Rule 21 does NOT apply — "
+                  f"{utility} administers its own interconnection "
+                  f"process; contact the utility directly{link}. There "
+                  "is no public hosting-capacity map for most municipal "
+                  "utilities. " + NO_DISTRIBUTION_SENTENCE)
+    return {"utility": utility, "kind": kind, "portal_url": portal,
+            "detail": detail}
+
+
+def _verdict(access: dict, total_mi: float, urban, protected, water,
+             municipal, unavailable: list) -> dict:
+    """Contract §5b precedence: remote > protected_conflict > municipal_path
+    > constrained_urban > review > clear_rural. A missing layer is never
+    faked as clear: its check is skipped and the verdict can be no stronger
+    than clear only when every layer answered."""
+    bucket = access.get("bucket")
+    urban_mi = urban[0] if urban else None
+    fraction = urban_mi / total_mi if urban_mi is not None and total_mi > 0 else None
+    protected_hits = protected[1] if protected else []
+    water_hits = water[1] if water else []
+
+    if bucket == "remote":
+        if access.get("kind") is None:
+            summary = "No mapped grid access within screening range"
+        else:
+            summary = (f"Nearest mapped grid access is {access['label']} — "
+                       "beyond practical screening range")
+        return {"code": "remote",
+                "summary": summary,
+                "detail": "The nearest mapped grid infrastructure is beyond "
+                          "screening distance; any connection would mean "
+                          "long new line construction. "
+                          + ROUTE_SCREENING_SENTENCE}
+
+    worst_protected = max((l for _, l, _ in protected_hits), default=0.0)
+    if _mi(worst_protected) >= PROTECTED_CONFLICT_MI:
+        names = [p.get("name") or "unnamed area" for p, _, _ in protected_hits]
+        mi = _mi(worst_protected)
+        return {"code": "protected_conflict",
+                "summary": f"Corridor crosses protected land ({names[0]}, "
+                           f"~{mi:.1f} mi) — plan the route around it early",
+                "detail": f"A substantial stretch ({mi:.1f} mi) of the "
+                          f"straight corridor crosses protected land "
+                          f"({', '.join(names)}); routing around it or "
+                          "confirming the holding's rules is required early "
+                          "— protected ≠ impossible. "
+                          + ROUTE_SCREENING_SENTENCE}
+
+    # Sub-threshold protected clips never set the verdict, but stay in the
+    # crossings list and get a detail note on the verdict that does fire.
+    protected_note = ""
+    if protected_hits:
+        names = ", ".join(sorted({p.get("name") or "unnamed area"
+                                  for p, _, _ in protected_hits}))
+        protected_note = (f"The corridor also clips protected land ({names}) "
+                          f"under the {PROTECTED_CONFLICT_MI:g} mi conflict "
+                          "threshold — confirm the holding's rules during "
+                          "routing. ")
+
+    if (urban_mi is not None and municipal
+            and (urban_mi >= 1.0 or (fraction or 0) >= 0.5)):
+        areas = ", ".join(sorted({p.get("name") or "urban area"
+                                  for p, _, _ in urban[1]}))
+        return {"code": "municipal_path",
+                "summary": "Corridor crosses developed land — realistic "
+                           f"path is distribution interconnection via "
+                           f"{municipal['utility']}",
+                "detail": f"{urban_mi:.1f} of {total_mi:.1f} mi "
+                          f"({(fraction or 0) * 100:.0f}%) of the straight "
+                          f"corridor lies inside {areas}; a gen-tie through "
+                          "developed land is the constrained option — the "
+                          "serving utility's distribution system is the "
+                          "practical interconnection path (see municipal "
+                          "guidance). " + protected_note
+                          + ROUTE_SCREENING_SENTENCE}
+
+    notable_water = any(_mi(l) >= NOTABLE_WATER_MI for _, l, _ in water_hits)
+    if (urban_mi is not None and urban_mi >= 0.25) or notable_water:
+        bits = []
+        if urban_mi is not None and urban_mi >= 0.25:
+            areas = ", ".join(sorted({p.get("name") or "urban area"
+                                      for p, _, _ in urban[1]}))
+            bits.append(f"{urban_mi:.1f} mi inside {areas}")
+        if notable_water:
+            bits.append("a notable water crossing "
+                        f"({_mi(max(l for _, l, _ in water_hits)):.1f} mi)")
+        return {"code": "constrained_urban",
+                "summary": "Corridor crosses developed land or major water "
+                           "— route study needed",
+                "detail": ("The straight corridor has " + " and ".join(bits)
+                           + ". " + protected_note
+                           + ROUTE_SCREENING_SENTENCE)}
+
+    if unavailable:
+        return {"code": "review",
+                "summary": "Screening incomplete — some map layers "
+                           "unavailable",
+                "detail": "No blockers detected along the corridor in the "
+                          "loaded layers, but these layers are unavailable: "
+                          + ", ".join(unavailable)
+                          + "; unscreened blockers may exist. "
+                          + protected_note + ROUTE_SCREENING_SENTENCE}
+
+    # Honest "no crossings" wording: sub-threshold protected clips exist,
+    # so only urban/water are asserted clear when the note is present.
+    no_crossings = (f"No urban or major-water crossings detected along the "
+                    f"{total_mi:.1f} mi corridor. " if protected_note else
+                    f"No urban, protected-land, or major-water crossings "
+                    f"detected along the {total_mi:.1f} mi corridor. ")
+    return {"code": "clear_rural",
+            "summary": "Clear rural corridor",
+            "detail": no_crossings + protected_note
+                      + ROUTE_SCREENING_SENTENCE}
+
+
+def _path(st: dict, pt, access_pt, access: dict) -> dict:
+    """Corridor blocker screen for the parcel→access straight line
+    (contract §5b; design + perf basis report 13)."""
+    blockers = st["blockers"]
+    centerline = LineString([pt, access_pt])
+    corridor = centerline.buffer(CORRIDOR_HALF_WIDTH_M, cap_style="flat")
+    total_mi = _mi(centerline.length)
+
+    urban = _crossings(blockers["urban"], centerline, corridor)
+    protected = _crossings(blockers["protected"], centerline, corridor)
+    water = _crossings(blockers["water"], centerline, corridor)
+    municipal = _municipal(blockers["utilities"], pt)
+    unavailable = [k for k, layer in blockers.items() if not layer["available"]]
+
+    # Render FC (EPSG:4326): blocked subsegments + label midpoints; when the
+    # parcel sits in a served territory and the corridor crosses an urban
+    # area, the connector stops at the urban-boundary entry point and the
+    # notional in-town leg rides the local grid (via segment).
+    features = []
+    for kind, result in (("urban", urban), ("protected", protected),
+                         ("water", water)):
+        if not result:
+            continue
+        for props, length, inter in result[1]:
+            name = props.get("name")
+            mi = _mi(length)
+            fallback = {"urban": "urban area", "protected": "protected land",
+                        "water": "water"}[kind]
+            for part in _parts(inter):
+                features.append(_render_feature(
+                    part, {"kind": kind, "label": name, "mi": round(mi, 2)}))
+            mid = inter.interpolate(inter.length / 2)
+            features.append(_render_feature(
+                mid, {"label": f"crosses {name or fallback} · {mi:.1f} mi"}))
+    if municipal and urban and urban[1]:
+        # Entry = first urban-boundary hit from the parcel side: the parcel-
+        # side endpoint of the nearest crossing subsegment.
+        entry = min((nearest_points(pt, inter)[1] for _, _, inter in urban[1]),
+                    key=lambda p: pt.distance(p))
+        features.append(_render_feature(entry, {"kind": "entry"}))
+        via = LineString([entry, access_pt])
+        if via.length > 0:
+            features.append(_render_feature(
+                via, {"kind": "via", "utility": municipal["utility"]}))
+
+    verdict = _verdict(access, total_mi, urban, protected, water, municipal,
+                       unavailable)
+    return {
+        "total_mi": round(total_mi, 2),
+        "corridor_half_width_m": int(CORRIDOR_HALF_WIDTH_M),
+        "urban": {"available": blockers["urban"]["available"],
+                  "crossing_mi": round(urban[0], 2) if urban else None,
+                  "fraction": round(urban[0] / total_mi, 2)
+                  if urban and total_mi > 0 else None,
+                  "areas": sorted({p.get("name") for p, _, _ in urban[1]
+                                   if p.get("name")}) if urban else []},
+        "protected": {"available": blockers["protected"]["available"],
+                      "crossings": [{"name": p.get("name"),
+                                     "mi": round(_mi(l), 2)}
+                                    for p, l, _ in protected[1]]
+                      if protected else []},
+        "water": {"available": blockers["water"]["available"],
+                  "crossings": [{"mi": round(_mi(l), 2)}
+                                for _, l, _ in water[1]] if water else []},
+        "municipal": municipal,
+        "render": {"type": "FeatureCollection", "features": features},
+        "verdict": verdict,
+    }
+
+
 @router.get("/api/grid/nearest")
 async def grid_nearest(lat: float, lng: float):
     st = _load()
@@ -255,7 +606,7 @@ async def grid_nearest(lat: float, lng: float):
             **props,
             "closest": {"lat": round(clat, 6), "lng": round(clng, 6)},
         }
-        hit_t = (dist, props)
+        hit_t = (dist, props, closest)
     else:
         hit_t = None
     hit = _nearest(st["sub_tree"], st["sub_geoms"], st["sub_props"], pt)
@@ -267,7 +618,7 @@ async def grid_nearest(lat: float, lng: float):
             **props,
             "closest": {"lat": round(clat, 6), "lng": round(clng, 6)},
         }
-        hit_s = (dist, props)
+        hit_s = (dist, props, closest)
     else:
         hit_s = None
 
@@ -277,21 +628,25 @@ async def grid_nearest(lat: float, lng: float):
         access = {"kind": None, "distance_m": None, "distance_mi": None,
                   "bucket": "remote",
                   "label": "No mapped grid infrastructure within 200 km"}
+        access_pt = None
     else:
         b_t = _bucket(hit_t[0], "transmission") if hit_t else None
         b_s = _bucket(hit_s[0], "substation") if hit_s else None
         if hit_s and (hit_t is None or _BUCKET_ORDER[b_s] <= _BUCKET_ORDER[b_t]):
-            kind, (dist, props), bucket = "substation", hit_s, b_s
+            kind, (dist, props, access_pt), bucket = "substation", hit_s, b_s
         else:
-            kind, (dist, props), bucket = "transmission", hit_t, b_t
+            kind, (dist, props, access_pt), bucket = "transmission", hit_t, b_t
         access = {"kind": kind, "distance_m": round(dist, 1),
                   "distance_mi": round(dist / MILE_M, 2), "bucket": bucket,
                   "label": _label(kind, dist, props)}
 
-    return {"query": {"lat": lat, "lng": lng}, "transmission": transmission,
+    resp = {"query": {"lat": lat, "lng": lng}, "transmission": transmission,
             "substation": substation, "access": access,
             "hookup": _hookup(access, transmission, substation),
             "disclaimer": DISCLAIMER}
+    if access_pt is not None:  # contract §5b: corridor needs both endpoints
+        resp["path"] = _path(st, pt, access_pt, access)
+    return resp
 
 
 @router.get("/api/grid/tiles/grid.pmtiles")
@@ -331,4 +686,6 @@ async def grid_status():
     path = DATA_DIR / "grid.pmtiles"
     return {"lines": len(st["line_geoms"]), "substations": len(st["sub_geoms"]),
             "pmtiles_bytes": path.stat().st_size if path.exists() else 0,
-            "loaded": st["loaded"]}
+            "loaded": st["loaded"],
+            "layers": {k: v["available"]
+                       for k, v in st.get("blockers", {}).items()}}
