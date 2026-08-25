@@ -1,0 +1,13 @@
+[Unit]
+Description=RAI frontend (next start)
+After=network.target rai-api.service
+
+[Service]
+WorkingDirectory=__DEPLOY_PATH__/frontend
+# bash -l so nvm/login-shell node is on PATH regardless of how node was installed
+ExecStart=/usr/bin/env bash -lc 'exec __DEPLOY_PATH__/frontend/node_modules/.bin/next start -H 127.0.0.1 -p 3000'
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target

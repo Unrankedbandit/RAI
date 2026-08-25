@@ -1,0 +1,13 @@
+[Unit]
+Description=RAI agent backend (uvicorn, FastAPI)
+After=network.target
+
+[Service]
+WorkingDirectory=__DEPLOY_PATH__
+ExecStart=__DEPLOY_PATH__/.venv/bin/python -m uvicorn agent_backend.main:app --host 127.0.0.1 --port 8000
+Restart=on-failure
+RestartSec=3
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=default.target
