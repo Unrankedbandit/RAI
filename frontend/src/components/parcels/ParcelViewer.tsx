@@ -1449,7 +1449,7 @@ export default function ParcelViewer() {
           </button>
         )}
         <div
-          className={`max-md:max-h-[55vh] max-md:overflow-y-auto ${
+          className={`min-h-0 flex-1 max-md:max-h-[55vh] ${
             panel.status === "found" && !sheetOpen ? "max-md:hidden" : ""
           }`}
         >
