@@ -14,6 +14,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import threading
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request
@@ -152,6 +153,32 @@ def _load() -> dict:
     st["loaded"] = True
     _state = st
     return st
+
+
+_load_lock = threading.Lock()
+
+
+def _get() -> dict:
+    """Blocking accessor: the first caller parses + indexes under a lock
+    (cold load measured ~20-25 s with the 162k-feature protected layer) and
+    later callers reuse. Endpoints that need data call this; /api/grid/status
+    peeks at _state instead so a status poll never stalls behind the load."""
+    global _state
+    if _state is None:
+        with _load_lock:
+            if _state is None:
+                _load()
+    assert _state is not None  # _load always sets it
+    return _state
+
+
+def preload() -> None:
+    """Startup warmup in a daemon thread (called from main.py's lifespan):
+    the first parcel click never pays the cold parse, and uvicorn's single
+    event loop is never blocked by it. Until the load lands, nearest/scan
+    answer 503 (the frontend silently hides grid UI) and status reports
+    loaded:false with warming:true."""
+    threading.Thread(target=_get, daemon=True, name="grid-preload").start()
 
 
 def _load_blockers() -> dict:
@@ -613,7 +640,7 @@ def _siting(blockers: dict, pt) -> dict | None:
 def _analyze(lat: float, lng: float) -> dict:
     """Full grid analysis for one point — the /api/grid/nearest payload minus
     "query" (contract §6a: grid_nearest and the scan candidates share it)."""
-    st = _load()
+    st = _get()
     if not st["loaded"]:
         raise HTTPException(status_code=503, detail="grid data not loaded")
     pt = shp_transform(_TO_3310.transform, shape({"type": "Point", "coordinates": [lng, lat]}))
@@ -706,7 +733,7 @@ def _scan_rank(candidate: dict) -> tuple:
 
 @router.post("/api/grid/scan")
 async def grid_scan(request: Request):
-    st = _load()
+    st = _get()
     if not st["loaded"]:
         raise HTTPException(status_code=503, detail="grid data not loaded")
     body = await request.body()
@@ -830,15 +857,22 @@ async def grid_tiles(name: str, request: Request):
 
 @router.get("/api/grid/status")
 async def grid_status():
-    st = _load()
+    # Peek, never trigger the cold parse from a status poll: _state None =
+    # warmup still running (preload thread) — report it, answer instantly.
+    st = _state
     path = DATA_DIR / "grid.pmtiles"
     offlimits = DATA_DIR / "offlimits.pmtiles"
-    return {"lines": len(st["line_geoms"]), "substations": len(st["sub_geoms"]),
-            "pmtiles_bytes": path.stat().st_size if path.exists() else 0,
+    base = {"pmtiles_bytes": path.stat().st_size if path.exists() else 0,
             # Contract §7b: additive — the off-limits archive's size (0 = not
             # baked yet).
             "offlimits_pmtiles_bytes":
-                offlimits.stat().st_size if offlimits.exists() else 0,
+                offlimits.stat().st_size if offlimits.exists() else 0}
+    if st is None:
+        return {**base, "lines": 0, "substations": 0,
+                "loaded": False, "warming": True, "layers": {}}
+    return {**base,
+            "lines": len(st["line_geoms"]), "substations": len(st["sub_geoms"]),
             "loaded": st["loaded"],
+            "warming": False,
             "layers": {k: v["available"]
                        for k, v in st.get("blockers", {}).items()}}
