@@ -158,13 +158,16 @@ def _load() -> dict:
 _load_lock = threading.Lock()
 
 
-def _get() -> dict:
-    """Blocking accessor: the first caller parses + indexes under a lock
-    (cold load measured ~20-25 s with the 162k-feature protected layer) and
-    later callers reuse. Endpoints that need data call this; /api/grid/status
-    peeks at _state instead so a status poll never stalls behind the load."""
+def _get(wait: bool) -> dict | None:
+    """Load accessor. With wait=True (the warmup thread) blocks on the load
+    lock and always returns the state. With wait=False (request handlers)
+    returns None INSTANTLY when the warmup thread is mid-parse — the cold
+    load is ~20-25 s of CPU (162k-feature CPAD layer) and a request must
+    never queue behind it; callers turn None into a fast 503."""
     global _state
     if _state is None:
+        if not wait and _load_lock.locked():
+            return None  # warmup in progress — never queue behind it
         with _load_lock:
             if _state is None:
                 _load()
@@ -177,8 +180,9 @@ def preload() -> None:
     the first parcel click never pays the cold parse, and uvicorn's single
     event loop is never blocked by it. Until the load lands, nearest/scan
     answer 503 (the frontend silently hides grid UI) and status reports
-    loaded:false with warming:true."""
-    threading.Thread(target=_get, daemon=True, name="grid-preload").start()
+     loaded:false with warming:true."""
+     threading.Thread(target=lambda: _get(wait=True), daemon=True,
+                      name="grid-preload").start()
 
 
 def _load_blockers() -> dict:
@@ -640,7 +644,9 @@ def _siting(blockers: dict, pt) -> dict | None:
 def _analyze(lat: float, lng: float) -> dict:
     """Full grid analysis for one point — the /api/grid/nearest payload minus
     "query" (contract §6a: grid_nearest and the scan candidates share it)."""
-    st = _get()
+    st = _get(wait=False)
+    if st is None:
+        raise HTTPException(status_code=503, detail="grid data warming up")
     if not st["loaded"]:
         raise HTTPException(status_code=503, detail="grid data not loaded")
     pt = shp_transform(_TO_3310.transform, shape({"type": "Point", "coordinates": [lng, lat]}))
@@ -733,7 +739,9 @@ def _scan_rank(candidate: dict) -> tuple:
 
 @router.post("/api/grid/scan")
 async def grid_scan(request: Request):
-    st = _get()
+    st = _get(wait=False)
+    if st is None:
+        raise HTTPException(status_code=503, detail="grid data warming up")
     if not st["loaded"]:
         raise HTTPException(status_code=503, detail="grid data not loaded")
     body = await request.body()
