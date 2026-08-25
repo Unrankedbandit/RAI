@@ -158,8 +158,23 @@ def main() -> int:
                 "resultOffset": offset,
                 "resultRecordCount": page_size,
             }
-            data = get_json(f"{endpoint}/query", params,
-                            f"page @ offset {offset}")
+            try:
+                data = get_json(f"{endpoint}/query", params,
+                                f"page @ offset {offset}")
+            except Exception:
+                # i15 has POISON pages (deterministic 500s, e.g. Kern offset
+                # 40500 on 2026-08-25 — likely a record that breaks geojson
+                # serialization). A screening layer can survive a dropped
+                # page; record it loudly and move on.
+                skipped_path = out_path.with_suffix(out_path.suffix + ".skipped")
+                with skipped_path.open("a", encoding="utf-8") as sk:
+                    sk.write(f"{offset}\n")
+                print(f"  !! SKIP page @ offset {offset} after "
+                      f"{MAX_RETRIES} retries (logged to {skipped_path.name})",
+                      flush=True)
+                offset += page_size
+                progress_path.write_text(str(offset))
+                continue
             features = data.get("features") or []
             if not features:
                 break

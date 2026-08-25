@@ -95,9 +95,11 @@ export const MAP_OVERLAYS: OverlayDef[] = [
     tiles: [], // no raster tile sets — vector source via pmtiles
     opacity: 1, // unused for vector layers (their paint owns opacity)
     note: "Precomputed screening score 0-100 — red no-go, green promising",
-    // enabled:false until the scores.pmtiles archive exists on the backend
-    // and is verified serving (live 206 Range check), per contract §8c.
-    enabled: false,
+    // VERIFIED 2026-08-25: Range bytes=0-255 → 206 + 256 B against the
+    // deployed backend serving the pilot bake (Fresno County, 315,548
+    // parcels scored, 12.0 MB archive). Coverage grows as counties bake —
+    // unscored areas simply render nothing.
+    enabled: true,
   },
   {
     // GRID V1 contract §7c: directly AFTER "Parcel scores". No-go land classes
