@@ -18,8 +18,8 @@ restarts the live services, waits on local health, then gates on
   `~/hackathons/rai/RAI` is never touched by deploys)
 - `rai-api-live.service` — uvicorn on `127.0.0.1:8010`; public API is the
   `rai-api-public` CORS proxy on `:8891` → `rai-live-api.josephbissell.com`
-- `rai-site.service` — `next start` on `127.0.0.1:3200` →
-  `rai-live.josephbissell.com` via the cloudflared gate
+- `rai-site.service` — `next start` on `127.0.0.1:8860` (`PORT` env in the
+  unit) → `rai-live.josephbissell.com` via the cloudflared gate
 - `rai-guardian.service` — babysits the public backend (not part of deploys)
 
 The box is outbound-only behind cloudflared, so deploys ride a **self-hosted
@@ -54,7 +54,7 @@ To re-enable in an emergency:
 3. `deploy_*` — runs `deploy/deploy.sh`: fetch → checkout → pip only if
    `requirements.txt` changed → `npm ci` + `next build` → restart
    `rai-api-live` + `rai-site` → wait for `127.0.0.1:8010/api/health` and
-   `127.0.0.1:3200/`.
+   `127.0.0.1:8860/`.
 4. `smoke` — `scripts/smoke.py` against the public URLs; red smoke = red run.
 
 Tracked local edits in `~/sites/RAI` block a deploy (runtime artifacts like

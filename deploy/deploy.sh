@@ -11,8 +11,8 @@
 #   backend   rai-api-live.service     uvicorn on 127.0.0.1:8010, behind the
 #                                      rai-api-public CORS proxy (:8891) which
 #                                      is what rai-live-api.josephbissell.com hits
-#   frontend  rai-site.service         next start on 127.0.0.1:3200, exposed as
-#                                      rai-live.josephbissell.com via the gate
+#   frontend  rai-site.service         next start on 127.0.0.1:8860 (PORT env in
+#                                      the unit), exposed as rai-live via the gate
 #   secrets   agent_backend/.env       never read or written by deploys
 #
 # Env (all optional):
@@ -20,14 +20,14 @@
 #   DEPLOY_PATH live checkout on the host        (default: ~/sites/RAI)
 #   FORCE       1 = reset tracked local edits    (default: refuse)
 #   API_PORT    backend health port              (default: 8010)
-#   WEB_PORT    frontend health port             (default: 3200)
+#   WEB_PORT    frontend health port             (default: 8860)
 set -euo pipefail
 
 REF="${REF:-main}"
 DEPLOY_PATH="${DEPLOY_PATH:-$HOME/sites/RAI}"
 FORCE="${FORCE:-0}"
 API_PORT="${API_PORT:-8010}"
-WEB_PORT="${WEB_PORT:-3200}"
+WEB_PORT="${WEB_PORT:-8860}"
 
 step() { printf '\n=== %s ===\n' "$*"; }
 
@@ -86,16 +86,19 @@ step "restart services"
 systemctl --user restart rai-api-live.service rai-site.service
 
 step "health wait"
-wait_up() { # url name
-  for i in $(seq 1 30); do
+wait_up() { # url name timeout_s
+  for i in $(seq 1 "$3"); do
     if curl -sf "$1" >/dev/null 2>&1; then echo "$2 up ($1)"; return 0; fi
     sleep 1
   done
   echo "ERROR: $2 never came up on $1 — check: journalctl --user -u rai-api-live -u rai-site"
   return 1
 }
-wait_up "http://127.0.0.1:$API_PORT/api/health" "backend"
-wait_up "http://127.0.0.1:$WEB_PORT/" "frontend"
+wait_up "http://127.0.0.1:$API_PORT/api/health" "backend" 30
+# The frontend restart outlives a 30s window when the box is busy (systemd stop
+# of next start can eat most of its 90s TimeoutStopSec before the new instance
+# boots) — give it 120s before declaring failure.
+wait_up "http://127.0.0.1:$WEB_PORT/" "frontend" 120
 
 step "done"
 echo "Deployed $REF ($(git rev-parse --short HEAD)) to the live stack."
