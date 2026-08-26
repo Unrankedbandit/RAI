@@ -176,7 +176,7 @@ function TimelineGantt({
       {/* Axis: min/max dates + the deadline caption, aligned with the lane. */}
       <div className="flex">
         <div style={{ width: GANTT_LABEL_PX }} className="flex-none" />
-        <div className="relative h-[14px] flex-1 text-[10.5px] leading-[14px] text-faint">
+        <div className="relative h-[26px] flex-1 text-[10.5px] leading-[14px] text-faint">
           <span className="absolute left-0">{axisLabel(range.min)}</span>
           <span className="absolute right-0">
             {axisLabel(range.min + range.span)}
@@ -192,8 +192,8 @@ function TimelineGantt({
                 className="absolute whitespace-nowrap font-semibold text-risk"
                 style={
                   p > 60
-                    ? { right: `${100 - p + 0.75}%` }
-                    : { left: `${p + 0.75}%` }
+                    ? { right: `${100 - p + 0.75}%`, top: "12px" }
+                    : { left: `${p + 0.75}%`, top: "12px" }
                 }
               >
                 Deadline
