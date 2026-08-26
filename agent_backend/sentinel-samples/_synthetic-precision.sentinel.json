@@ -1,0 +1,222 @@
+{
+  "project": {
+    "id": "precision",
+    "name": "Synthetic Precision Probe 50 MW",
+    "location": "Test County, CA",
+    "capacityMW": 0,
+    "latitude": 0,
+    "longitude": 0,
+    "activationScore": 62.0,
+    "band": "watch",
+    "scoreReason": "synthetic next action",
+    "status": "needs-review",
+    "pillars": [
+      {
+        "name": "Land",
+        "score": 62.0,
+        "band": "watch",
+        "unlocked": false,
+        "statusText": "1 in watch",
+        "subAgents": [
+          "extractor:land-docs",
+          "scout:zoning",
+          "researcher:land_use"
+        ],
+        "factors": [
+          {
+            "id": "land-flag-0",
+            "name": "synthetic flag",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "synthetic flag",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Law",
+        "score": 0.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "0 in watch",
+        "subAgents": [
+          "researcher:state_law",
+          "researcher:federal_law",
+          "researcher:ecology_epa"
+        ],
+        "factors": []
+      },
+      {
+        "name": "Finance",
+        "score": 0.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "0 in watch",
+        "subAgents": [
+          "researcher:financials",
+          "cross-examiner"
+        ],
+        "factors": []
+      },
+      {
+        "name": "Materials",
+        "score": 0.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "0 in watch",
+        "subAgents": [
+          "researcher:supply_chain"
+        ],
+        "factors": []
+      },
+      {
+        "name": "Demand",
+        "score": 0.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "0 in watch",
+        "subAgents": [
+          "researcher:demand",
+          "researcher:interconnection"
+        ],
+        "factors": []
+      }
+    ]
+  },
+  "eyebrow": "Solar \u00b7 0 MW \u00b7 Test County, CA",
+  "runSummary": "0 documents analyzed \u00b7 0 open items",
+  "scoreBandLabel": "Watch \u00b7 62/100",
+  "scoreNote": "synthetic next action",
+  "evidence": {},
+  "timeline": [
+    {
+      "id": "tl-0",
+      "label": "Quarter-vague deadline",
+      "date": "2027-07-01",
+      "kind": "deadline",
+      "band": "risk",
+      "datePrecision": "quarter",
+      "position": 0.0,
+      "shortLabel": "Quarter-vague deadline",
+      "dateDisplay": "Q3 2027"
+    },
+    {
+      "id": "tl-1",
+      "label": "Month-vague milestone",
+      "date": "2027-09-01",
+      "kind": "milestone",
+      "band": "watch",
+      "datePrecision": "month",
+      "position": 33.7,
+      "shortLabel": "Month-vague milestone",
+      "dateDisplay": "Sep 2027"
+    },
+    {
+      "id": "tl-2",
+      "label": "Exact ISO milestone",
+      "date": "2027-09-15",
+      "kind": "milestone",
+      "band": "strong",
+      "datePrecision": "day",
+      "position": 41.3,
+      "shortLabel": "Exact ISO milestone",
+      "dateDisplay": "Sep 15, 2027"
+    },
+    {
+      "id": "tl-3",
+      "label": "ITC deadline",
+      "date": "2027-12-31",
+      "kind": "deadline",
+      "band": "watch",
+      "datePrecision": "day",
+      "position": 99.5,
+      "description": "OBBBA \u00a748E(e)(4): solar/wind placed in service after Dec 31, 2027 loses the 30% ITC unless construction began by Jul 4, 2026 (4-yr continuity safe harbor then applies). Standalone storage exempt; full credit for BOC through 2033.",
+      "sourceUrl": "https://www.irs.gov/irb/2025-36_IRB",
+      "groundTruth": "OBBBA \u00a748E(e)(4): solar/wind placed in service after Dec 31, 2027 loses the 30% ITC unless construction began by Jul 4, 2026 (4-yr continuity safe harbor then applies). Standalone storage exempt; full credit for BOC through 2033."
+    },
+    {
+      "id": "tl-4",
+      "label": "Year-vague milestone",
+      "date": "2028-01-01",
+      "kind": "milestone",
+      "band": "watch",
+      "datePrecision": "year",
+      "position": 100.0,
+      "shortLabel": "Year-vague milestone",
+      "dateDisplay": "2028"
+    }
+  ],
+  "documents": [],
+  "priorityActions": [
+    {
+      "id": "pa-1",
+      "rank": 1,
+      "title": "synthetic condition",
+      "detail": "synthetic condition",
+      "impact": "high",
+      "scoreDelta": 6
+    }
+  ],
+  "projectedScoreAfterMitigation": 80.0,
+  "suggestedQuestions": [
+    {
+      "question": "What's the top item to clear next?",
+      "answer": {
+        "role": "assistant",
+        "text": "synthetic next action"
+      }
+    },
+    {
+      "question": "Why is the activation score 62?",
+      "answer": {
+        "role": "assistant",
+        "text": "0 critical red flags and 0 cross-document contradictions. Weakest pillars: Land 62."
+      }
+    }
+  ],
+  "chatHistory": [
+    {
+      "role": "assistant",
+      "text": "I've completed diligence on Synthetic Precision Probe 50 MW. Activation score 62/100 \u2014 decision: Investigate. 0 critical flags, 0 cross-document contradictions, 0 open information requests. Ask me what to prioritize."
+    }
+  ],
+  "report": {
+    "badge": "RED FLAG REPORT",
+    "title": "Synthetic Precision Probe 50 MW \u2014 due-diligence report",
+    "preparedBy": "Red Flag agent framework",
+    "summary": "synthetic next action",
+    "findings": [],
+    "recommendedActions": [
+      "synthetic condition"
+    ],
+    "sourceBasis": "0 source documents + 0 acquired research packs"
+  },
+  "map": {
+    "parcelSize": "\u2014",
+    "toggles": [
+      {
+        "id": "zoning",
+        "label": "Zoning",
+        "on": true
+      },
+      {
+        "id": "protected-land",
+        "label": "Protected land",
+        "on": true
+      },
+      {
+        "id": "transmission",
+        "label": "Transmission",
+        "on": false
+      }
+    ],
+    "distances": [],
+    "zones": [],
+    "pin": {
+      "left": 50,
+      "top": 50,
+      "label": "Test County, CA"
+    }
+  },
+  "teamMembers": []
+}

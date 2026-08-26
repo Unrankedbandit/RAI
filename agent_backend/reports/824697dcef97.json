@@ -1,0 +1,170 @@
+{
+  "project": "Parcel 09109004 — ? ac",
+  "location": "San Joaquin County, CA",
+  "readiness": 6.0,
+  "decision": "Hold",
+  "dimensions": [
+    {
+      "name": "land",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "site_acres is null — parcel size and project identity unconfirmed",
+        "No site control, title, or lease evidence provided",
+        "No FMMP farmland classification, Williamson Act status, or acreage/MW density to test plausibility",
+        "Weighted contribution: 5 × 0.20 = 1.00"
+      ]
+    },
+    {
+      "name": "law",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "Zoning designation for San Joaquin County parcel unverified — prohibition cannot be ruled out (unresolved kill-criterion class)",
+        "Tax-credit eligibility undocumented: no beginning-of-construction evidence; under OBBBA the ITC/PTC position cannot be established (unresolved kill criterion)",
+        "No permitting, CEQA, state/federal law, ecology, or community facts extracted",
+        "Weighted contribution: 5 × 0.20 = 1.00"
+      ]
+    },
+    {
+      "name": "finance",
+      "rag": "red",
+      "score": 3.0,
+      "flags": [
+        "No CAPEX figure — cannot test against $1.43–1.56/Wac installed benchmark (LBNL/NREL)",
+        "No offtake/revenue contracts, interconnection status, or financing terms — all unknown",
+        "No schedule to test against tax-credit deadlines or procurement milestones",
+        "Weighted contribution: 3 × 0.25 = 0.75"
+      ]
+    },
+    {
+      "name": "materials",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "No equipment procurement or lead-time facts; large transformer/GSU market norm is 128–144 weeks — unaddressed",
+        "BESS scope (MWh, duration) undefined; no supply agreements",
+        "CAPEX vs. commodity indices not assessable",
+        "Weighted contribution: 5 × 0.20 = 1.00"
+      ]
+    },
+    {
+      "name": "demand",
+      "rag": "red",
+      "score": 15.0,
+      "flags": [
+        "No offtake, interconnection queue position, or contracted capacity evidence",
+        "Macro tailwind exists (SB 100/SB 1020; solar+storage is the only CPUC-procurement-eligible config, 4-hr storage ≈ 90–95% NQC) — supports a nonzero score",
+        "But CAISO curtailment (~11.5% of solar potential, early 2025) and merchant battery revenue compression ($115→$52/kW-yr, 2022→2025) are unpriced with no revenue data",
+        "Weighted contribution: 15 × 0.15 = 2.25"
+      ]
+    }
+  ],
+  "red_flags": [],
+  "contradictions": [],
+  "missing_info": [
+    "No extracted facts, research findings, or acquired documents were provided in the context — cross-examination could not be performed on any claim.",
+    "CAPEX vs. materials/commodity indices: not assessable (no CAPEX figures or index benchmarks in fact set).",
+    "Contracted capacity (MW) vs. executed agreements: not assessable (no capacity claims or agreement records in fact set).",
+    "Schedule dates vs. permitting milestones: not assessable (no schedule or permitting facts in fact set).",
+    "Site control claims vs. title/lease evidence: not assessable (no site control or title facts in fact set).",
+    "Construction schedule vs. equipment lead times: not assessable (no equipment procurement or lead-time facts in fact set).",
+    "Offtake/revenue contracts, interconnection status, and financing terms: unknown — no facts extracted in any of these domains.",
+    "Project identity itself (technology, location, size, stage) is not established in the provided context, so even the scope of required diligence cannot be confirmed."
+  ],
+  "action_pack": {
+    "rfis": [
+      "Provide site control evidence for Parcel 09109004: deed, lease, option, or purchase agreement, including legal description, acreage, and all encumbrances.",
+      "Provide current zoning designation and land use entitlement status from San Joaquin County, including any conditional use permit requirements for solar+storage.",
+      "Provide Williamson Act status and Farmland Mapping and Monitoring Program (FMMP) classification for the parcel.",
+      "Provide beginning-of-construction evidence for tax credit eligibility under OBBBA (e.g., notice to proceed, equipment purchase agreements, or physical work test documentation).",
+      "Provide CAISO interconnection application, queue position, study results (feasibility, system impact, facilities study), and any executed interconnection agreement.",
+      "Provide executed offtake agreements or revenue contracts (PPAs, tolling agreements) with counterparty details, term, and pricing.",
+      "Provide CAPEX budget and cost breakdown, including EPC contract, equipment costs, contingency, and financing costs.",
+      "Provide equipment procurement plan: module, inverter, BESS (MWh, duration), transformer/GSU lead times, and purchase orders or supply agreements.",
+      "Provide project schedule with milestones: permitting, financing, construction start, COD, and any tax credit deadlines.",
+      "Provide environmental studies: CEQA/NEPA status, biological surveys, cultural resources, and any permits (e.g., CWA 404, 401, ESA).",
+      "Provide community engagement plan and any opposition or support letters.",
+      "Provide financial model and financing term sheet (debt/equity, tax equity)."
+    ],
+    "agency_actions": [
+      {
+        "agency": "San Joaquin County Planning Department",
+        "action": "Verify zoning designation and land use entitlement for solar+storage; initiate conditional use permit or zoning verification.",
+        "why": "Unresolved kill criterion: zoning prohibition or Williamson Act incompatibility cannot be ruled out without official county confirmation.",
+        "deadline": "30 days"
+      },
+      {
+        "agency": "CAISO",
+        "action": "Verify interconnection queue position, study status, and required network upgrades; request queue cluster and study results.",
+        "why": "Interconnection status is unknown; queue position and upgrade costs are critical to project viability and schedule.",
+        "deadline": "45 days"
+      },
+      {
+        "agency": "California Public Utilities Commission (CPUC)",
+        "action": "Verify resource adequacy eligibility and any procurement contracts (e.g., PPA approvals) under SB 100/SB 1020.",
+        "why": "Offtake and revenue contracts are unverified; CPUC filings can confirm utility procurement and RA value.",
+        "deadline": "60 days"
+      },
+      {
+        "agency": "San Joaquin County Air Pollution Control District",
+        "action": "Verify air quality permit requirements for construction and operation.",
+        "why": "Construction and operation may require permits; non-compliance could delay schedule.",
+        "deadline": "30 days"
+      },
+      {
+        "agency": "California Department of Fish and Wildlife (CDFW)",
+        "action": "Verify compliance with California Endangered Species Act and any incidental take permits.",
+        "why": "Biological resources may be present; CDFW consultation is required to avoid ESA violations.",
+        "deadline": "60 days"
+      },
+      {
+        "agency": "U.S. Fish and Wildlife Service (USFWS)",
+        "action": "Verify compliance with federal Endangered Species Act if listed species are present.",
+        "why": "Federal ESA compliance is mandatory; take permits or avoidance measures may be needed.",
+        "deadline": "60 days"
+      },
+      {
+        "agency": "U.S. Army Corps of Engineers",
+        "action": "Verify if a CWA Section 404 permit is needed for wetlands or waters of the U.S.",
+        "why": "Wetland impacts could require federal permitting and affect schedule.",
+        "deadline": "60 days"
+      },
+      {
+        "agency": "California State Water Resources Control Board",
+        "action": "Verify CWA Section 401 water quality certification if a 404 permit is required.",
+        "why": "401 certification is a prerequisite for 404 permit; timing is critical.",
+        "deadline": "60 days"
+      },
+      {
+        "agency": "San Joaquin County (CEQA Lead Agency)",
+        "action": "Verify CEQA compliance status and required environmental document (EIR or Negative Declaration).",
+        "why": "CEQA compliance is a legal prerequisite for construction; unresolved status is a kill criterion.",
+        "deadline": "90 days"
+      }
+    ],
+    "verification_requests": [
+      "Verify offtake agreement with utility counterparty (e.g., PG&E, SCE, SDG&E) by contacting utility procurement or checking CPUC filings.",
+      "Verify CAISO interconnection queue position and study results via public CAISO reports or direct request.",
+      "Verify transformer/GSU lead times (128–144 weeks) by contacting major suppliers (Siemens, ABB, GE) or using industry benchmarks.",
+      "Verify commodity price indices (polysilicon, steel, copper) from Bloomberg, S&P Global, or LBNL/NREL benchmarks.",
+      "Verify land title and encumbrances via a title company search.",
+      "Verify zoning and land use via official San Joaquin County records and GIS data.",
+      "Verify tax credit eligibility via IRS guidance and a legal opinion on OBBBA beginning-of-construction requirements."
+    ],
+    "conditions_precedent": [
+      "Site control confirmed with clean title and no encumbrances; acreage matches project footprint.",
+      "Zoning verified as compatible with solar+storage; no prohibition or Williamson Act incompatibility.",
+      "Tax credit eligibility established with beginning-of-construction evidence under OBBBA.",
+      "Interconnection agreement executed or valid queue position with reasonable upgrade costs and timeline.",
+      "Offtake agreement executed or credible merchant strategy with revenue projections and risk analysis.",
+      "CAPEX within benchmark range ($1.43–1.56/Wac) and equipment procurement secured with lead times.",
+      "Environmental permits obtained or on track (CEQA, CWA, ESA).",
+      "CEQA compliance achieved (negative declaration or EIR certified).",
+      "Financing term sheet secured with acceptable debt/equity and tax equity terms."
+    ]
+  },
+  "recommended_next_action": "Total evidentiary vacuum: no extracted facts, research findings, or acquired documents in any domain — cross-examination could not be performed on a single claim, and even project identity (acreage, stage) is unconfirmed.",
+  "acquired_data": [],
+  "user": null
+}

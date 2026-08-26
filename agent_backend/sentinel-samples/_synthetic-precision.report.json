@@ -1,0 +1,30 @@
+{
+  "project": "Synthetic Precision Probe 50 MW",
+  "location": "Test County, CA",
+  "readiness": 62.0,
+  "decision": "Investigate",
+  "dimensions": [
+    {"name": "Land", "rag": "amber", "score": 62.0, "flags": ["synthetic flag"]}
+  ],
+  "red_flags": [],
+  "contradictions": [],
+  "missing_info": [],
+  "action_pack": {
+    "rfis": [],
+    "agency_actions": [
+      {"agency": "BLM", "action": "ROW grant", "why": "synthetic", "deadline": "Q1 2028"}
+    ],
+    "verification_requests": [],
+    "conditions_precedent": ["synthetic condition"],
+    "timeline": [
+      {"label": "Exact ISO milestone", "date": "2027-09-15", "kind": "milestone", "detail": "", "severity": "low"},
+      {"label": "Month-vague milestone", "date": "Sep 2027", "kind": "milestone", "detail": "", "severity": "medium"},
+      {"label": "Quarter-vague deadline", "date": "Q3 2027", "kind": "deadline", "detail": "", "severity": "high"},
+      {"label": "Year-vague milestone", "date": "2028", "kind": "milestone", "detail": "", "severity": "medium"},
+      {"label": "Undated milestone", "date": "whenever permits allow", "kind": "milestone", "detail": "", "severity": "medium"}
+    ]
+  },
+  "recommended_next_action": "synthetic next action",
+  "acquired_data": [],
+  "user": null
+}

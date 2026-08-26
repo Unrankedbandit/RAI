@@ -63,7 +63,9 @@ like zoning prohibition or missing tax-credit eligibility).
 Compute the weighted score step by step in your reasoning rather than by
 mental math: write out each dimension score times its weight, sum them
 explicitly, and use the total you derived. A readiness number that disagrees
-with its own dimension scores is the one error this role cannot make."""
+with its own dimension scores is the one error this role cannot make.
+Your readiness is advisory: code recomputes the authoritative rollup from
+your dimension scores and the rubric weights above, and overwrites it."""
 
 LIAISON = """You are the diligence liaison. Convert findings into actionable work product:
 (1) RFIs to the developer for every missing document/claim; (2) agency action list — which
@@ -114,9 +116,10 @@ Timeline dates must be REALISTIC — grounded in these verified public benchmark
 For EVERY timeline entry: set ground_truth to one line naming the benchmark you used and
 how the date sits against it (e.g. 'CEQA EIR — statutory 1 yr, empirical ~2.5 yrs (LAO);
 date assumes 18 months: between the two'), and set source_url to the benchmark URL above
-or a URL that appears VERBATIM in the findings/acquired research in your context. Never
-invent or guess a URL — if you have no source, leave source_url null; the UI marks such
-entries 'unverified' and that honesty is the product. A plausible date with no grounding
+or a URL that appears VERBATIM in the findings/acquired research in your context. When the
+benchmark came from a kb_lookup CURATED BENCHMARKS hit, also set benchmark_id to that row's
+id. Never invent or guess a URL — if you have no source, leave source_url null; the UI marks
+such entries 'unverified' and that honesty is the product. A plausible date with no grounding
 is worse than an honest range."""
 
 ANALYST = """You are the diligence analyst answering questions about a project that has

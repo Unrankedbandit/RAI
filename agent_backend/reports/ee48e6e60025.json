@@ -1,0 +1,803 @@
+{
+  "project": "Ventura APN 040016011 (post-restart smoke)",
+  "location": "Ventura County, CA",
+  "readiness": 32.25,
+  "decision": "Hold",
+  "dimensions": [
+    {
+      "name": "land",
+      "rag": "red",
+      "score": 20.0,
+      "flags": [
+        "Williamson Act enrollment status UNKNOWN for APN 040016011 — commercial solar is an incompatible use on contracted land (unresolved kill criterion); exit = 9-yr nonrenewal, 12.5% FMV cancellation (25% FSZ), or 6.25% easement (impaired farmland only)",
+        "Site acreage null; FMMP Important Farmland classification not obtained — cannot size CEQA ag impact",
+        "Ventura is a major agricultural county and the WA administering agency; RFI to Ag Commissioner/Assessor required before any land underwriting"
+      ]
+    },
+    {
+      "name": "law",
+      "rag": "red",
+      "score": 25.0,
+      "flags": [
+        "CEC Opt-In eligibility unresolved — storage MWh unspecified vs ≥200 MWh threshold; Opt-In is the only path that preempts local ag zoning/permitting",
+        "CEQA review path undetermined — full EIR near-certain on farmland (12–24 mo certify, 18–30 mo entitlement, +1–3 yr if litigated, ~43% plaintiff win rate vs renewables EIRs)",
+        "AB 52 tribal consultation status unknown in Chumash territory — fatal defect if not concluded before EIR certification",
+        "SB 149/SB 1420 Governor-certified streamlining (~270-day suit resolution) unconfirmed"
+      ]
+    },
+    {
+      "name": "finance",
+      "rag": "red",
+      "score": 25.0,
+      "flags": [
+        "No capex, PPA revenue, DSCR, or financing diligence in the record",
+        "ITC/PTC tax-credit eligibility and beginning-of-construction documentation unverified — missing tax-credit eligibility is itself a kill criterion",
+        "Opt-In cost burdens (certified CBA, prevailing wage, skilled-and-trained workforce) unquantified; potential WA cancellation penalty (12.5% FMV) unbudgeted"
+      ]
+    },
+    {
+      "name": "materials",
+      "rag": "amber",
+      "score": 40.0,
+      "flags": [
+        "No supply-chain/procurement diligence; storage capacity (MWh) unspecified, blocking both Opt-In eligibility and BESS procurement sizing",
+        "Benchmark transformer/GSU lead times 128–144 weeks — no order status or equipment strategy on file",
+        "No module/BESS vendor, interconnection equipment, or resource data (GHI/CF) assessed"
+      ]
+    },
+    {
+      "name": "demand",
+      "rag": "amber",
+      "score": 60.0,
+      "flags": [
+        "Strong mandate pull: SB 100/SB 1020 100% zero-carbon by 2045; CPUC 6 GW NQC procurement; CA PPA prices rising (~$64.49/MWh Q1-2026)",
+        "No executed offtake/PPA — bankability norm is ≥80% of P50 contracted at financial close",
+        "CAISO solar curtailment ~11.5% and battery merchant revenue compression ($115→$52/kW-yr) — 4-hr storage effectively mandatory; standalone solar NQC ~10%"
+      ]
+    }
+  ],
+  "red_flags": [
+    {
+      "title": "Williamson Act parcel status unverified — potential land-use kill switch on Ventura ag parcel",
+      "severity": "critical",
+      "component": "state_law",
+      "evidence": "APN 040016011's Williamson Act enrollment status is UNKNOWN and could not be confirmed from any live public source (brightdata_scrape empty; web_search returned only offline KB; Ventura assessor/planning sites rejected or failed direct fetches). Ventura County is a major agricultural county and the administering agency for WA contracts. If the parcel is under a Williamson Act contract, commercial solar is an INCOMPATIBLE use and the project is blocked unless the contract is exited — via 9-yr nonrenewal (Gov. Code §51245, land stays under contract the full 9 years so solar cannot proceed), cancellation at 12.5% of unrestricted FMV (Gov. Code §51283; 25% if in a Farmland Security Zone), or a 6.25% solar-use easement available ONLY for 'impaired' farmland (SB 1489, reinstated Jan 2023). This is a threshold/kill criterion, not a schedule risk. Contract number, enrollment date, acreage, and current status (active/nonrenewal/cancelled) must be obtained via RFI to the Ventura County Agricultural Commissioner/Assessor.",
+      "benchmark": "Williamson Act: commercial solar is an incompatible use on contracted land; exit = 9-yr nonrenewal, 12.5% FMV cancellation (25% FSZ), or 6.25% solar-use easement (impaired only)",
+      "sources": [
+        "https://www.conservation.ca.gov/dlrp/wa (fetched successfully — CA Dept. of Conservation Williamson Act Program page)",
+        "Diligence knowledge base (Williamson Act exit-path economics)"
+      ]
+    },
+    {
+      "title": "CEC Opt-In Certification eligibility hinges on unspecified storage capacity (≥200 MWh) and election decision is missing",
+      "severity": "critical",
+      "component": "state_law",
+      "evidence": "The project is 100 MW solar (satisfies the ≥50 MW solar threshold) but the storage capacity in MWh is NOT specified in the project data. CEC Opt-In Certification (AB 205/AB 209, PRC §§25545–25545.9) requires BOTH solar ≥50 MW AND storage ≥200 MWh. If storage is <200 MWh, the project is ineligible for the Opt-In path — which is the only route that preempts local zoning/permitting on ag land — and would fall back to a local entitlement path that may be blocked on agricultural parcels. The Opt-In election decision is still missing, and the path additionally requires a certified community benefits agreement + prevailing wage + skilled-and-trained workforce. CEC decision clock is 270 days from complete application.",
+      "benchmark": "CEC Opt-In eligibility: solar ≥50 MW AND storage ≥200 MWh; 270-day CEC decision; in lieu of all local permits; requires certified CBA + prevailing wage + skilled-and-trained workforce",
+      "sources": [
+        "Diligence knowledge base (CEC Opt-In Certification AB 205/AB 209, PRC §§25545–25545.9)"
+      ]
+    },
+    {
+      "title": "CEQA environmental review path undetermined (full EIR vs MND vs Opt-In) for 100 MW solar+storage on farmland",
+      "severity": "high",
+      "component": "state_law",
+      "evidence": "The CEQA compliance determination and environmental review path (full EIR vs MND vs CEC Opt-In Certification) is still missing. A 100 MW solar+storage project on agricultural land in Ventura County will almost certainly require a full EIR — 12–24 months to certify, 18–30 months total entitlement, +1–3 years if litigated. Renewables are the most-frequently-challenged project type (~43% plaintiff win rate vs EIRs). If the parcel is Important Farmland (FMMP classification not yet obtained), the ag impact is likely 'significant and unavoidable' requiring a Statement of Overriding Considerations. The review path must be explicitly chosen and locked before the entitlement schedule can be underwritten.",
+      "benchmark": "Full EIR: 12–24 months to certify; 18–30 months total entitlement; +1–3 years if litigated; renewables most-challenged project type (~43% plaintiff win rate)",
+      "sources": [
+        "Diligence knowledge base (CEQA benchmarks)"
+      ]
+    },
+    {
+      "title": "AB 52 tribal consultation status and timing relative to CEQA certification unknown — fatal-defect risk in Chumash territory",
+      "severity": "high",
+      "component": "state_law",
+      "evidence": "AB 52 tribal consultation status is still missing. Ventura County is Chumash tribal territory (Santa Ynez Band of Chumash, Barbareño/Ventureño Chumash, Fernandeño Tataviam). Under AB 52 (PRC §21080.3.1), notice must be given ≤14 days of a complete application and consultation must conclude BEFORE EIR certification — failure to complete consultation in time is a fatal defect that can void the environmental document. The timing of consultation relative to the CEQA certification milestone has not been established.",
+      "benchmark": "AB 52: notice ≤14 days of complete application; consultation must conclude before EIR certification (fatal defect if not)",
+      "sources": [
+        "Diligence knowledge base (AB 52 tribal consultation benchmarks)"
+      ]
+    },
+    {
+      "title": "SB 149/SB 1420 judicial-streamlining eligibility (Governor-certified energy project status) unconfirmed",
+      "severity": "medium",
+      "component": "state_law",
+      "evidence": "Whether the project qualifies as a Governor-certified energy project under SB 149/SB 1420 is still missing. Without that certification, any CEQA challenge proceeds through ordinary litigation, adding +1–3 years to the schedule (renewables are the most-frequently-challenged project type). Certification would cap CEQA suit resolution at ~270 days. The certification status must be confirmed to underwrite litigation risk.",
+      "benchmark": "SB 149/SB 1420: Governor-certified energy projects resolve CEQA suits in ~270 days (sunsets 2034)",
+      "sources": [
+        "Diligence knowledge base (SB 149/SB 1420 judicial streamlining)"
+      ]
+    },
+    {
+      "title": "RPS / SB 100 / SB 1020 zero-carbon compliance status unverified",
+      "severity": "low",
+      "component": "state_law",
+      "evidence": "The project's RPS / SB 100 / SB 1020 eligibility and zero-carbon compliance status is still missing. As a solar+storage resource it is presumptively zero-carbon-eligible under the 100% zero-carbon-by-2045 framework, so this is a demand/eligibility confirmation rather than a violation — but the compliance status should be documented to support offtake and procurement eligibility.",
+      "benchmark": "SB 100/SB 1020: 100% zero-carbon electricity by 2045",
+      "sources": [
+        "Diligence knowledge base (SB 100/SB 1020 demand driver)"
+      ]
+    },
+    {
+      "title": "Solar ITC cliff — BOC deadline (July 4, 2026) already passed; 30% solar ITC at risk",
+      "severity": "critical",
+      "component": "federal_law",
+      "evidence": "Under OBBBA (July 2025), a solar project with COD after 2028 forfeits the 30% ITC/PTC unless physical-work beginning-of-construction was documented by July 4, 2026 (Notice 2025-42: no 5% safe harbor for >1.5 MW solar). As of the KB compile date (Aug 14, 2026) that deadline has passed. For a 100 MW project at ~$1.43–1.56/Wac installed, the 30% solar ITC is on the order of ~$30M+ and is forfeited if BOC evidence was not secured. The storage component ITC under §48E survives (not subject to the solar/wind cliff), but the solar ITC is a go/no-go federal tax item. BOC evidence package must be a condition precedent.",
+      "benchmark": "OBBBA (July 2025) ITC/PTC cliff: BOC by July 4, 2026 for COD after 2028; Notice 2025-42 (no 5% safe harbor >1.5 MW solar); §48E storage ITC survives",
+      "sources": [
+        "Diligence knowledge base (ITC cliff — deadline already passed; Notice 2025-42; §48E storage ITC survives)"
+      ]
+    },
+    {
+      "title": "California condor ESA exposure — Ventura County core habitat; §7 consultation up to 135 days or §10 ITP",
+      "severity": "high",
+      "component": "federal_law",
+      "evidence": "Ventura County is core habitat for the federally endangered California condor (Sespe Condor Sanctuary and Hopper Mountain NWR are in-county). If a federal nexus exists (e.g., CWA §404 permit, federal ROW, or federal funding), ESA §7 formal consultation can run up to 135 days; if no nexus, an ESA §10 incidental take permit may be required. Condor collision risk with solar panels and transmission lines is a recognized impact. This is a schedule and compliance risk that must be scoped early; no condor-specific survey/consultation data was acquired for this project.",
+      "benchmark": "ESA §7 formal consultation up to 135 days (if nexus); §10 ITP if no nexus",
+      "sources": [
+        "Diligence knowledge base (ESA §7 formal consultation up to 135 days; MBTA/BGEPA compliance norms)"
+      ]
+    },
+    {
+      "title": "NEPA federal-nexus determination unresolved; CEQ regs rescinded (Jan 8, 2026) creates regulatory uncertainty",
+      "severity": "high",
+      "component": "federal_law",
+      "evidence": "NEPA applies only with a federal nexus — most commonly a CWA §404 permit, federal funding, or a federal ROW (e.g., a gen-tie crossing BLM land). No federal-nexus determination was acquired for this project. If a gen-tie crosses federal land, a BLM ROW grant + NEPA + FLPMA plan conformance is triggered (precedent: BLM NEPA ~2–3 yrs). Compounding this, CEQ rescinded all NEPA regulations (final Jan 8, 2026) and Seven County (May 2025) narrowed scope, so agencies are rewriting procedures — the applicable NEPA standard is in flux. The project must document whether any federal nexus exists and which agency procedures govern.",
+      "benchmark": "NEPA applies only with a federal nexus; CEQ rescinded all NEPA regs (final Jan 8, 2026); Seven County (May 2025) narrowed scope; BLM ROW triggers NEPA + plan conformance",
+      "sources": [
+        "Diligence knowledge base (NEPA federal-nexus benchmark; CEQ rescission Jan 8, 2026; Seven County May 2025; BLM ROW precedent)"
+      ]
+    },
+    {
+      "title": "FERC/CAISO interconnection certainty — 100 MW large-generator in a >500 GW queue; ~20% reach COD",
+      "severity": "high",
+      "component": "federal_law",
+      "evidence": "A 100 MW project is a large-generator interconnection under FERC Order 2023's cluster process. CAISO queue is >500 GW / ~1,000 projects; historically only ~20% of queued projects reach COD, and typical IR→COD is ~5 years. No queue position or interconnection study status was acquired for this project. For a target COD, the cluster study must complete ~mid-2027; network-upgrade cost allocation is the #1 dropout driver (~30% post-screen attrition). Interconnection certainty is a federal-law (FERC) gating item.",
+      "benchmark": "FERC Order 2023 cluster process; CAISO queue >500 GW, ~20% reach COD, IR→COD ~5 years; network-upgrade cost shock ~30% post-screen attrition",
+      "sources": [
+        "Diligence knowledge base (CAISO queue reality; FERC Order 2023 cluster process; reformed intake)"
+      ]
+    },
+    {
+      "title": "MBTA/BGEPA strict liability — no incidental take permit; nest surveys and construction timing required",
+      "severity": "medium",
+      "component": "federal_law",
+      "evidence": "The Migratory Bird Treaty Act is strict liability with no incidental take permit available — compliance is avoidance (nest surveys, buffers, construction timing). The Bald and Golden Eagle Protection Act requires golden eagle nest searches to 1 mile. No avian survey protocol or construction-timing plan was acquired for this project. Ventura County's raptor and migratory-bird exposure (including condor-adjacent habitat) makes this a real compliance item.",
+      "benchmark": "MBTA strict liability, no incidental take permit; BGEPA eagle nest searches to 1 mile",
+      "sources": [
+        "Diligence knowledge base (MBTA strict liability, no incidental take permit; BGEPA eagle nest searches to 1 mile)"
+      ]
+    },
+    {
+      "title": "CWA §404 / WOTUS wetland determination pending; post-Sackett narrowing but CA state backstop",
+      "severity": "medium",
+      "component": "federal_law",
+      "evidence": "If the site contains wetlands, a CWA §404 permit is the most common federal nexus that would trigger NEPA and ESA §7. Post-Sackett, isolated seasonal wetlands are likely non-jurisdictional federally, but California's State Wetland Procedures (2020) backstop them via 401 cert / WDRs. A new WOTUS rule was proposed Nov 2025 with final pending. No wetland delineation or §404 applicability determination was acquired for this project.",
+      "benchmark": "CWA §404 permit is the most common federal nexus; WOTUS post-Sackett narrowed; CA State Wetland Procedures (2020) backstop; new WOTUS rule proposed Nov 2025",
+      "sources": [
+        "Diligence knowledge base (CWA §404 as federal nexus; WOTUS post-Sackett; CA State Wetland Procedures 2020)"
+      ]
+    },
+    {
+      "title": "CEQA environmental review path undetermined — full EIR is the default critical path for a 100 MW farmland solar+storage project",
+      "severity": "critical",
+      "component": "permitting",
+      "evidence": "The project has not determined whether it will pursue a full EIR, MND, or CEC Opt-In Certification. For a 100 MW solar+storage facility on farmland, a full EIR is the default (12–24 months to certify; 18–30 months total entitlement; +1–3 years if litigated). Renewables are the most-frequently-challenged project type (~43% plaintiff win rate vs EIRs). This undetermined environmental milestone is the critical path for the entire permitting schedule.",
+      "benchmark": "CEQA full EIR: 12–24 months to certify; 18–30 months total entitlement; +1–3 years if litigated; renewables ~43% plaintiff win rate",
+      "sources": [
+        "Diligence knowledge base (CEQA benchmarks)",
+        "Acquired state_law data — 'CEQA compliance determination and environmental review path (full EIR vs. MND vs. CEC Opt-In Certification) for the 100 MW solar+storage project' still missing"
+      ]
+    },
+    {
+      "title": "Williamson Act parcel status unknown — potential permitting kill-switch if APN 040016011 is under contract",
+      "severity": "critical",
+      "component": "permitting",
+      "evidence": "If APN 040016011 is under a Williamson Act contract, commercial solar is an INCOMPATIBLE use and the project is blocked unless the contract is exited. Exit paths: 9-yr nonrenewal (Gov. Code §51245); cancellation at 12.5% of unrestricted FMV (Gov. Code §51283); 25% FMV if in a Farmland Security Zone (Gov. Code §51296 et seq.); 6.25% solar-use easement for impaired farmland only (SB 1489). Parcel-level enrollment status is NOT obtainable from live public sources with available tools — RFI to Ventura County Agricultural Commissioner/Assessor is required before any permitting path can be locked.",
+      "benchmark": "Williamson Act: commercial solar incompatible on contracted land; 9-yr nonrenewal; 12.5% FMV cancellation; 25% FMV Farmland Security Zone; 6.25% solar-use easement (impaired only)",
+      "sources": [
+        "https://www.conservation.ca.gov/dlrp/wa (fetched successfully)",
+        "Diligence knowledge base (Williamson Act exit-path economics)",
+        "Acquired state_law data — 'Whether Ventura APN 040016011 is actually under a Williamson Act contract' still missing"
+      ]
+    },
+    {
+      "title": "CEC Opt-In Certification (AB 205/AB 209) election undecided — the only path that preempts local zoning",
+      "severity": "high",
+      "component": "permitting",
+      "evidence": "The project is eligible for CEC Opt-In Certification (100 MW solar ≥ 50 MW threshold) but has not elected this path. The CEC decides within 270 days of a complete application, and the certificate is in lieu of all local permits (does not preempt Water Board, air districts, or federal permits). It requires a certified community benefits agreement + prevailing wage + skilled-and-trained workforce. If not elected, the project faces the full local entitlement + EIR path. The election decision is a gating permitting decision that has not been made.",
+      "benchmark": "CEC Opt-In: eligible solar ≥50 MW / storage ≥200 MWh; 270-day decision; certificate in lieu of all local permits; requires certified CBA + prevailing wage + skilled-and-trained workforce",
+      "sources": [
+        "Diligence knowledge base (CEC Opt-In Certification benchmarks)",
+        "Acquired state_law data — 'CEC Opt-In Certification (AB 205/AB 209, PRC §§25545–25545.9) eligibility and election decision' still missing"
+      ]
+    },
+    {
+      "title": "Ventura County local zoning / conditional use permit path unverified for the parcel",
+      "severity": "high",
+      "component": "permitting",
+      "evidence": "The Ventura County zoning district and use-permit path for APN 040016011 have not been verified. If the parcel is zoned agricultural, the local conditional use permit path may be restricted or prohibited for commercial solar, making the CEC Opt-In Certification the only viable route. Ventura County RMA Planning is the administering agency; parcel zoning must be confirmed before the permitting strategy can be locked.",
+      "benchmark": "Local use-permit path must be reconciled with zoning district; if ag-zoned and solar-restricted, CEC Opt-In is the only viable route",
+      "sources": [
+        "Diligence knowledge base (zoning/use-permit benchmarks)",
+        "https://rma.venturacounty.gov/divisions/planning/ (fetched — page structure only, no zoning detail returned)"
+      ]
+    },
+    {
+      "title": "AB 52 tribal consultation timing relative to CEQA certification not established",
+      "severity": "high",
+      "component": "permitting",
+      "evidence": "AB 52 tribal consultation (PRC §21080.3.1) must occur before CEQA certification. The status and timing of tribal consultation relative to the environmental review milestone have not been established. Missing this sequencing can invalidate or delay the CEQA certification and the entire permitting schedule.",
+      "benchmark": "AB 52 tribal consultation must occur before CEQA certification",
+      "sources": [
+        "Diligence knowledge base (AB 52 timing benchmark)",
+        "Acquired state_law data — 'AB 52 tribal consultation status and timing relative to CEQA certification' still missing"
+      ]
+    },
+    {
+      "title": "BESS fire-marshal sign-off (NFPA 855 / UL 9540A) required for the storage component — not yet in the permit matrix",
+      "severity": "medium",
+      "component": "permitting",
+      "evidence": "The storage component of the 100 MW solar+storage project requires fire-marshal BESS sign-off per NFPA 855 / UL 9540A. This is a construction-phase permitting requirement that must be sequenced into the permit matrix; it is not yet confirmed as addressed.",
+      "benchmark": "BESS fire-marshal sign-off (NFPA 855 / UL 9540A) required for storage component",
+      "sources": [
+        "Diligence knowledge base (construction-phase permit stack)"
+      ]
+    },
+    {
+      "title": "Construction General Permit (Order 2022-0057-DWQ) SWPPP and CDFW §1602 LSAA not confirmed in the permit stack",
+      "severity": "medium",
+      "component": "permitting",
+      "evidence": "The Construction General Permit (Order 2022-0057-DWQ) requires a SWPPP prepared by a QSD in SMARTS before any ground disturbance (risk level 1/2/3), and CDFW §1602 LSAA is required for on-site drainage/watercourses. These are mandatory pre-construction permits that must be sequenced ahead of grading; their status is not confirmed.",
+      "benchmark": "CGP SWPPP (Order 2022-0057-DWQ) before any ground disturbance; CDFW §1602 LSAA for drainage/watercourses",
+      "sources": [
+        "Diligence knowledge base (construction-phase permit stack)"
+      ]
+    },
+    {
+      "title": "Williamson Act × zoning double-blockage unresolved — potential land-use kill switch",
+      "severity": "critical",
+      "component": "zoning",
+      "evidence": "Acquired context confirms commercial solar is an INCOMPATIBLE use on Williamson Act-contracted land, and Ventura County is the administering local agency. If APN 040016011 is under an active contract, the 100 MW project is blocked unless the contract is exited — 9-yr nonrenewal (solar cannot proceed until it lapses), cancellation at 12.5% of unrestricted FMV (25% if in a Farmland Security Zone), or a 6.25% solar-use easement available only for 'impaired' farmland. Parcel-level enrollment status is UNKNOWN and could not be verified with available tools (county assessor/planning sites rejected fetches; web_search returned only offline KB). This is a threshold/go-no-go item, not a schedule risk.",
+      "benchmark": "Williamson Act exit economics: 9-yr nonrenewal; 12.5% FMV cancellation (25% FSZ); 6.25% solar-use easement for impaired farmland only",
+      "sources": [
+        "Acquired state_law context (CA Dept. of Conservation Williamson Act program page, conservation.ca.gov/dlrp/wa)",
+        "Diligence knowledge base (Williamson Act exit-path economics)"
+      ]
+    },
+    {
+      "title": "Parcel zoning district and Ventura County solar-ordinance treatment unverified",
+      "severity": "critical",
+      "component": "zoning",
+      "evidence": "No Ventura-specific zoning data was retrievable: ventura.org/rma/planning fetches were rejected, and web_search returned only the offline KB (which contains Solano/Boulder City content, not Ventura). If APN 040016011 sits in an exclusive agricultural district, commercial solar may be prohibited outright or require a discretionary Conditional Use Permit with ag-preservation conditions; Ventura is a major ag county (citrus/avocado/vegetable) with significant Williamson Act enrollment. The local route (General Plan + zoning text amendment) carries 18–36 months and material denial risk. Parcel zoning district must be confirmed via Ventura County Planning before any entitlement path is selected.",
+      "benchmark": "Local zoning route = 18–36 months with material denial risk in ag-protectionist counties; commercial solar often prohibited or CUP-gated in exclusive ag districts",
+      "sources": [
+        "Diligence knowledge base (zoning benchmarks)",
+        "Ventura County planning site fetch FAILED (request rejected)"
+      ]
+    },
+    {
+      "title": "CEC Opt-In eligibility hinges on storage ≥200 MWh — otherwise no state preemption of local zoning",
+      "severity": "high",
+      "component": "zoning",
+      "evidence": "The only reliable path around a restrictive local zoning outcome is the CEC Opt-In Certification (AB 205/AB 209, PRC §§25545–25545.9), which issues a certificate in lieu of all local permits. Eligibility requires solar ≥50 MW AND storage ≥200 MWh. The 100 MW solar side qualifies, but the storage capacity (MWh) is not stated in acquired data. If storage is below 200 MWh, the project cannot use the opt-in and is left with the discretionary local CUP/rezoning path (18–36 months, denial risk). Storage MWh must be confirmed.",
+      "benchmark": "CEC Opt-In eligibility: solar ≥50 MW AND storage ≥200 MWh; 270-day decision; certificate in lieu of all local permits; requires community benefits agreement + prevailing wage + skilled-and-trained workforce",
+      "sources": [
+        "Diligence knowledge base (CEC Opt-In Certification, PRC §§25545–25545.9)"
+      ]
+    },
+    {
+      "title": "Farmland conversion triggers full CEQA EIR with high litigation exposure",
+      "severity": "high",
+      "component": "zoning",
+      "evidence": "A 100 MW solar+storage build on agricultural land is a significant farmland conversion that requires a full EIR (12–24 months to certify; 18–30 months total entitlement; +1–3 years if litigated). Renewables are the most-frequently-challenged project type (~43% plaintiff win rate vs EIRs). The FMMP Important Farmland classification of APN 040016011 is UNKNOWN; if the parcel is Prime or Statewide Importance, the ag-impact finding is likely 'significant and unavoidable,' requiring a Statement of Overriding Considerations and a larger mitigation package.",
+      "benchmark": "Farmland conversion always requires a full EIR (12–24 months); renewables most-frequently-challenged project type (~43% plaintiff win rate)",
+      "sources": [
+        "Diligence knowledge base (CEQA benchmarks)"
+      ]
+    },
+    {
+      "title": "Ag mitigation package and decommissioning financial assurance unquantified",
+      "severity": "medium",
+      "component": "zoning",
+      "evidence": "Mitigation norms for CA farmland conversion are conservation easements at 1:1 (up to 2:1 on Prime farmland) and a decommissioning bond at ~100% of removal cost. With the FMMP classification and parcel acreage unknown, the mitigation cost and bond size cannot be sized. If the parcel is Prime farmland, the 2:1 easement ratio materially increases land cost. These must be quantified once FMMP classification and acreage are confirmed.",
+      "benchmark": "Ag mitigation: conservation easements at 1:1 (up to 2:1 on Prime); decommissioning bond ~100% of removal cost",
+      "sources": [
+        "Diligence knowledge base (ag mitigation norms)"
+      ]
+    },
+    {
+      "title": "ITC/BOC cliff — no beginning-of-construction evidence in dossier; deadline already passed",
+      "severity": "critical",
+      "component": "financials",
+      "evidence": "Under OBBBA (July 2025), a solar project with COD after 2028 forfeits the 30% solar ITC unless physical-work BOC was documented by July 4, 2026 (IRS Notice 2025-42; no 5% safe harbor for >1.5 MW solar). The acquired dossier contains no BOC evidence package. For a 100 MWac project at $1.43–1.56/Wac, the forfeited 30% ITC ≈ $43–47M. Storage ITC survives via §48E, but the solar ITC is the single largest go/no-go financial item. BOC evidence must be a condition precedent.",
+      "benchmark": "BOC documented by 7/4/2026 for COD after 2028 (OBBBA / IRS Notice 2025-42)",
+      "sources": [
+        "Diligence knowledge base (OBBBA ITC cliff; Notice 2025-42; storage §48E survives)",
+        "Acquired scout data (no financials data points returned)"
+      ]
+    },
+    {
+      "title": "No CAPEX / financial model data acquired — cannot validate against $1.43–1.56/Wac benchmark",
+      "severity": "high",
+      "component": "financials",
+      "evidence": "The dossier contains zero financials data points. A 100 MWac solar+storage project should be underwritten at $1.43–1.56/Wac installed (LBNL/NREL) for PV-only (~$143–156M), with storage adding materially. Any stated CAPEX below ~$1.4/Wac for the combined solar+storage scope is a red flag (cf. KB precedent: $1.12/Wac was plausible only as PV-only EPC and ~$40–70M short once storage was included). Escalation reserve should be 10–15% of EPC, not 8%.",
+      "benchmark": "Installed CAPEX $1.43–1.56/Wac (LBNL/NREL); escalation reserve 10–15%",
+      "sources": [
+        "Diligence knowledge base (CAPEX benchmark; escalation reserve; PV-only vs combined storage cost gap)"
+      ]
+    },
+    {
+      "title": "No PPA/offtake evidence — bankability requires ≥80% of P50 contracted at financial close",
+      "severity": "high",
+      "component": "financials",
+      "evidence": "No executed PPA or offtake data was acquired. Bankability norms require ≥80% of P50 contracted at financial close, and only an executed PPA (not LOI/MOU/term sheet) counts. CAISO PPA benchmark is LevelTen P25 Q1 2026 = $64.49/MWh (+13% YoY), with hybrid solar+storage PPAs commanding a premium. Without an executed PPA, the project also loses CAISO TPD allocation priority and 'projects without PPAs nearly always withdraw' from the queue.",
+      "benchmark": "≥80% P50 contracted at financial close; executed PPA required; CAISO PPA ~$64.49/MWh (Q1 2026)",
+      "sources": [
+        "Diligence knowledge base (bankability norms; LevelTen P25 CAISO PPA; TPD allocation priority)"
+      ]
+    },
+    {
+      "title": "CAISO interconnection cost exposure unquantified — network-upgrade shock is the #1 dropout driver",
+      "severity": "high",
+      "component": "financials",
+      "evidence": "No interconnection cost or queue-position data was acquired. In CAISO (SCE territory for Ventura County), only ~20% of queued projects reach COD, and network-upgrade cost shock drives ~30% post-screen attrition. Any reliance on planned transmission carries +6.1 years average delay. The interconnection cost allocation must be quantified against the project's financial model before CAPEX/return conclusions are valid.",
+      "benchmark": "CAISO queue ~20% COD completion; network-upgrade cost shock ~30% attrition; +6.1 yr avg transmission delay",
+      "sources": [
+        "Diligence knowledge base (CAISO queue reality; network-upgrade dropout driver; transmission delay distribution)"
+      ]
+    },
+    {
+      "title": "Storage merchant revenue must be underwritten to 2025 vintage, not 2022",
+      "severity": "medium",
+      "component": "financials",
+      "evidence": "Battery gross revenue fell from $115/kW-yr (2022) to $52/kW-yr (2025); evening prices >$70/MWh are now rare. Any storage revenue stack relying on 2022-vintage merchant/arbitrage assumptions is overstated. Underwrite merchant tails to 2025 benchmarks and stress-test the merchant share of the storage revenue stack.",
+      "benchmark": "Battery gross revenue $52/kW-yr (2025) vs $115/kW-yr (2022)",
+      "sources": [
+        "Diligence knowledge base (merchant revenue compression; storage revenue stack stress-test)"
+      ]
+    },
+    {
+      "title": "Decommissioning bond and land-lease economics not documented",
+      "severity": "low",
+      "component": "financials",
+      "evidence": "No decommissioning bond or land-lease cost data was acquired. Ventura County (ag-heavy, Williamson Act exposure per state_law findings) will require a decommissioning bond at ~100% of removal cost, and CA solar land leases run ~$935–1,600/ac/yr. These are recurring/one-time financial obligations that must be in the model; their absence is a data gap.",
+      "benchmark": "Decommissioning bond ≈ 100% removal cost; CA solar leases ~$935–1,600/ac/yr",
+      "sources": [
+        "Diligence knowledge base (decommissioning bond norm; CA land lease economics)"
+      ]
+    },
+    {
+      "title": "No interconnection queue position or study data acquired — documentary kill-variable",
+      "severity": "critical",
+      "component": "interconnection",
+      "evidence": "Scouts returned zero interconnection data points for Ventura APN 040016011. Queue position, cluster phase, POI substation, and study status are all unverified. CAISO queue holds >500 GW / ~1,000 projects with only ~20% ever reaching COD and IR→COD now ~5 years; Cluster 15 advanced only 145 of 541 projects (68 of 347 GW). For a Q4 2029 COD the cluster study must complete ~mid-2027. Without a verified queue position and completed Phase II study, the project cannot be underwritten for any near-term COD.",
+      "benchmark": "CAISO queue >500 GW / ~1,000 projects; only ~20% reach COD; IR→COD ~5 years; Cluster 15 advanced only 145/541 projects; cluster study must complete ~mid-2027 for Q4 2029 COD",
+      "sources": [
+        "Diligence knowledge base (CAISO interconnection queue benchmarks, Cluster 15 results, IR→COD timeline)"
+      ]
+    },
+    {
+      "title": "Deliverability (FCDS) unconfirmed — Energy-Only status would materially cut revenue and RA eligibility",
+      "severity": "high",
+      "component": "interconnection",
+      "evidence": "No FCDS confirmation exists in the acquired data. Under the reformed zonal process, a project in a Merchant/Energy-Only zone gets only energy-only nodal revenue (materially lower) and cannot sell Resource Adequacy; Merchant upgrades are self-funded and non-reimbursable. TPD allocation priority goes to projects with executed PPAs first — 'projects without PPAs nearly always withdraw.' The 100 MW solar+storage project has no documented PPA or FCDS, so its deliverability and RA value are unproven.",
+      "benchmark": "Deliverable zone = FCDS (RA-eligible); Energy-Only = materially lower revenue; TPD priority to executed PPA; projects without PPAs nearly always withdraw",
+      "sources": [
+        "Diligence knowledge base (CAISO zonal interconnection reform, FCDS/TPD allocation benchmarks)"
+      ]
+    },
+    {
+      "title": "Network upgrade cost-shock exposure — #1 dropout driver, with +6.1 yr transmission delay risk",
+      "severity": "high",
+      "component": "interconnection",
+      "evidence": "No Phase II study or network-upgrade cost allocation is documented. Network upgrade cost shock is the #1 interconnection dropout driver (~30% post-screen attrition), and CAISO-approved transmission projects average +6.1 years delay (+8.4 yrs for deprioritized PG&E projects). Any POI in the SCE/Ventura area relying on planned transmission carries that distribution. The upgrade cost allocation vs. project budget is unverified.",
+      "benchmark": "Network upgrade cost shock = #1 dropout driver (~30% post-screen attrition); CAISO-approved transmission projects avg +6.1 years delay",
+      "sources": [
+        "Diligence knowledge base (CAISO network upgrade cost-shock and transmission-delay benchmarks)"
+      ]
+    },
+    {
+      "title": "Material-modification risk from storage addition to the interconnection request",
+      "severity": "medium",
+      "component": "interconnection",
+      "evidence": "The project is solar+storage (hybrid). Under CAISO rules, storage additions that increase service MW are a material modification that can blow up a queue position. If the queue position was taken for solar-only and storage was added later, the position is at risk. Hybrid QC is capped by the POI limit, and the storage/POI-limit interaction is unverified. A material-modification audit is required.",
+      "benchmark": "Material modifications that blow up a queue position: POI change, MW upsize, fuel-type change, storage additions that increase service MW; hybrid QC = sum of components capped by POI limit",
+      "sources": [
+        "Diligence knowledge base (CAISO material-modification and hybrid QC benchmarks)"
+      ]
+    },
+    {
+      "title": "CA curtailment and merchant-revenue compression undercut merchant-tail underwriting",
+      "severity": "medium",
+      "component": "interconnection",
+      "evidence": "CA curtailed 3.4 TWh in 2024 (+29% YoY, 93% solar) and 11.5% of potential solar generation in early 2025; negative midday prices are routine. Battery gross revenue fell from $115/kW-yr (2022) to $52/kW-yr (2025). Any merchant component of the 100 MW solar+storage project must be underwritten to 2025 benchmarks, not 2022 vintage, and deliverability (FCDS) is required to capture RA value.",
+      "benchmark": "Curtailment 3.4 TWh 2024 / 11.5% of potential solar early 2025; battery gross revenue $115→$52/kW-yr (2022→2025); underwrite merchant tails to 2025 benchmarks",
+      "sources": [
+        "Diligence knowledge base (CA curtailment and merchant-revenue compression benchmarks)"
+      ]
+    },
+    {
+      "title": "Curtailment risk unquantified — CAISO solar curtailment at 11.5% of potential generation",
+      "severity": "high",
+      "component": "grid_integration",
+      "evidence": "CAISO curtailed 3.4 TWh in 2024 (+29% YoY, 93% solar) and 11.5% of potential solar generation in early 2025; negative midday prices are routine. The 100 MW solar+storage project has NO acquired curtailment analysis or P50/P90 curtailment underwriting. A merchant-heavy solar position in SCE/CAISO without a contracted hedge will be exposed to routine midday negative pricing.",
+      "benchmark": "11.5% of potential solar generation curtailed in early 2025; 3.4 TWh curtailed 2024 (+29% YoY)",
+      "sources": [
+        "Diligence knowledge base (grid integration benchmarks: curtailment 3.4 TWh 2024, 11.5% early-2025)"
+      ]
+    },
+    {
+      "title": "NQC/RA value hinges on storage sizing — undersized storage forfeits RA and CPUC procurement eligibility",
+      "severity": "high",
+      "component": "grid_integration",
+      "evidence": "Standalone solar NQC is only ~10% of nameplate and is ineligible for the new 6 GW CPUC procurement; 4-hr storage carries ~90–95% NQC. The project's storage MW/MWh split is not specified in acquired data. If storage is <4-hr or the hybrid QC is capped by the POI limit, the project's Resource Adequacy value and bankability collapse. Storage sizing and POI limit must be confirmed.",
+      "benchmark": "Solar NQC ≈ 10% of nameplate; 4-hr storage ≈ 90–95% NQC; hybrid QC = sum of components capped by POI limit",
+      "sources": [
+        "Diligence knowledge base (grid integration benchmarks: NQC solar ~10% / storage 90–95%)"
+      ]
+    },
+    {
+      "title": "Merchant storage revenue underwriting risk — battery gross revenue down to $52/kW-yr (2025)",
+      "severity": "medium",
+      "component": "grid_integration",
+      "evidence": "Battery gross revenue fell from $115/kW-yr (2022) to $52/kW-yr (2025); evening prices >$70/MWh are now rare. Any merchant tail in the storage revenue stack must be underwritten to 2025 benchmarks, not 2022 vintage. No revenue-stack breakdown was acquired for this project.",
+      "benchmark": "Battery gross revenue $115/kW-yr (2022) → $52/kW-yr (2025)",
+      "sources": [
+        "Diligence knowledge base (grid integration benchmarks: merchant revenue compression)"
+      ]
+    },
+    {
+      "title": "CAISO queue position and COD timeline unverified — only ~20% of queued projects reach COD",
+      "severity": "high",
+      "component": "grid_integration",
+      "evidence": "CAISO queue holds >500 GW / ~1,000 projects with only ~20% ever reaching COD and typical IR→COD now ~5 years. No queue position, cluster phase, or POI was acquired for this 100 MW project. Without an executed cluster study and confirmed deliverability (FCDS vs Energy-Only), the project's grid-integration path and COD are unsubstantiated.",
+      "benchmark": "~20% queue completion; IR→COD ~5 years; FCDS vs Energy-Only deliverability",
+      "sources": [
+        "Diligence knowledge base (interconnection/queue benchmarks)"
+      ]
+    },
+    {
+      "title": "Slice-of-Day RA framework compliance and FCDS deliverability not confirmed",
+      "severity": "medium",
+      "component": "grid_integration",
+      "evidence": "The Slice-of-Day RA framework (effective 2025) revalues capacity by time-of-day; hybrid QC is the sum of components capped by the POI limit. Whether this project can sell Resource Adequacy (FCDS) vs only energy (Energy-Only) was not established. Energy-Only deliverability yields materially lower revenue and would undermine the storage business case.",
+      "benchmark": "Slice-of-Day RA effective 2025; FCDS = RA-eligible, Energy-Only = materially lower revenue",
+      "sources": [
+        "Diligence knowledge base (grid integration benchmarks: Slice-of-Day RA, FCDS vs Energy-Only)"
+      ]
+    },
+    {
+      "title": "No offtake/PPA data acquired — bankability threshold unverifiable",
+      "severity": "critical",
+      "component": "demand",
+      "evidence": "Scouts returned ZERO demand data points for this 100 MW solar+storage project (no PPA, LOI, offtaker, tenor, or contracted-MW figure). Bankability requires ≥80% of P50 contracted at financial close with an EXECUTED PPA (LOI/MOU/term sheet does not count). With no executed offtake, the project cannot reach financial close and, per CAISO queue dynamics, 'projects without PPAs nearly always withdraw.'",
+      "benchmark": "≥80% of P50 contracted at financial close; executed PPA ≠ LOI/MOU/term sheet",
+      "sources": [
+        "Diligence knowledge base (Buyers & demand benchmarks)"
+      ]
+    },
+    {
+      "title": "Storage sizing unverified — determines RA/NQC value and 6 GW procurement eligibility",
+      "severity": "high",
+      "component": "demand",
+      "evidence": "Project is 100 MW solar+storage but storage MW/MWh is not stated. Standalone solar NQC ≈ 10% of nameplate and is INELIGIBLE for the new 6 GW CPUC procurement; 4-hr storage ≈ 90–95% NQC. If the storage component is undersized or <4-hr, the project's RA value collapses and it cannot compete in the CPUC IRP solicitation that is the primary demand pull in CA. Hybrid QC = sum of components capped by POI limit.",
+      "benchmark": "Standalone solar NQC ≈ 10% of nameplate, ineligible for 6 GW CPUC procurement; 4-hr storage ≈ 90–95% NQC; solar+storage is the only viable configuration in CA",
+      "sources": [
+        "Diligence knowledge base (Grid integration / demand benchmarks)"
+      ]
+    },
+    {
+      "title": "Merchant revenue compression risk if not contracted",
+      "severity": "high",
+      "component": "demand",
+      "evidence": "With no offtake identified, the project is exposed to merchant market. Battery gross revenue fell from $115/kW-yr (2022) to $52/kW-yr (2025); evening prices >$70/MWh are now rare; 11.5% of potential solar generation was curtailed in early 2025 and negative midday prices are routine. Any merchant tail must be underwritten to 2025 benchmarks, not 2022 vintage.",
+      "benchmark": "Battery merchant gross revenue $115/kW-yr (2022) → $52/kW-yr (2025); 11.5% curtailment of potential solar generation in early 2025",
+      "sources": [
+        "Diligence knowledge base (Grid integration / demand benchmarks)"
+      ]
+    },
+    {
+      "title": "No Ventura/SCE/3CE load-growth and buyer-pool assessment acquired",
+      "severity": "medium",
+      "component": "demand",
+      "evidence": "No demand/load-growth forecast for the SCE service territory or Ventura County was acquired, and no buyer-pool analysis (SCE IOU, 3CE CCA, Direct Access ESPs, corporate buyers) was provided. The demand case rests on the CPUC IRP 6 GW mandate and SB 100/SB 1020 zero-carbon trajectory, but the specific offtake channels and load growth that would absorb this 100 MW are undocumented.",
+      "benchmark": "CPUC IRP (Feb 2026) 6,000 MW NQC new procurement; SB 100/SB 1020 100% zero-carbon by 2045",
+      "sources": [
+        "Diligence knowledge base (Buyers & demand benchmarks)"
+      ]
+    },
+    {
+      "title": "PPA price benchmark not validated against current hybrid index",
+      "severity": "medium",
+      "component": "demand",
+      "evidence": "No PPA price or revenue assumption was acquired. Current CAISO hybrid PPA benchmark is $64.49/MWh (LevelTen P25, Q1 2026, +13% YoY), with hybrid PPAs commanding a premium; underwrite to ≥$60–65/MWh. Any revenue model using older LBNL ~$35/MWh levelized figures or 2022-vintage merchant assumptions would be materially understated.",
+      "benchmark": "PPA price (LevelTen P25) Q1 2026 $64.49/MWh (+13% YoY); hybrid PPAs command premium; underwrite hybrid ≥ $60–65/MWh",
+      "sources": [
+        "Diligence knowledge base (Buyers & demand benchmarks)"
+      ]
+    }
+  ],
+  "contradictions": [],
+  "missing_info": [],
+  "action_pack": {
+    "rfis": [
+      "RFI to Ventura County Agricultural Commissioner/Assessor: Provide Williamson Act contract status for APN 040016011 (contract number, enrollment date, acreage, current status: active/nonrenewal/cancelled).",
+      "RFI to developer: Specify storage capacity in MWh for the 100 MW solar + storage project; required to assess CEC Opt-In eligibility (≥200 MWh).",
+      "RFI to developer: Provide beginning-of-construction (BOC) documentation for solar portion (e.g., evidence of physical work or 5% safe harbor) to confirm ITC eligibility under §48E/§45Y post-OBBBA.",
+      "RFI to developer: Provide financial model (capex, PPA revenue, DSCR, financing plan) and any executed offtake agreements.",
+      "RFI to developer: Provide interconnection queue position and any study results; confirm if project has an existing CAISO interconnection request.",
+      "RFI to developer: Provide supply chain plan for transformers/GSUs (lead times 128-144 weeks) and module/BESS procurement status."
+    ],
+    "agency_actions": [
+      {
+        "agency": "Ventura County Agricultural Commissioner/Assessor",
+        "action": "Verify Williamson Act enrollment status for APN 040016011 and provide contract details.",
+        "why": "Williamson Act status is a threshold kill criterion; if contracted, solar is incompatible and requires exit (nonrenewal, cancellation, or easement).",
+        "deadline": "2026-09-15"
+      },
+      {
+        "agency": "California Energy Commission (CEC)",
+        "action": "Submit Opt-In Certification application (if storage ≥200 MWh) under AB 205/AB 209.",
+        "why": "Opt-In is the only path that preempts local ag zoning/permitting; decision within 270 days.",
+        "deadline": "2026-10-01"
+      },
+      {
+        "agency": "California Energy Commission (CEC)",
+        "action": "Review and approve Opt-In Certification application.",
+        "why": "Statutory 270-day decision clock for eligible projects.",
+        "deadline": "2027-07-01"
+      },
+      {
+        "agency": "Ventura County Planning Department",
+        "action": "Submit Conditional Use Permit (CUP) application if Opt-In not pursued or ineligible.",
+        "why": "Local permitting path for solar on ag land; requires CEQA review.",
+        "deadline": "2026-11-01"
+      },
+      {
+        "agency": "Ventura County Planning Department",
+        "action": "Certify CEQA EIR (if local path) and issue CUP decision.",
+        "why": "Full EIR likely on farmland; statutory 1-year cap, empirical ~2.5 years; Permit Streamlining Act 180 days after certification.",
+        "deadline": "2028-06-01"
+      },
+      {
+        "agency": "CAISO",
+        "action": "Submit new interconnection request (or confirm existing queue position).",
+        "why": "Interconnection is on critical path; new queue entries take >2 years to agreement.",
+        "deadline": "2026-11-01"
+      },
+      {
+        "agency": "CAISO",
+        "action": "Execute interconnection agreement after studies.",
+        "why": "Required for financial close and construction; typical cluster timelines overrun.",
+        "deadline": "2029-01-01"
+      },
+      {
+        "agency": "Santa Ynez Band of Chumash (and other tribes)",
+        "action": "Initiate and conclude AB 52 tribal consultation.",
+        "why": "AB 52 consultation must conclude before EIR certification; fatal defect if not.",
+        "deadline": "2028-05-01"
+      }
+    ],
+    "verification_requests": [
+      "Verify Williamson Act status via Ventura County Assessor/Ag Commissioner records (contract number, enrollment date, status).",
+      "Verify storage MWh from developer (must be ≥200 MWh for CEC Opt-In eligibility).",
+      "Verify BOC documentation for solar ITC (physical work or 5% safe harbor) to confirm eligibility under §48E/§45Y.",
+      "Verify CAISO interconnection queue position, cluster number, and any study results.",
+      "Verify transformer/GSU lead times and order status (benchmark 128-144 weeks).",
+      "Verify PPA/offtake status and whether ≥80% of P50 is contracted at financial close."
+    ],
+    "conditions_precedent": [
+      "Williamson Act status confirmed as not contracted, or exit path secured (nonrenewal, cancellation, or easement) with costs budgeted.",
+      "Storage capacity confirmed ≥200 MWh to qualify for CEC Opt-In, or local permitting path deemed viable.",
+      "BOC documentation for solar ITC secured, or tax strategy adjusted (e.g., storage-only ITC) with financial impact assessed.",
+      "Interconnection agreement executed with CAISO.",
+      "Financial close achieved with committed financing and executed offtake (≥80% P50).",
+      "AB 52 tribal consultation concluded and documented."
+    ],
+    "timeline": [
+      {
+        "label": "RFI sent to Ventura County Ag Commissioner",
+        "date": "2026-08-20",
+        "kind": "milestone",
+        "detail": "Request Williamson Act status for APN 040016011.",
+        "severity": "low",
+        "source_url": "https://www.conservation.ca.gov/dlrp/wa",
+        "ground_truth": "Williamson Act status unknown; must be confirmed via county; if contracted, solar incompatible."
+      },
+      {
+        "label": "Williamson Act status confirmed",
+        "date": "2026-09-15",
+        "kind": "deadline",
+        "detail": "Response from Ag Commissioner; if contracted, exit path required.",
+        "severity": "critical",
+        "source_url": "https://www.conservation.ca.gov/dlrp/wa",
+        "ground_truth": "Williamson Act status is a kill criterion; exit paths: 9-yr nonrenewal, 12.5% FMV cancellation, 6.25% easement (impaired only)."
+      },
+      {
+        "label": "Storage MWh specified",
+        "date": "2026-09-01",
+        "kind": "milestone",
+        "detail": "Developer confirms storage capacity; determines CEC Opt-In eligibility.",
+        "severity": "high",
+        "source_url": "https://www.energy.ca.gov/programs-and-topics/topics/power-plants/opt-certification-program",
+        "ground_truth": "CEC Opt-In requires solar ≥50 MW and storage ≥200 MWh; storage MWh currently unspecified."
+      },
+      {
+        "label": "CEC Opt-In application submitted",
+        "date": "2026-10-01",
+        "kind": "milestone",
+        "detail": "If storage ≥200 MWh, file with CEC; else local CUP path.",
+        "severity": "high",
+        "source_url": "https://www.energy.ca.gov/programs-and-topics/topics/power-plants/opt-certification-program",
+        "ground_truth": "CEC decision within 270 days of complete application; Opt-In preempts local permits."
+      },
+      {
+        "label": "CAISO interconnection request submitted",
+        "date": "2026-11-01",
+        "kind": "milestone",
+        "detail": "New queue entry; typical cluster timelines overrun.",
+        "severity": "high",
+        "source_url": "https://www.caiso.com/generation-transmission/generation/generator-interconnection/interconnection-request-study",
+        "ground_truth": "CAISO typical cluster ~9 months to Phase I, ~19 months to Phase II; recent clusters overran (Cluster 15 took ~3 years)."
+      },
+      {
+        "label": "Local CUP application submitted (if not Opt-In)",
+        "date": "2026-11-01",
+        "kind": "milestone",
+        "detail": "Fallback if storage <200 MWh or Opt-In not elected.",
+        "severity": "high",
+        "source_url": "https://kernplanning.com/informational-guides/info-guide-conditional-use-permit/",
+        "ground_truth": "County CUP with EIR ~10-12 months processing; Permit Streamlining Act 180 days after EIR certification."
+      },
+      {
+        "label": "CEC Opt-In decision",
+        "date": "2027-07-01",
+        "kind": "deadline",
+        "detail": "CEC must approve/deny within 270 days of complete application.",
+        "severity": "critical",
+        "source_url": "https://www.energy.ca.gov/programs-and-topics/topics/power-plants/opt-certification-program",
+        "ground_truth": "Statutory 270-day decision for eligible projects (solar ≥50 MW, storage ≥200 MWh)."
+      },
+      {
+        "label": "ITC placed-in-service deadline for solar (if no BOC)",
+        "date": "2027-12-31",
+        "kind": "deadline",
+        "detail": "Solar loses §48E/§45Y credit unless placed in service by this date; BOC by 2026-07-04 preserves eligibility.",
+        "severity": "critical",
+        "source_url": "https://www.irs.gov/credits-deductions/clean-electricity-investment-credit",
+        "ground_truth": "Post-OBBBA: solar must be placed in service by 2027-12-31 unless BOC before 2026-07-04; storage exempt until 2033."
+      },
+      {
+        "label": "CEQA EIR certification (if local path)",
+        "date": "2028-06-01",
+        "kind": "milestone",
+        "detail": "Assuming 18 months from CUP application; statutory 1-year cap, empirical ~2.5 years.",
+        "severity": "high",
+        "source_url": "https://lao.ca.gov/reports/2015/finance/housing-costs/housing-costs.pdf",
+        "ground_truth": "Full EIR average ~2.5 years (LAO); date assumes 18 months, between statutory 1 yr and empirical."
+      },
+      {
+        "label": "AB 52 tribal consultation concluded",
+        "date": "2028-05-01",
+        "kind": "milestone",
+        "detail": "Must conclude before EIR certification; fatal defect if not.",
+        "severity": "critical",
+        "source_url": "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=21080.3.1.&lawCode=PRC",
+        "ground_truth": "AB 52 requires consultation before EIR certification; no specific duration, but must be done."
+      },
+      {
+        "label": "CUP decision (if local path)",
+        "date": "2028-12-01",
+        "kind": "milestone",
+        "detail": "180 days after EIR certification per Permit Streamlining Act.",
+        "severity": "high",
+        "source_url": "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=65950.&lawCode=GOV",
+        "ground_truth": "Gov. Code §65950: 180 days after EIR certification for decision."
+      },
+      {
+        "label": "Interconnection agreement executed",
+        "date": "2029-01-01",
+        "kind": "milestone",
+        "detail": "Assuming new queue entry; typical >2 years, recent clusters overrun.",
+        "severity": "critical",
+        "source_url": "https://emp.lbl.gov/queues",
+        "ground_truth": "LBNL median request→COD >5 years; new queue entry to agreement ~2+ years."
+      },
+      {
+        "label": "Financial close",
+        "date": "2029-03-01",
+        "kind": "milestone",
+        "detail": "Requires executed interconnection, offtake, and permits.",
+        "severity": "high",
+        "source_url": null,
+        "ground_truth": "No benchmark; dependent on prior milestones."
+      },
+      {
+        "label": "Construction start",
+        "date": "2029-06-01",
+        "kind": "milestone",
+        "detail": "After financial close; long-lead equipment already ordered.",
+        "severity": "high",
+        "source_url": null,
+        "ground_truth": "Assumes 3 months after financial close for mobilization."
+      },
+      {
+        "label": "Commercial operation (solar)",
+        "date": "2030-06-01",
+        "kind": "milestone",
+        "detail": "Assuming 12-month construction; must be before 2027-12-31 for ITC if no BOC, but BOC likely secured.",
+        "severity": "high",
+        "source_url": null,
+        "ground_truth": "Construction duration typical 12-18 months; date assumes 12 months."
+      }
+    ]
+  },
+  "recommended_next_action": "Williamson Act kill switch: parcel enrollment status unknown; if contracted, solar is an incompatible use and the project is blocked absent a 9-yr nonrenewal or 12.5% FMV cancellation — resolve via RFI to Ventura County Agricultural Commissioner/Assessor before any further spend",
+  "acquired_data": [
+    {
+      "component": "state_law",
+      "data_points": [],
+      "sources": [],
+      "still_missing": [
+        "CEQA compliance determination and environmental review path (full EIR vs. MND vs. CEC Opt-In Certification) for the 100 MW solar+storage project"
+      ]
+    },
+    {
+      "component": "state_law",
+      "data_points": [],
+      "sources": [],
+      "still_missing": [
+        "CEC Opt-In Certification (AB 205/AB 209, PRC §§25545–25545.9) eligibility and election decision"
+      ]
+    },
+    {
+      "component": "state_law",
+      "data_points": [
+        "Williamson Act = California Land Conservation Act of 1965, Gov. Code §§51200 et seq.; restricts specific parcels to agricultural or related open-space use in exchange for property tax assessment based on farming/open-space value rather than full market value (confirmed on CA Dept. of Conservation program page).",
+        "Commercial solar is an INCOMPATIBLE use on Williamson Act-contracted land — a 100 MW solar+storage project on a contracted parcel is blocked unless the contract is exited.",
+        "Exit path 1 — Nonrenewal: 9-year phased nonrenewal (Gov. Code §51245); land remains under contract at reduced assessment for the full 9 years, so solar cannot proceed until it lapses.",
+        "Exit path 2 — Cancellation: requires payment of 12.5% of unrestricted fair market value of the land (Gov. Code §51283); 25% of unrestricted FMV if the parcel is in a Farmland Security Zone (Gov. Code §51296 et seq.).",
+        "Exit path 3 — Solar-use easement at 6.25% of unrestricted FMV, available ONLY for 'impaired' farmland; reinstated Jan 2023 by SB 1489.",
+        "CA Dept. of Conservation (DLRP) maintains the 'Williamson Act Enrollment Finder' interactive mapping tool as the authoritative parcel-level enrollment check; county Agricultural Commissioner/Assessor holds the actual contract records (contract number, enrollment date, acreage, nonrenewal/cancellation status).",
+        "Ventura County is the administering local agency for contracts within its jurisdiction; parcel-level status is confirmed via county assessor/agricultural commissioner records, not published in a scrapeable public list."
+      ],
+      "sources": [
+        "https://www.conservation.ca.gov/dlrp/wa (fetched successfully — CA Dept. of Conservation Williamson Act Program page; confirms program, Gov. Code basis, and Enrollment Finder mapping tool)",
+        "Diligence knowledge base (Williamson Act exit-path economics: 9-yr nonrenewal; 12.5% FMV cancellation; 25% FMV for Farmland Security Zone; 6.25% solar-use easement for impaired farmland, reinstated Jan 2023 by SB 1489)"
+      ],
+      "still_missing": [
+        "Whether Ventura APN 040016011 is actually under a Williamson Act contract (parcel-level status NOT obtainable from live public sources with available tools — brightdata_scrape returned empty, web_search returned only offline KB, Ventura County assessor/planning sites rejected or failed direct fetches).",
+        "Contract number, enrollment date, contract acreage, and current status (active / nonrenewal in progress / cancelled) for APN 040016011 — RFI from Ventura County Agricultural Commissioner / Assessor.",
+        "Whether the parcel is in a standard Williamson Act contract (12.5% FMV cancellation) vs a Farmland Security Zone (25% FMV cancellation) — determines exit cost.",
+        "FMMP Important Farmland classification of APN 040016011 (Prime / Statewide Importance / etc.) from the CA Dept. of Conservation Farmland Mapping & Monitoring Program — needed to size the CEQA ag-impact and mitigation analysis.",
+        "Any recorded farmland-protection easements or ag-conservation obligations on the parcel beyond the Williamson Act (title/encumbrance records — RFI from developer/title)."
+      ]
+    },
+    {
+      "component": "state_law",
+      "data_points": [],
+      "sources": [],
+      "still_missing": [
+        "RPS / SB 100 / SB 1020 eligibility and zero-carbon compliance status of the project"
+      ]
+    },
+    {
+      "component": "state_law",
+      "data_points": [],
+      "sources": [],
+      "still_missing": [
+        "SB 149 / SB 1420 judicial-streamlining eligibility (Governor-certified energy project status)"
+      ]
+    },
+    {
+      "component": "state_law",
+      "data_points": [],
+      "sources": [],
+      "still_missing": [
+        "AB 52 tribal consultation status and timing relative to CEQA certification"
+      ]
+    }
+  ],
+  "user": null
+}

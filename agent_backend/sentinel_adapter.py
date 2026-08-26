@@ -74,12 +74,16 @@ def band(score: float) -> str:
 
 
 def status(decision: str) -> str:
-    d = decision.lower()
-    if "proceed" in d:
-        return "on-track"
-    if "investigate" in d:
-        return "needs-review"
-    return "at-risk"
+    """Exact decision -> status mapping. Post-contract Report.decision is a
+    Literal["Proceed", "Investigate", "Hold"]; legacy stored reports carry
+    free text, so anything unrecognized falls back CONSERVATIVELY to
+    needs-review — never on-track (substring matching once rendered
+    "Do not proceed" green). Keep in lockstep with adapter.ts."""
+    return {
+        "proceed": "on-track",
+        "investigate": "needs-review",
+        "hold": "at-risk",
+    }.get(decision.strip().lower(), "needs-review")
 
 
 def _sev_band(severity: str) -> tuple[str, str]:
@@ -123,17 +127,29 @@ def _link_evidence(text: str, evidence: dict[str, dict]) -> str | None:
     return best if best_score >= 2 else None
 
 
-def _iso_from(text: str | None) -> str | None:
+def _iso_from(text: str | None) -> tuple[str, str] | None:
+    """Vague deadline string -> (first-of-period ISO date, precision).
+
+    The ISO date is a SORT KEY ONLY — `precision` records how much of it the
+    source string actually pinned down, so a fabricated day is never rendered
+    as fact: "Sep 2027" -> ("2027-09-01", "month"), "Q3 2027" ->
+    ("2027-07-01", "quarter"), a bare "2028" -> ("2028-01-01", "year").
+    Exact ISO dates are handled by the caller with precision "day". Keep in
+    lockstep with isoFrom in frontend/src/lib/agent/adapter.ts.
+    """
     if not text:
         return None
     m = re.search(r"(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+(\d{4})", text)
     if m:
         month = ["jan", "feb", "mar", "apr", "may", "jun",
                  "jul", "aug", "sep", "oct", "nov", "dec"].index(m.group(1).lower()[:3]) + 1
-        return f"{m.group(2)}-{month:02d}-01"
+        return f"{m.group(2)}-{month:02d}-01", "month"
     m = re.search(r"Q([1-4])\s*(\d{4})", text)
     if m:
-        return f"{m.group(2)}-{int(m.group(1)) * 3 - 2:02d}-01"
+        return f"{m.group(2)}-{int(m.group(1)) * 3 - 2:02d}-01", "quarter"
+    m = re.search(r"(?<!\d)((?:19|20)\d{2})(?!\d)", text)
+    if m:
+        return f"{m.group(1)}-01-01", "year"
     return None
 
 
@@ -142,11 +158,20 @@ def _iso_from(text: str | None) -> str | None:
 _SEV_TO_BAND = {"critical": "risk", "high": "risk", "medium": "watch", "low": "strong"}
 
 
-def _date_display(iso: str) -> str:
-    """"2026-08-03" -> "Aug 3, 2026" (mockData's tooltip date format)."""
+def _date_display(iso: str, precision: str = "day") -> str:
+    """Human tooltip date at the entry's TRUE precision: "2026-08-03"/day ->
+    "Aug 3, 2026" (mockData's format), but month/quarter/year precisions
+    render as "Sep 2027" / "Q3 2027" / "2027" so a fabricated first-of-period
+    day never reads as an exact date."""
     y, m, d = iso.split("-")
+    if precision == "year":
+        return y
     mon = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][int(m) - 1]
+    if precision == "month":
+        return f"{mon} {y}"
+    if precision == "quarter":
+        return f"Q{(int(m) + 2) // 3} {y}"
     return f"{mon} {int(d)}, {y}"
 
 
@@ -222,11 +247,16 @@ def to_sentinel(report: Report, project_id: str, lat: float = 0, lon: float = 0,
     # agency-action deadline parse is the fallback for pre-contract reports.
     raw_timeline = []
     for t in report.action_pack.timeline:
-        iso = t.date if re.fullmatch(r"\d{4}-\d{2}-\d{2}", t.date or "") else _iso_from(t.date)
-        if iso:
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2}", t.date or ""):
+            parsed = (t.date, "day")
+        else:
+            parsed = _iso_from(t.date)
+        if parsed:
+            iso, precision = parsed
             entry = {
                 "label": t.label[:80], "date": iso, "kind": t.kind,
-                "shortLabel": t.label[:26], "dateDisplay": _date_display(iso),
+                "shortLabel": t.label[:26], "dateDisplay": _date_display(iso, precision),
+                "datePrecision": precision,
                 "band": _SEV_TO_BAND.get(t.severity, "watch"),
             }
             if t.detail:
@@ -238,11 +268,14 @@ def to_sentinel(report: Report, project_id: str, lat: float = 0, lon: float = 0,
             raw_timeline.append(entry)
     if not raw_timeline:
         for a in report.action_pack.agency_actions:
-            iso = _iso_from(a.deadline)
-            if iso:
-                raw_timeline.append({"label": f"{a.agency} — {a.action}"[:80], "date": iso, "kind": "milestone"})
+            parsed = _iso_from(a.deadline)
+            if parsed:
+                iso, precision = parsed
+                raw_timeline.append({"label": f"{a.agency} — {a.action}"[:80], "date": iso,
+                                     "kind": "milestone", "datePrecision": precision})
     raw_timeline.append({
         "label": "ITC deadline", "date": ITC_DEADLINE, "kind": "deadline",
+        "datePrecision": "day",  # pinned to the exact statutory date
         "description": ITC_GROUND_TRUTH,
         "sourceUrl": ITC_SOURCE_URL, "groundTruth": ITC_GROUND_TRUTH,
     })
@@ -257,6 +290,8 @@ def to_sentinel(report: Report, project_id: str, lat: float = 0, lon: float = 0,
         ev = {
             "id": f"tl-{i}", "label": e["label"], "date": e["date"], "kind": e["kind"],
             "band": e.get("band", b),
+            # How much of `date` is real — every raw entry sets it above.
+            "datePrecision": e["datePrecision"],
             "position": 50 if mx == mn else int(((ords[i] - mn) / (mx - mn)) * 1000 + 0.5) / 10,
         }
         for opt in ("shortLabel", "dateDisplay", "description", "sourceUrl", "groundTruth"):

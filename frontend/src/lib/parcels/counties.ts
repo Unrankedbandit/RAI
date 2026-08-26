@@ -101,8 +101,18 @@ export interface ParcelResult {
   acres?: number;
   landUse?: string;
   geometry: GeoJSON.Geometry | null;
+  /** Provenance of the boundary linework (e.g. "Solano County GIS" or
+   *  DWR_MOSAIC_SOURCE). The map's gray overlay lines are Regrid's
+   *  nationwide fabric — a DIFFERENT dataset with its own vintage — so a
+   *  selected shape that doesn't coincide with the overlay lines is a
+   *  data mismatch, not a rendering offset. Shown in the rail. */
+  source: string;
   raw: Record<string, unknown>;
 }
+
+/** ParcelResult.source value when the geometry came from the DWR i15
+ *  statewide mosaic (statewide mode or a county-endpoint fallback). */
+export const DWR_MOSAIC_SOURCE = 'CA DWR statewide mosaic';
 
 const APN_FIELDS = [
   'APN', 'AIN', 'apn', 'ParcelNumber', 'AssessmentNo', 'mapblklot',
@@ -164,7 +174,7 @@ function pickAddress(props: Record<string, unknown>): string | undefined {
   return street;
 }
 
-function normalize(county: string, hit: RawHit): ParcelResult {
+function normalize(county: string, hit: RawHit, source: string): ParcelResult {
   const props = hit.properties;
   return {
     county,
@@ -174,8 +184,17 @@ function normalize(county: string, hit: RawHit): ParcelResult {
     acres: pickNumber(props, ACRES_FIELDS),
     landUse: pick(props, LAND_USE_FIELDS),
     geometry: hit.geometry,
+    source,
     raw: props,
   };
+}
+
+/** Provenance label for a county's own endpoint, with its vintage caveat
+ *  when the config carries one ("2014 snapshot", "mineral-rights subset
+ *  only"…) — exactly the information that explains overlay mismatches. */
+function countySource(county: CountyConfig): string {
+  const base = `${county.name} County GIS`;
+  return county.note ? `${base} — ${county.note}` : base;
 }
 
 /** Ray-cast point-in-ring. */
@@ -226,6 +245,12 @@ const IDENTIFY_TIMEOUT_MS = 8000;
  * DWR mosaic) silently return zero features for raw point-intersect queries,
  * while envelope queries work everywhere — so query a ~30 m bbox around the
  * point, then pick the feature whose polygon actually contains the click.
+ *
+ * The envelope routinely returns 5–10 features (neighbors, road/rail ROW
+ * slivers). If NONE contains the click, the click landed in a gap or on a
+ * ROW — returning features[0] here silently highlighted an arbitrary
+ * (often corridor-sliver) parcel next to what the user clicked, so this
+ * returns null and the viewer shows its honest "no parcel matched" state.
  */
 async function queryArcGisPoint(endpoint: string, lon: number, lat: number): Promise<RawHit | null> {
   const d = 0.0003;
@@ -240,10 +265,8 @@ async function queryArcGisPoint(endpoint: string, lon: number, lat: number): Pro
   };
   const features = data.features ?? [];
   if (features.length === 0) return null;
-  const feature =
-    features.length === 1
-      ? features[0]
-      : (features.find((f) => pointInGeometry(lon, lat, f.geometry ?? null)) ?? features[0]);
+  const feature = features.find((f) => pointInGeometry(lon, lat, f.geometry ?? null));
+  if (!feature) return null;
   return { properties: feature.properties ?? {}, geometry: feature.geometry ?? null };
 }
 
@@ -293,7 +316,9 @@ async function queryMosaic(countyName: string, lon: number, lat: number): Promis
   if (!hit) return null;
   const sourceCounty = pick(hit.properties, ['COUNTYNAME']);
   const label = countyName === STATEWIDE_COUNTY_NAME ? (sourceCounty ?? countyName) : countyName;
-  return normalize(label, hit);
+  // The linework is the DWR mosaic's even when labeled with the county's
+  // name (fallback path) — source must say where the geometry came from.
+  return normalize(label, hit, DWR_MOSAIC_SOURCE);
 }
 
 /** Escape a user string for a SQL string literal (ArcGIS + Socrata both use ''). */
@@ -412,7 +437,7 @@ export async function searchParcels(countyName: string, text: string): Promise<P
       county.api === 'socrata'
         ? await searchSocrata(county.endpoint, query)
         : await searchArcGis(county.endpoint, query);
-    return hits.map((hit) => normalize(county.name, hit));
+    return hits.map((hit) => normalize(county.name, hit, countySource(county)));
   } catch {
     return [];
   }
@@ -425,7 +450,35 @@ export function countyByName(name: string): CountyConfig | undefined {
   );
 }
 
-export async function queryParcelAtPoint(
+// Identify results are cached per county+point (the promise itself, so
+// concurrent identical clicks share one in-flight request). The DWR mosaic
+// is slow when sick (observed 47–90 s on 2026-08-24/25, vs the 8 s identify
+// timeout) — without this cache every repeat click burns the full timeout
+// again. queryParcelAtPointInner never rejects (catch → null), so cached
+// promises are safe to keep for the session. FIFO-capped.
+// Key precision: 5 decimals ≈ 1 m — 4 decimals (~11 m cells) could return
+// a NEIGHBORING parcel for clicks near a boundary (audit 2026-08-25).
+const identifyCache = new Map<string, Promise<ParcelResult | null>>();
+const IDENTIFY_CACHE_MAX = 200;
+
+export function queryParcelAtPoint(
+  countyName: string,
+  lon: number,
+  lat: number,
+): Promise<ParcelResult | null> {
+  const key = `${countyName}|${lon.toFixed(5)}|${lat.toFixed(5)}`;
+  const cached = identifyCache.get(key);
+  if (cached) return cached;
+  const pending = queryParcelAtPointInner(countyName, lon, lat);
+  if (identifyCache.size >= IDENTIFY_CACHE_MAX) {
+    const oldest = identifyCache.keys().next().value;
+    if (oldest !== undefined) identifyCache.delete(oldest);
+  }
+  identifyCache.set(key, pending);
+  return pending;
+}
+
+async function queryParcelAtPointInner(
   countyName: string,
   lon: number,
   lat: number,
@@ -448,7 +501,7 @@ export async function queryParcelAtPoint(
       // county; or the county server is down) — fall back to the mosaic.
       return await queryMosaic(county.name, lon, lat);
     }
-    return normalize(county.name, hit);
+    return normalize(county.name, hit, countySource(county));
   } catch {
     return null;
   }

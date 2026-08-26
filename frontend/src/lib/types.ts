@@ -85,6 +85,12 @@ export type Evidence = {
   };
 };
 
+/** How much of a TimelineEvent's ISO `date` is real. Adapters fabricate a
+ *  first-of-period date from vague source strings for sorting ("Sep 2027" ->
+ *  2027-09-01) — "month"/"quarter"/"year" say the day is NOT real and the UI
+ *  must not render it as one. Absent on hand-written (mock) data. */
+export type DatePrecision = "day" | "month" | "quarter" | "year";
+
 export type TimelineEvent = {
   id: string;
   label: string;
@@ -92,6 +98,8 @@ export type TimelineEvent = {
   shortLabel?: string;
   /** ISO date string. */
   date: string;
+  /** Precision of `date` — see DatePrecision. */
+  datePrecision?: DatePrecision;
   /** Human date shown in the tooltip, e.g. "Oct 14, 2026 (scheduled)". */
   dateDisplay?: string;
   /** Tooltip body copy. */

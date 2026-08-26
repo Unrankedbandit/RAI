@@ -1,0 +1,147 @@
+{
+  "project": "Parcel 24800200030000 — ? ac",
+  "location": "Sacramento County, CA",
+  "readiness": 5.75,
+  "decision": "Hold",
+  "dimensions": [
+    {
+      "name": "land",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "site_acres is null — cannot verify land-to-capacity ratio against ~5-7 ac/MW benchmark (20 MW implies ~100-140 ac needed)",
+        "No site-control evidence: no ownership, lease, option, title, or recorded-document facts acquired",
+        "Zero documents acquired from data room; nothing to extract land facts from"
+      ]
+    },
+    {
+      "name": "law",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "Zoning for Sacramento County parcel 24800200030000 unverified — unresolved kill criterion (permissibility unknown)",
+        "No permitting, CEQA, or environmental milestone facts available",
+        "No ITC/PTC beginning-of-construction evidence (OBBBA) — tax-credit eligibility unresolved kill criterion"
+      ]
+    },
+    {
+      "name": "finance",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "No CAPEX, budget, or EPC facts to test against $1.43-1.56/Wac benchmark band",
+        "No debt terms, DSCR, or contingency facts",
+        "Tax-credit monetization unverifiable — missing eligibility evidence is a kill criterion"
+      ]
+    },
+    {
+      "name": "materials",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "No procurement facts: no equipment orders, delivery commitments, or BOM",
+        "Transformer/GSU lead-time risk (128-144 week market norm) untestable with no schedule or order data",
+        "No FEOC/MACR or domestic-content attestations available"
+      ]
+    },
+    {
+      "name": "demand",
+      "rag": "red",
+      "score": 10.0,
+      "flags": [
+        "No executed PPA/offtake — bankability norm is >=80% of P50 contracted at close; nothing exists here",
+        "No interconnection agreement or queue position; CAISO historical completion ~20%, IR-to-COD ~5 years",
+        "Only mitigant is structural: CA solar+storage is the mandated configuration (CPUC 6 GW procurement), but no project-specific demand evidence exists"
+      ]
+    }
+  ],
+  "red_flags": [],
+  "contradictions": [],
+  "missing_info": [
+    "Total coverage gap: facts array is empty — zero extracted facts were provided, so no cross-examination (CAPEX vs materials indices, contracted MW vs executed agreements, schedule vs permitting milestones, site control vs title evidence, schedule vs equipment lead times) can be performed. Document extraction must run before this engine can produce contradictions.",
+    "Total coverage gap: findings array is empty — no external research benchmarks (equipment lead times, commodity/materials cost indices, typical permitting timelines) are available to test any future claims against.",
+    "Total coverage gap: acquired array is empty — no source documents appear to have been acquired from the data room, so there is nothing to extract facts from.",
+    "Domain gap — CAPEX: no budget, EPC contract, or cost estimate facts available to compare against materials/labor cost indices.",
+    "Domain gap — contracted capacity: no MW/MWh claims and no executed offtake (PPA) or interconnection agreement facts available to reconcile.",
+    "Domain gap — schedule: no milestone dates and no permitting status facts available to test schedule feasibility.",
+    "Domain gap — site control: no ownership/lease/option claims and no title or recorded-document evidence available to verify control.",
+    "Domain gap — procurement: no equipment order dates or delivery commitments and no lead-time benchmarks available to test the construction schedule."
+  ],
+  "action_pack": {
+    "rfis": [
+      "Provide site control evidence: recorded deed, lease, option agreement, or purchase agreement for Parcel 24800200030000, including legal description and acreage (site_acres is null).",
+      "Provide zoning verification from Sacramento County Planning Department confirming solar+storage is a permitted or conditionally permitted use on the parcel, and any required use permit or variance.",
+      "Provide a Phase I Environmental Site Assessment (ESA) and any Phase II if warranted, plus biological and cultural resources surveys for the site.",
+      "Provide a CEQA compliance plan or initial study, including the lead agency determination and anticipated timeline for environmental review.",
+      "Provide a complete financial model with CAPEX budget (target $1.43–1.56/Wac), EPC contract or cost estimate, debt term sheet, DSCR, and contingency assumptions.",
+      "Provide evidence of interconnection: CAISO queue position, cluster study results, and any executed interconnection agreement or study deposit.",
+      "Provide executed PPA or offtake term sheet, including counterparty, volume, price, and credit support.",
+      "Provide equipment procurement documentation: purchase orders for PV modules, inverters, transformers (GSU), and storage systems, with delivery commitments and lead times.",
+      "Provide tax credit eligibility evidence: OBBBA beginning-of-construction documentation, domestic content attestation, and FEOC/MACR compliance.",
+      "Provide a project schedule with milestones (permitting, financing, construction, COD) and critical path analysis.",
+      "Provide any existing environmental permits or applications (e.g., NPDES, 401/404, ESA consultation).",
+      "Provide title report and survey for the parcel, including easements, encumbrances, and access rights."
+    ],
+    "agency_actions": [
+      {
+        "agency": "Sacramento County Planning Department",
+        "action": "Submit a zoning verification request and pre-application for a solar+storage facility; initiate CEQA scoping if required.",
+        "why": "Unresolved kill criterion: zoning permissibility for the parcel is unknown; must confirm solar+storage is allowed and identify any discretionary permits.",
+        "deadline": "2025-07-15"
+      },
+      {
+        "agency": "California Independent System Operator (CAISO)",
+        "action": "Request confirmation of interconnection queue position, study status, and expected timeline for a Generation Interconnection Agreement (GIA).",
+        "why": "No interconnection evidence exists; CAISO historical completion ~20% and IR-to-COD ~5 years, so early queue position is critical to schedule and bankability.",
+        "deadline": "2025-06-30"
+      },
+      {
+        "agency": "California Public Utilities Commission (CPUC)",
+        "action": "Verify project eligibility for CPUC storage procurement programs (e.g., IRP, storage mandate) and any resource adequacy (RA) contracts.",
+        "why": "Offtake is absent; CPUC programs may provide a market signal or offtake pathway, but project-specific eligibility must be confirmed.",
+        "deadline": "2025-07-01"
+      },
+      {
+        "agency": "California Department of Fish and Wildlife (CDFW)",
+        "action": "Initiate consultation under CEQA and Fish and Game Code for potential impacts to sensitive species and habitats.",
+        "why": "Environmental compliance is unverified; CDFW input is required for CEQA and any incidental take permits.",
+        "deadline": "2025-08-15"
+      },
+      {
+        "agency": "U.S. Fish and Wildlife Service (USFWS)",
+        "action": "Determine if federal nexus exists (e.g., endangered species, wetlands) and initiate Section 7 consultation if needed.",
+        "why": "Federal environmental compliance may be required; early consultation avoids delays.",
+        "deadline": "2025-08-30"
+      },
+      {
+        "agency": "Internal Revenue Service (IRS)",
+        "action": "Confirm OBBBA beginning-of-construction requirements and eligibility for ITC/PTC; request guidance on documentation standards.",
+        "why": "Tax credit eligibility is a kill criterion; IRS guidance ensures the project can monetize credits.",
+        "deadline": "2025-07-15"
+      }
+    ],
+    "verification_requests": [
+      "Verify PPA/offtake with the counterparty: request a signed copy, confirm volume, price, term, and credit support; contact the offtaker's legal team for confirmation.",
+      "Verify interconnection with CAISO: request the queue position, cluster study results, and any executed GIA; confirm the project's status in the CAISO queue.",
+      "Verify transformer/GSU lead times with the manufacturer: obtain written confirmation of order date, delivery commitment, and any escalation clauses.",
+      "Verify PV module and inverter supply agreements: confirm delivery dates and penalties for delay.",
+      "Verify site control with the title company: obtain a preliminary title report and confirm the seller/lessor's authority.",
+      "Verify tax credit eligibility with tax counsel: obtain a legal opinion on OBBBA compliance and beginning-of-construction evidence."
+    ],
+    "conditions_precedent": [
+      "All RFIs satisfied and documents received, including site control, zoning, environmental, financial, interconnection, offtake, and procurement evidence.",
+      "Sacramento County confirms solar+storage is a permitted use and any required permits are obtainable.",
+      "CAISO interconnection agreement executed or at least a confirmed queue position with a realistic timeline to COD.",
+      "Executed PPA or equivalent offtake covering at least 80% of P50 output.",
+      "Site control confirmed with clear title and sufficient acreage (100–140 acres for 20 MW).",
+      "Financial model validated against benchmarks: CAPEX within $1.43–1.56/Wac, DSCR ≥ 1.30, and contingency ≥ 10%.",
+      "Tax credit eligibility confirmed with OBBBA beginning-of-construction evidence and domestic content/FEOC compliance.",
+      "Environmental permits (CEQA/NEPA) cleared or a defined path to approval with no fatal flaws.",
+      "Equipment procurement orders placed with delivery commitments consistent with the project schedule.",
+      "Investment committee approval of the final diligence report and risk mitigation plan."
+    ]
+  },
+  "recommended_next_action": "Total data vacuum: zero acquired documents, zero extracted facts, zero findings — no diligence basis exists to underwrite any dimension",
+  "acquired_data": [],
+  "user": "rai"
+}

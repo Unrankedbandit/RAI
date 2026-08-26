@@ -62,9 +62,15 @@ const runtimeCaching: RuntimeCaching[] = [
   },
   // API (any origin, /api/*) — network-first, 5s timeout, tiny 5-minute cache.
   // Non-GET requests and SSE streams match nothing and pass straight through.
+  // Range requests (the pmtiles protocol's byte-range tile reads against
+  // /api/grid/tiles/*) also bypass the SW: the Cache API cannot store 206
+  // Partial Content, so intercepting them only adds per-tile latency plus
+  // uncaught no-response rejections (observed 2026-08-25).
   {
     matcher: ({ url, request }) =>
-      url.pathname.startsWith("/api/") && !isApiStream(url, request),
+      url.pathname.startsWith("/api/") &&
+      !isApiStream(url, request) &&
+      !request.headers.get("range"),
     method: "GET",
     handler: new NetworkFirst({
       cacheName: "agent-api",

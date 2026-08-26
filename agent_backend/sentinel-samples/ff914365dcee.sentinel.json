@@ -1,0 +1,394 @@
+{
+  "project": {
+    "id": "ff914365dcee",
+    "name": "DeepseekLane Check",
+    "location": "Ventura County, CA",
+    "capacityMW": 0,
+    "latitude": 0,
+    "longitude": 0,
+    "activationScore": 5.0,
+    "band": "risk",
+    "scoreReason": "Entire diligence record is empty: zero extracted facts, zero acquired documents, zero research findings \u2014 no dimension can be scored above red",
+    "status": "at-risk",
+    "pillars": [
+      {
+        "name": "Land",
+        "score": 5.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "3 flags open",
+        "subAgents": [
+          "extractor:land-docs",
+          "scout:zoning",
+          "researcher:land_use"
+        ],
+        "factors": [
+          {
+            "id": "land-flag-0",
+            "name": "site_acres is null \u2014 no site identified or verified",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "site_acres is null \u2014 no site identified or verified",
+            "sources": []
+          },
+          {
+            "id": "land-flag-1",
+            "name": "No site control, title, or lease evidence in context",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No site control, title, or lease evidence in context",
+            "sources": []
+          },
+          {
+            "id": "land-flag-2",
+            "name": "No parcel data to screen against zoning or land-use benchmarks",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No parcel data to screen against zoning or land-use benchmarks",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Law",
+        "score": 5.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "3 flags open",
+        "subAgents": [
+          "researcher:state_law",
+          "researcher:federal_law",
+          "researcher:ecology_epa"
+        ],
+        "factors": [
+          {
+            "id": "law-flag-0",
+            "name": "No state_law, federal_law, permitting, or zoning findings \u2014 all empty",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No state_law, federal_law, permitting, or zoning findings \u2014 all empty",
+            "sources": []
+          },
+          {
+            "id": "law-flag-1",
+            "name": "Zoning prohibition screen cannot be performed: unresolved kill-criterion (KB: zoning kill ",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Zoning prohibition screen cannot be performed: unresolved kill-criterion (KB: zoning kill switch is a threshold/kill criterion, not a schedule risk)",
+            "sources": []
+          },
+          {
+            "id": "law-flag-2",
+            "name": "No CEQA/permitting milestones to assess for Ventura County, CA",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No CEQA/permitting milestones to assess for Ventura County, CA",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Finance",
+        "score": 5.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "3 flags open",
+        "subAgents": [
+          "researcher:financials",
+          "cross-examiner"
+        ],
+        "factors": [
+          {
+            "id": "finance-flag-0",
+            "name": "No CAPEX, financials, or funding data provided",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No CAPEX, financials, or funding data provided",
+            "sources": []
+          },
+          {
+            "id": "finance-flag-1",
+            "name": "Tax-credit (ITC/PTC) eligibility unverifiable \u2014 missing beginning-of-construction evidence",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Tax-credit (ITC/PTC) eligibility unverifiable \u2014 missing beginning-of-construction evidence is a kill-criterion per KB (OBBBA BOC cliff)",
+            "sources": []
+          },
+          {
+            "id": "finance-flag-2",
+            "name": "No basis to test CAPEX against benchmark band ($1.43\u20131.56/Wac)",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No basis to test CAPEX against benchmark band ($1.43\u20131.56/Wac)",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Materials",
+        "score": 5.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "3 flags open",
+        "subAgents": [
+          "researcher:supply_chain"
+        ],
+        "factors": [
+          {
+            "id": "materials-flag-0",
+            "name": "No equipment, procurement, or supply-chain data",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No equipment, procurement, or supply-chain data",
+            "sources": []
+          },
+          {
+            "id": "materials-flag-1",
+            "name": "Cannot screen transformer/GSU lead times (KB benchmark: 128\u2013144 weeks) against any schedul",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Cannot screen transformer/GSU lead times (KB benchmark: 128\u2013144 weeks) against any schedule",
+            "sources": []
+          },
+          {
+            "id": "materials-flag-2",
+            "name": "resource_supply_chain component entirely uncovered",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "resource_supply_chain component entirely uncovered",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Demand",
+        "score": 5.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "3 flags open",
+        "subAgents": [
+          "researcher:demand",
+          "researcher:interconnection"
+        ],
+        "factors": [
+          {
+            "id": "demand-flag-0",
+            "name": "capacity_mw is 0.0 \u2014 project has no defined contracted capacity",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "capacity_mw is 0.0 \u2014 project has no defined contracted capacity",
+            "sources": []
+          },
+          {
+            "id": "demand-flag-1",
+            "name": "No interconnection agreement or queue position evidence",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No interconnection agreement or queue position evidence",
+            "sources": []
+          },
+          {
+            "id": "demand-flag-2",
+            "name": "No offtake/PPA or demand-market analysis",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No offtake/PPA or demand-market analysis",
+            "sources": []
+          }
+        ]
+      }
+    ]
+  },
+  "eyebrow": "Solar \u00b7 0 MW \u00b7 Ventura County, CA",
+  "runSummary": "0 documents analyzed \u00b7 2 open items",
+  "scoreBandLabel": "Risk \u00b7 5/100",
+  "scoreNote": "Entire diligence record is empty: zero extracted facts, zero acquired documents, zero research findings \u2014 no dimension can be scored above red",
+  "evidence": {},
+  "timeline": [
+    {
+      "id": "tl-0",
+      "label": "ITC deadline",
+      "date": "2027-12-31",
+      "kind": "deadline",
+      "band": "risk",
+      "datePrecision": "day",
+      "position": 50,
+      "description": "OBBBA \u00a748E(e)(4): solar/wind placed in service after Dec 31, 2027 loses the 30% ITC unless construction began by Jul 4, 2026 (4-yr continuity safe harbor then applies). Standalone storage exempt; full credit for BOC through 2033.",
+      "sourceUrl": "https://www.irs.gov/irb/2025-36_IRB",
+      "groundTruth": "OBBBA \u00a748E(e)(4): solar/wind placed in service after Dec 31, 2027 loses the 30% ITC unless construction began by Jul 4, 2026 (4-yr continuity safe harbor then applies). Standalone storage exempt; full credit for BOC through 2033."
+    }
+  ],
+  "documents": [],
+  "priorityActions": [
+    {
+      "id": "pa-1",
+      "rank": 1,
+      "title": "Zoning confirmed to allow solar+storage (permitted or conditional use) with no unresolved ",
+      "detail": "Zoning confirmed to allow solar+storage (permitted or conditional use) with no unresolved prohibition.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-2",
+      "rank": 2,
+      "title": "Site control secured via executed purchase agreement or lease with clear title and no fata",
+      "detail": "Site control secured via executed purchase agreement or lease with clear title and no fatal encumbrances.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-3",
+      "rank": 3,
+      "title": "Interconnection agreement executed or at least a completed System Impact Study with no fat",
+      "detail": "Interconnection agreement executed or at least a completed System Impact Study with no fatal constraints and acceptable upgrade costs.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-4",
+      "rank": 4,
+      "title": "Offtake agreement executed (or merchant project validated with market analysis) with credi",
+      "detail": "Offtake agreement executed (or merchant project validated with market analysis) with creditworthy counterparty.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-5",
+      "rank": 5,
+      "title": "Tax credit eligibility established with documented beginning-of-construction evidence (ITC",
+      "detail": "Tax credit eligibility established with documented beginning-of-construction evidence (ITC/PTC).",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-6",
+      "rank": 6,
+      "title": "Equipment procurement contracts in place with lead times compatible with the construction ",
+      "detail": "Equipment procurement contracts in place with lead times compatible with the construction schedule.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-7",
+      "rank": 7,
+      "title": "CEQA compliance achieved (exemption confirmed or EIR certified) with no unresolved environ",
+      "detail": "CEQA compliance achieved (exemption confirmed or EIR certified) with no unresolved environmental issues.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-8",
+      "rank": 8,
+      "title": "Financial model validated against benchmark CAPEX ($1.43\u20131.56/Wac) and revenue projections",
+      "detail": "Financial model validated against benchmark CAPEX ($1.43\u20131.56/Wac) and revenue projections, with sensitivity analysis showing acceptable returns.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-9",
+      "rank": 9,
+      "title": "All required permits (CUP, building, electrical, fire) identified and application submitte",
+      "detail": "All required permits (CUP, building, electrical, fire) identified and application submitted or obtained.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-10",
+      "rank": 10,
+      "title": "Community opposition assessed and mitigation plan in place if needed.",
+      "detail": "Community opposition assessed and mitigation plan in place if needed.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-11",
+      "rank": 11,
+      "title": "Provide site address, APN, and proof of site control (purchase agreement, lease, or option",
+      "detail": "Provide site address, APN, and proof of site control (purchase agreement, lease, or option) for the proposed project in Ventura County.",
+      "impact": "medium",
+      "scoreDelta": 3
+    },
+    {
+      "id": "pa-12",
+      "rank": 12,
+      "title": "Provide zoning designation for the parcel and written confirmation from Ventura County Pla",
+      "detail": "Provide zoning designation for the parcel and written confirmation from Ventura County Planning Division that solar+storage is a permitted or conditional use.",
+      "impact": "medium",
+      "scoreDelta": 3
+    },
+    {
+      "id": "pa-13",
+      "rank": 13,
+      "title": "Provide preliminary title report and any recorded easements, liens, or encumbrances affect",
+      "detail": "Provide preliminary title report and any recorded easements, liens, or encumbrances affecting the site.",
+      "impact": "medium",
+      "scoreDelta": 3
+    }
+  ],
+  "projectedScoreAfterMitigation": 33.0,
+  "suggestedQuestions": [
+    {
+      "question": "What's the top item to clear next?",
+      "answer": {
+        "role": "assistant",
+        "text": "Entire diligence record is empty: zero extracted facts, zero acquired documents, zero research findings \u2014 no dimension can be scored above red"
+      }
+    },
+    {
+      "question": "Why is the activation score 5?",
+      "answer": {
+        "role": "assistant",
+        "text": "0 critical red flags and 0 cross-document contradictions. Weakest pillars: land 5, law 5."
+      }
+    }
+  ],
+  "chatHistory": [
+    {
+      "role": "assistant",
+      "text": "I've completed diligence on DeepseekLane Check. Activation score 5/100 \u2014 decision: Hold. 0 critical flags, 0 cross-document contradictions, 2 open information requests. Ask me what to prioritize."
+    }
+  ],
+  "report": {
+    "badge": "RED FLAG REPORT",
+    "title": "DeepseekLane Check \u2014 due-diligence report",
+    "preparedBy": "Red Flag agent framework",
+    "summary": "Entire diligence record is empty: zero extracted facts, zero acquired documents, zero research findings \u2014 no dimension can be scored above red",
+    "findings": [],
+    "recommendedActions": [
+      "Zoning confirmed to allow solar+storage (permitted or conditional use) with no unresolved prohibition.",
+      "Site control secured via executed purchase agreement or lease with clear title and no fatal encumbrances.",
+      "Interconnection agreement executed or at least a completed System Impact Study with no fatal constraints and acceptable upgrade costs.",
+      "Offtake agreement executed (or merchant project validated with market analysis) with creditworthy counterparty.",
+      "Tax credit eligibility established with documented beginning-of-construction evidence (ITC/PTC)."
+    ],
+    "sourceBasis": "0 source documents + 0 acquired research packs"
+  },
+  "map": {
+    "parcelSize": "\u2014",
+    "toggles": [
+      {
+        "id": "zoning",
+        "label": "Zoning",
+        "on": true
+      },
+      {
+        "id": "protected-land",
+        "label": "Protected land",
+        "on": true
+      },
+      {
+        "id": "transmission",
+        "label": "Transmission",
+        "on": false
+      }
+    ],
+    "distances": [],
+    "zones": [],
+    "pin": {
+      "left": 50,
+      "top": 50,
+      "label": "Ventura County, CA"
+    }
+  },
+  "teamMembers": []
+}

@@ -24,6 +24,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import APIRouter, Header, HTTPException
+from pydantic import ValidationError
+
+from .schemas import Report
 
 router = APIRouter()
 
@@ -60,6 +63,24 @@ def _report_path(job_id: str) -> Path:
     return STORE / f"{job_id}.json"
 
 
+def _read_validated(path: Path) -> dict:
+    """Read + schema-validate a stored report before it is served or copied.
+    A file that no longer conforms is a concise 422 — never a 500 traceback,
+    and never a corrupt copy landing in someone's portfolio."""
+    raw = path.read_text(encoding="utf-8")
+    try:
+        report = Report.model_validate_json(raw)
+    except ValidationError as e:
+        first = e.errors()[0]
+        loc = ".".join(str(p) for p in first["loc"]) or "(root)"
+        raise HTTPException(
+            422, f"stored report {path.stem} fails schema validation: "
+                 f"{loc}: {first['msg']} ({e.error_count()} error(s))")
+    # Serve the validated model (normalized), not raw bytes — same contract
+    # as GET /api/reports/{id} (review 2026-08-25).
+    return report.model_dump(mode="json")
+
+
 @router.post("/api/reports/{job_id}/share")
 async def create_share(job_id: str):
     """Mint (or reuse) a public share token for a finished report."""
@@ -92,7 +113,7 @@ async def get_shared_report(token: str):
     path = _report_path(entry["jobId"])
     if not path.exists():
         raise HTTPException(404, "shared report no longer exists")
-    return json.loads(path.read_text(encoding="utf-8"))
+    return _read_validated(path)
 
 
 @router.post("/api/share/{token}/claim")
@@ -120,7 +141,7 @@ async def claim_share(token: str, x_hax_user: str | None = Header(None)):
     src = _report_path(entry["jobId"])
     if not src.exists():
         raise HTTPException(404, "shared report no longer exists")
-    report = json.loads(src.read_text(encoding="utf-8"))
+    report = _read_validated(src)
     report["user"] = user
 
     # Fresh id for the copy; collision-checked against the store (a plain
