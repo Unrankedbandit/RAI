@@ -286,6 +286,12 @@ export default function ParcelViewer() {
   // (centroid) and the feature hides.
   const [origin, setOrigin] = useState<[number, number] | null>(null);
   const [originCustom, setOriginCustom] = useState(false);
+  // Which connection option (GRID V1 §2c) the connector/corridor/rail
+  // describe: null = the backend-chosen option (the top-level
+  // access/hookup/path keys as returned). Set to an option id when the
+  // user picks a row in the rail's "Connection options" switcher; reset
+  // with the origin state on every new selection.
+  const [activeOptionId, setActiveOptionId] = useState<string | null>(null);
   // Mobile bottom-sheet: a selection starts COLLAPSED (title + chips strip)
   // so the map and the parcel stay visible; tap the strip for full details.
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -750,6 +756,7 @@ export default function ParcelViewer() {
     const t = setTimeout(async () => {
       setOrigin(null);
       setOriginCustom(false);
+      setActiveOptionId(null); // new parcel → back to the chosen option
       if (panel.status !== "found" || !panel.result.geometry) return;
       const res = await postGridScan(panel.result.geometry, ctrl.signal);
       if (ctrl.signal.aborted || !res) return;
@@ -792,20 +799,54 @@ export default function ParcelViewer() {
     };
   }, [panel, effectiveOrigin]);
 
+  // The grid payload the connector/corridor/rail actually describe (GRID V1
+  // §2c): gridNearest verbatim by default; when the user picks a non-chosen
+  // connection option in the rail, a synthesized GridNearest-shaped override
+  // built from that option (access from the option's tap point + distances,
+  // hookup from its summary/detail, corridor from its path). An unknown or
+  // chosen id — and any backend without options — falls through to
+  // gridNearest unchanged.
+  const gridDisplay = useMemo<GridNearest | null>(() => {
+    if (!gridNearest || !activeOptionId) return gridNearest;
+    const option = gridNearest.options?.find((o) => o.id === activeOptionId);
+    if (!option || option.chosen) return gridNearest;
+    return {
+      ...gridNearest,
+      access: {
+        kind: option.kind,
+        distance_m: option.distance_m,
+        distance_mi: option.distance_mi,
+        bucket: option.bucket,
+        label: option.label,
+        closest: option.tap_point,
+        reason: option.reason,
+      },
+      hookup: {
+        method: option.method,
+        gentie_mi: option.gentie_mi,
+        tap_point: option.tap_point,
+        summary: option.summary,
+        detail: option.detail,
+        alternative: gridNearest.hookup?.alternative ?? null,
+      },
+      path: option.path,
+    };
+  }, [gridNearest, activeOptionId]);
+
   // Connector GeoJSON: dashed line parcel-centroid → nearest grid asset,
   // a midpoint point carrying the short distance label, and — when the
   // hookup (§2b) is known — a tap-point node glyph distinguishing the two
   // hookup shapes: square bus node (substation gen-tie) vs diamond (new
   // switchyard at a line tap). Null clears the source.
   const gridConnector = useMemo<GeoJSON.FeatureCollection | null>(() => {
-    if (panel.status !== "found" || !gridNearest?.access) return null;
+    if (panel.status !== "found" || !gridDisplay?.access) return null;
     const center = effectiveOrigin;
-    const closest = gridAccessClosest(gridNearest);
+    const closest = gridAccessClosest(gridDisplay);
     if (!center || !closest) return null;
     const from: [number, number] = center;
     const to: [number, number] = [closest.lng, closest.lat];
     const mid: [number, number] = [(from[0] + to[0]) / 2, (from[1] + to[1]) / 2];
-    const { distance_m, distance_mi } = gridNearest.access;
+    const { distance_m, distance_mi } = gridDisplay.access;
     const label =
       distance_mi < 0.1
         ? `${Math.round(distance_m)} m`
@@ -822,7 +863,7 @@ export default function ParcelViewer() {
         properties: { label },
       },
     ];
-    const hookup = gridNearest.hookup;
+    const hookup = gridDisplay.hookup;
     const method = hookup?.method;
     const tap = hookup?.tap_point;
     if ((method === "substation" || method === "line-tap") && tap) {
@@ -837,7 +878,7 @@ export default function ParcelViewer() {
       });
     }
     return { type: "FeatureCollection", features };
-  }, [panel, gridNearest, effectiveOrigin]);
+  }, [panel, gridDisplay, effectiveOrigin]);
 
   // Connection-corridor render (GRID V1 §5b/5c): the backend's path.render
   // FeatureCollection passes through verbatim — blocked subsegments, their
@@ -847,8 +888,8 @@ export default function ParcelViewer() {
   // silent-degradation pattern as the connector.
   const gridCorridor = useMemo<GeoJSON.FeatureCollection | null>(() => {
     if (panel.status !== "found") return null;
-    return gridNearest?.path?.render ?? null;
-  }, [panel, gridNearest]);
+    return gridDisplay?.path?.render ?? null;
+  }, [panel, gridDisplay]);
 
   // Rail explainer line (§6b, simplified): which point the grid analysis
   // describes — the scan's auto-sited closest point (the default), or a
@@ -1408,14 +1449,14 @@ export default function ParcelViewer() {
               <span className="truncate text-[13px] font-semibold text-ink">
                 {panel.result.address ?? panel.result.apn ?? "Unnamed parcel"}
               </span>
-              {gridNearest?.access && (
+              {gridDisplay?.access && (
                 <span className="flex-none rounded-full bg-canvas px-1.5 py-px text-[10px] font-medium text-muted ring-1 ring-hairline">
-                  {gridNearest.access.label.split(" to ")[0]} · {gridNearest.access.bucket}
+                  {gridDisplay.access.label.split(" to ")[0]} · {gridDisplay.access.bucket}
                 </span>
               )}
-              {gridNearest?.path?.verdict && (
+              {gridDisplay?.path?.verdict && (
                 <span className="flex-none rounded-full bg-canvas px-1.5 py-px text-[10px] font-medium text-muted ring-1 ring-hairline">
-                  {VERDICT_LABEL[gridNearest.path.verdict.code] ?? gridNearest.path.verdict.code}
+                  {VERDICT_LABEL[gridDisplay.path.verdict.code] ?? gridDisplay.path.verdict.code}
                 </span>
               )}
               <svg viewBox="0 0 12 12" className="h-3 w-3 flex-none text-faint" aria-hidden="true">
@@ -1460,8 +1501,10 @@ export default function ParcelViewer() {
           <ParcelRail
             selected={panel.status === "found" ? panel.result : null}
             panelStatus={panel.status}
-            gridAccess={gridNearest}
+            gridAccess={gridDisplay}
             originLabel={originLabel}
+            activeOptionId={activeOptionId}
+            onSelectOption={setActiveOptionId}
             onCloseSelected={handleCloseSelected}
             onResearch={(p) => void handleResearch(p)}
             onFlyTo={handleFlyTo}
