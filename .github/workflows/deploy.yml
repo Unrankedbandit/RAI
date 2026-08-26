@@ -27,7 +27,6 @@ on:
 
 permissions:
   contents: read
-  actions: read  # strategy job lists self-hosted runners to pick the route
 
 # Never cancel a deploy mid-flight; queue them instead.
 concurrency:
@@ -67,31 +66,34 @@ jobs:
     outputs:
       mode: ${{ steps.pick.outputs.mode }}
     steps:
-      - name: Prefer online self-hosted runner, fall back to SSH
+      # GITHUB_TOKEN can't list self-hosted runners (that endpoint needs repo
+      # Administration, which workflow tokens can't hold), so the route is
+      # explicit configuration: DEPLOY_ROUTE=runner|ssh. Unset -> SSH if
+      # configured -> skip green (fork-friendly, same convention as smoke.yml).
+      - name: Route from repo configuration
         id: pick
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ROUTE: ${{ vars.DEPLOY_ROUTE }}
           SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SSH_HOST: ${{ vars.DEPLOY_HOST }}
         run: |
           set -euo pipefail
-          online="$(gh api "repos/$GITHUB_REPOSITORY/actions/runners" \
-            --jq '[.runners[] | select(.status == "online")] | length')"
-          echo "online self-hosted runners: $online"
-          if [ "$online" -gt 0 ]; then
-            echo "mode=runner" >> "$GITHUB_OUTPUT"
-          elif [ -n "$SSH_KEY" ] && [ -n "$SSH_HOST" ]; then
-            echo "mode=ssh" >> "$GITHUB_OUTPUT"
-          else
-            echo "::notice::no deploy route — run deploy/install-runner.sh on the box, or set SSH_PRIVATE_KEY + DEPLOY_HOST. Skipping green."
-            echo "mode=none" >> "$GITHUB_OUTPUT"
+          route="${ROUTE:-}"
+          if [ -z "$route" ]; then
+            if [ -n "$SSH_KEY" ] && [ -n "$SSH_HOST" ]; then route=ssh; else route=none; fi
           fi
+          echo "deploy route: $route"
+          [ "$route" = "none" ] && echo "::notice::no deploy route — set repo variable DEPLOY_ROUTE=runner (box runner) or configure SSH. Skipping green."
+          echo "mode=$route" >> "$GITHUB_OUTPUT"
 
   deploy_runner:
     name: Deploy on the box (self-hosted runner)
     needs: strategy
     if: needs.strategy.outputs.mode == 'runner'
     runs-on: self-hosted
+    # If the runner is offline the job queues — cap that wait so a dead runner
+    # surfaces as a red run instead of a silent hang.
+    timeout-minutes: 10
     steps:
       # Checked out on the box so deploy.sh is always the version from the ref
       # being deployed; the script itself operates on $DEPLOY_PATH.
