@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from typing import Any
 
 import asyncpg
@@ -621,3 +622,97 @@ async def link_document_to_report(doc_id: int, report_id: str) -> None:
             report_id,
             doc_id,
         )
+
+
+# ── cited_sources ─────────────────────────────────────────────────────
+
+_URL_RE = re.compile(r"https?://[^\s\)\]\>\"']+")
+
+
+def _extract_url(text: str) -> str | None:
+    """Pull the first HTTP(S) URL out of a source string."""
+    m = _URL_RE.search(text)
+    return m.group(0) if m else None
+
+
+def _source_label(text: str) -> str:
+    """Short display label: first 60 chars before any parenthetical detail."""
+    # Take text before the first parenthesis or colon-dash separator
+    for sep in (" (", ": ", " — ", " - "):
+        idx = text.find(sep)
+        if idx > 0:
+            return text[:idx][:80]
+    return text[:80]
+
+
+async def save_cited_sources(report_id: str, report_dict: dict[str, Any]) -> None:
+    """Extract all cited sources from a report and insert into cited_sources.
+    Clears existing rows for the report first (idempotent re-insert).
+    No-op when no pool."""
+    if _pool is None:
+        return
+    rows: list[tuple] = []
+
+    # Red flags
+    for idx, flag in enumerate(report_dict.get("red_flags", [])):
+        for src in flag.get("sources", []):
+            url = _extract_url(src)
+            rows.append((report_id, "red_flag", idx, src, url,
+                         _source_label(src), url is not None))
+
+    # Contradictions
+    for idx, contra in enumerate(report_dict.get("contradictions", [])):
+        for src in contra.get("sources", []):
+            url = _extract_url(src)
+            rows.append((report_id, "contradiction", idx, src, url,
+                         _source_label(src), url is not None))
+
+    # Acquired data (data scout sources)
+    for idx, acquired in enumerate(report_dict.get("acquired_data", [])):
+        for src in acquired.get("sources", []):
+            url = _extract_url(src)
+            rows.append((report_id, "acquired_data", idx, src, url,
+                         _source_label(src), url is not None))
+
+    # Timeline entries
+    action_pack = report_dict.get("action_pack", {})
+    for idx, entry in enumerate(action_pack.get("timeline", [])):
+        src = entry.get("source_url") or entry.get("ground_truth") or ""
+        if src:
+            url = _extract_url(src) or entry.get("source_url")
+            rows.append((report_id, "timeline", idx, src, url,
+                         _source_label(entry.get("label", src)),
+                         bool(entry.get("source_url"))))
+
+    if not rows:
+        return
+
+    async with _pool.acquire() as conn:
+        # Clear existing rows for this report (idempotent)
+        await conn.execute(
+            "DELETE FROM cited_sources WHERE report_id = $1", report_id
+        )
+        await conn.executemany(
+            """
+            INSERT INTO cited_sources (report_id, finding_type, finding_index,
+                                       source_text, source_url, source_label,
+                                       verified)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            """,
+            rows,
+        )
+
+
+async def get_cited_sources(report_id: str) -> list[dict[str, Any]] | None:
+    """SELECT all cited sources for a report. Returns None when no pool."""
+    if _pool is None:
+        return None
+    async with _pool.acquire() as conn:
+        rows = await conn.fetch(
+            "SELECT id, finding_type, finding_index, source_text, source_url, "
+            "source_label, verified, created_at "
+            "FROM cited_sources WHERE report_id = $1 "
+            "ORDER BY finding_type, finding_index, id",
+            report_id,
+        )
+        return [dict(row) for row in rows]
