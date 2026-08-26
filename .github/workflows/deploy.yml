@@ -27,6 +27,7 @@ on:
 
 permissions:
   contents: read
+  actions: read  # strategy job lists self-hosted runners to pick the route
 
 # Never cancel a deploy mid-flight; queue them instead.
 concurrency:
