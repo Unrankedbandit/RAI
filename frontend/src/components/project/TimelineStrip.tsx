@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { clsx } from "@/lib/clsx";
 import { bandColorVar } from "@/lib/band";
 import { SourceLink, UnverifiedTag } from "@/components/ui/SourceLink";
+import { eventDateLabel } from "@/lib/timeline";
 import type { TimelineEvent } from "@/lib/types";
 import { useProject } from "./ProjectContext";
 
@@ -320,9 +321,11 @@ function Tooltip({
       )}
     >
       <div className="mb-[2px] font-semibold">{event.label}</div>
-      {event.dateDisplay && (
+      {(event.dateDisplay || event.datePrecision) && (
         <div className="mb-[6px] text-xs text-vista">
-          {event.dateDisplay}
+          {/* precision-aware: month/quarter/year dates never show a
+              fabricated day ("Sep 2027", not "Sep 1, 2027") */}
+          {eventDateLabel(event)}
         </div>
       )}
       {event.description}

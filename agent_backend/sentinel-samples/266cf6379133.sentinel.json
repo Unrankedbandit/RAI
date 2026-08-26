@@ -1,0 +1,386 @@
+{
+  "project": {
+    "id": "266cf6379133",
+    "name": "Parcel 48H-7800-2-1 \u2014 ? ac",
+    "location": "Alameda County, CA",
+    "capacityMW": 0,
+    "latitude": 0,
+    "longitude": 0,
+    "activationScore": 5.75,
+    "band": "risk",
+    "scoreReason": "Empty fact base: zero documents acquired, zero facts extracted \u2014 no claim can be verified or cross-examined; diligence must restart with document acquisition",
+    "status": "at-risk",
+    "pillars": [
+      {
+        "name": "Land",
+        "score": 5.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "3 flags open",
+        "subAgents": [
+          "extractor:land-docs",
+          "scout:zoning",
+          "researcher:land_use"
+        ],
+        "factors": [
+          {
+            "id": "land-flag-0",
+            "name": "Site acreage is null \u2014 cannot test against ~5\u20137 ac/MW benchmark for 100 MW solar+storage",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Site acreage is null \u2014 cannot test against ~5\u20137 ac/MW benchmark for 100 MW solar+storage",
+            "sources": []
+          },
+          {
+            "id": "land-flag-1",
+            "name": "No leases, deeds, easements, or title commitments \u2014 site control entirely unverified",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No leases, deeds, easements, or title commitments \u2014 site control entirely unverified",
+            "sources": []
+          },
+          {
+            "id": "land-flag-2",
+            "name": "No zoning determination for Alameda County parcel; KB shows CA counties can impose outrigh",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No zoning determination for Alameda County parcel; KB shows CA counties can impose outright solar/BESS prohibitions on ag land (Solano ZT 12-04 precedent) \u2014 unresolved kill-criterion",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Law",
+        "score": 5.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "3 flags open",
+        "subAgents": [
+          "researcher:state_law",
+          "researcher:federal_law",
+          "researcher:ecology_epa"
+        ],
+        "factors": [
+          {
+            "id": "law-flag-0",
+            "name": "No permit register, zoning evidence, or milestone dates \u2014 permitting path (CEQA vs. CEC AB",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No permit register, zoning evidence, or milestone dates \u2014 permitting path (CEQA vs. CEC AB 205 Opt-In) cannot be assessed",
+            "sources": []
+          },
+          {
+            "id": "law-flag-1",
+            "name": "Tax-credit eligibility unverified: no COD, no beginning-of-construction evidence; under OB",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Tax-credit eligibility unverified: no COD, no beginning-of-construction evidence; under OBBBA the solar ITC/PTC BOC deadline (Jul 4, 2026) has passed \u2014 missing tax-credit eligibility is an unresolved kill-criterion",
+            "sources": []
+          },
+          {
+            "id": "law-flag-2",
+            "name": "No environmental surveys, species constraints, or water sourcing plan; no community/tribal",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No environmental surveys, species constraints, or water sourcing plan; no community/tribal consultation status",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Finance",
+        "score": 5.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "3 flags open",
+        "subAgents": [
+          "researcher:financials",
+          "cross-examiner"
+        ],
+        "factors": [
+          {
+            "id": "finance-flag-0",
+            "name": "No CAPEX figure to test against $1.43\u20131.56/Wac installed benchmark (plus ~$200\u2013350/kWh for",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No CAPEX figure to test against $1.43\u20131.56/Wac installed benchmark (plus ~$200\u2013350/kWh for BESS)",
+            "sources": []
+          },
+          {
+            "id": "finance-flag-1",
+            "name": "No DSCR, leverage, contingency, or tax-credit assumptions \u2014 model cannot be tested against",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No DSCR, leverage, contingency, or tax-credit assumptions \u2014 model cannot be tested against \u22651.20x P90 covenant norms",
+            "sources": []
+          },
+          {
+            "id": "finance-flag-2",
+            "name": "No financial model provided at all",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No financial model provided at all",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Materials",
+        "score": 5.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "3 flags open",
+        "subAgents": [
+          "researcher:supply_chain"
+        ],
+        "factors": [
+          {
+            "id": "materials-flag-0",
+            "name": "No supply agreements, POs, or quoted lead times for transformers/GSUs (benchmark 128\u2013144 w",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No supply agreements, POs, or quoted lead times for transformers/GSUs (benchmark 128\u2013144 weeks), modules, BESS, or switchgear",
+            "sources": []
+          },
+          {
+            "id": "materials-flag-1",
+            "name": "No integrated schedule with NTP/COD to test long-lead procurement feasibility",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No integrated schedule with NTP/COD to test long-lead procurement feasibility",
+            "sources": []
+          },
+          {
+            "id": "materials-flag-2",
+            "name": "FEOC-compliant BESS cell sourcing and domestic-content status unknown",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "FEOC-compliant BESS cell sourcing and domestic-content status unknown",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Demand",
+        "score": 10.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "3 flags open",
+        "subAgents": [
+          "researcher:demand",
+          "researcher:interconnection"
+        ],
+        "factors": [
+          {
+            "id": "demand-flag-0",
+            "name": "No PPAs, tolling agreements, or LOIs \u2014 contracted vs. merchant volume unassessable against",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No PPAs, tolling agreements, or LOIs \u2014 contracted vs. merchant volume unassessable against \u226580% contracted threshold",
+            "sources": []
+          },
+          {
+            "id": "demand-flag-1",
+            "name": "No interconnection agreement or queue position; CAISO historical completion ~20%, IR\u2192COD ~",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No interconnection agreement or queue position; CAISO historical completion ~20%, IR\u2192COD ~5 years",
+            "sources": []
+          },
+          {
+            "id": "demand-flag-2",
+            "name": "Only mitigant: CA market fundamentals favor solar+storage (4-hr BESS \u224890\u201395% NQC; standalo",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Only mitigant: CA market fundamentals favor solar+storage (4-hr BESS \u224890\u201395% NQC; standalone solar NQC ~10% and ineligible for new CPUC procurement) \u2014 configuration is at least the viable one",
+            "sources": []
+          }
+        ]
+      }
+    ]
+  },
+  "eyebrow": "Solar \u00b7 0 MW \u00b7 Alameda County, CA",
+  "runSummary": "0 documents analyzed \u00b7 13 open items",
+  "scoreBandLabel": "Risk \u00b7 6/100",
+  "scoreNote": "Empty fact base: zero documents acquired, zero facts extracted \u2014 no claim can be verified or cross-examined; diligence must restart with document acquisition",
+  "evidence": {},
+  "timeline": [
+    {
+      "id": "tl-0",
+      "label": "ITC deadline",
+      "date": "2027-12-31",
+      "kind": "deadline",
+      "band": "risk",
+      "datePrecision": "day",
+      "position": 50,
+      "description": "OBBBA \u00a748E(e)(4): solar/wind placed in service after Dec 31, 2027 loses the 30% ITC unless construction began by Jul 4, 2026 (4-yr continuity safe harbor then applies). Standalone storage exempt; full credit for BOC through 2033.",
+      "sourceUrl": "https://www.irs.gov/irb/2025-36_IRB",
+      "groundTruth": "OBBBA \u00a748E(e)(4): solar/wind placed in service after Dec 31, 2027 loses the 30% ITC unless construction began by Jul 4, 2026 (4-yr continuity safe harbor then applies). Standalone storage exempt; full credit for BOC through 2033."
+    }
+  ],
+  "documents": [],
+  "priorityActions": [
+    {
+      "id": "pa-1",
+      "rank": 1,
+      "title": "All critical documents (site control, permits, interconnection, offtake, financial model, ",
+      "detail": "All critical documents (site control, permits, interconnection, offtake, financial model, schedule) received and verified.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-2",
+      "rank": 2,
+      "title": "Zoning and permitting feasibility confirmed by Alameda County and CEC (if applicable).",
+      "detail": "Zoning and permitting feasibility confirmed by Alameda County and CEC (if applicable).",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-3",
+      "rank": 3,
+      "title": "Interconnection agreement executed or at least a confirmed queue position with a realistic",
+      "detail": "Interconnection agreement executed or at least a confirmed queue position with a realistic COD timeline.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-4",
+      "rank": 4,
+      "title": "Offtake agreements executed for at least 80% of capacity.",
+      "detail": "Offtake agreements executed for at least 80% of capacity.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-5",
+      "rank": 5,
+      "title": "Financial model validated against benchmarks (CAPEX, DSCR, etc.).",
+      "detail": "Financial model validated against benchmarks (CAPEX, DSCR, etc.).",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-6",
+      "rank": 6,
+      "title": "Tax credit eligibility confirmed (BOC evidence and compliance with OBBBA).",
+      "detail": "Tax credit eligibility confirmed (BOC evidence and compliance with OBBBA).",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-7",
+      "rank": 7,
+      "title": "Site control verified with title commitments and acreage.",
+      "detail": "Site control verified with title commitments and acreage.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-8",
+      "rank": 8,
+      "title": "Environmental surveys completed and no fatal flaws.",
+      "detail": "Environmental surveys completed and no fatal flaws.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-9",
+      "rank": 9,
+      "title": "Supply chain lead times confirmed to meet schedule.",
+      "detail": "Supply chain lead times confirmed to meet schedule.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-10",
+      "rank": 10,
+      "title": "Provide site control documents: leases, deeds, easements, and title commitments for the pa",
+      "detail": "Provide site control documents: leases, deeds, easements, and title commitments for the parcel, including total acreage and legal description.",
+      "impact": "medium",
+      "scoreDelta": 3
+    },
+    {
+      "id": "pa-11",
+      "rank": 11,
+      "title": "Provide zoning determination from Alameda County confirming the parcel is zoned for solar+",
+      "detail": "Provide zoning determination from Alameda County confirming the parcel is zoned for solar+storage use, or evidence of a conditional use permit application.",
+      "impact": "medium",
+      "scoreDelta": 3
+    },
+    {
+      "id": "pa-12",
+      "rank": 12,
+      "title": "Provide a complete permit register with all required permits (CEQA, CEC AB 205 opt-in, cou",
+      "detail": "Provide a complete permit register with all required permits (CEQA, CEC AB 205 opt-in, county, state, federal) and milestone dates.",
+      "impact": "medium",
+      "scoreDelta": 3
+    }
+  ],
+  "projectedScoreAfterMitigation": 33.75,
+  "suggestedQuestions": [
+    {
+      "question": "What's the top item to clear next?",
+      "answer": {
+        "role": "assistant",
+        "text": "Empty fact base: zero documents acquired, zero facts extracted \u2014 no claim can be verified or cross-examined; diligence must restart with document acquisition"
+      }
+    },
+    {
+      "question": "Why is the activation score 6?",
+      "answer": {
+        "role": "assistant",
+        "text": "0 critical red flags and 0 cross-document contradictions. Weakest pillars: land 5, law 5."
+      }
+    }
+  ],
+  "chatHistory": [
+    {
+      "role": "assistant",
+      "text": "I've completed diligence on Parcel 48H-7800-2-1 \u2014 ? ac. Activation score 6/100 \u2014 decision: Hold. 0 critical flags, 0 cross-document contradictions, 13 open information requests. Ask me what to prioritize."
+    }
+  ],
+  "report": {
+    "badge": "RED FLAG REPORT",
+    "title": "Parcel 48H-7800-2-1 \u2014 ? ac \u2014 due-diligence report",
+    "preparedBy": "Red Flag agent framework",
+    "summary": "Empty fact base: zero documents acquired, zero facts extracted \u2014 no claim can be verified or cross-examined; diligence must restart with document acquisition",
+    "findings": [],
+    "recommendedActions": [
+      "All critical documents (site control, permits, interconnection, offtake, financial model, schedule) received and verified.",
+      "Zoning and permitting feasibility confirmed by Alameda County and CEC (if applicable).",
+      "Interconnection agreement executed or at least a confirmed queue position with a realistic COD timeline.",
+      "Offtake agreements executed for at least 80% of capacity.",
+      "Financial model validated against benchmarks (CAPEX, DSCR, etc.)."
+    ],
+    "sourceBasis": "0 source documents + 0 acquired research packs"
+  },
+  "map": {
+    "parcelSize": "\u2014",
+    "toggles": [
+      {
+        "id": "zoning",
+        "label": "Zoning",
+        "on": true
+      },
+      {
+        "id": "protected-land",
+        "label": "Protected land",
+        "on": true
+      },
+      {
+        "id": "transmission",
+        "label": "Transmission",
+        "on": false
+      }
+    ],
+    "distances": [],
+    "zones": [],
+    "pin": {
+      "left": 50,
+      "top": 50,
+      "label": "Alameda County, CA"
+    }
+  },
+  "teamMembers": []
+}

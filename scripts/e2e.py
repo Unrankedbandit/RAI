@@ -34,6 +34,10 @@ def get(url, timeout=15):
 # 1. Portfolio: serves reports, UTF-8 intact
 try:
     rows = json.loads(get(f"{BACKEND}/api/projects").read().decode("utf-8"))
+    # Envelope since the re-validate-on-read hardening: {"projects": [...],
+    # "skipped_invalid": [...]}; tolerate the legacy bare array too.
+    if isinstance(rows, dict):
+        rows = rows.get("projects", [])
     ok("portfolio returns reports", len(rows) >= 1, f"got {len(rows)}")  # >=1: archived.txt hides cleared runs
     ok("readiness values sane", all(0 <= r["readiness"] <= 100 for r in rows))
     ok("worst-first ordering", rows[0]["readiness"] <= rows[-1]["readiness"])

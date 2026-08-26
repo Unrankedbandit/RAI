@@ -1,0 +1,144 @@
+{
+  "project": "DeepseekLane Check",
+  "location": "Ventura County, CA",
+  "readiness": 5.0,
+  "decision": "Hold",
+  "dimensions": [
+    {
+      "name": "land",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "site_acres is null — no site identified or verified",
+        "No site control, title, or lease evidence in context",
+        "No parcel data to screen against zoning or land-use benchmarks"
+      ]
+    },
+    {
+      "name": "law",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "No state_law, federal_law, permitting, or zoning findings — all empty",
+        "Zoning prohibition screen cannot be performed: unresolved kill-criterion (KB: zoning kill switch is a threshold/kill criterion, not a schedule risk)",
+        "No CEQA/permitting milestones to assess for Ventura County, CA"
+      ]
+    },
+    {
+      "name": "finance",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "No CAPEX, financials, or funding data provided",
+        "Tax-credit (ITC/PTC) eligibility unverifiable — missing beginning-of-construction evidence is a kill-criterion per KB (OBBBA BOC cliff)",
+        "No basis to test CAPEX against benchmark band ($1.43–1.56/Wac)"
+      ]
+    },
+    {
+      "name": "materials",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "No equipment, procurement, or supply-chain data",
+        "Cannot screen transformer/GSU lead times (KB benchmark: 128–144 weeks) against any schedule",
+        "resource_supply_chain component entirely uncovered"
+      ]
+    },
+    {
+      "name": "demand",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "capacity_mw is 0.0 — project has no defined contracted capacity",
+        "No interconnection agreement or queue position evidence",
+        "No offtake/PPA or demand-market analysis"
+      ]
+    }
+  ],
+  "red_flags": [],
+  "contradictions": [],
+  "missing_info": [
+    "The provided context is entirely empty: no extracted facts, no research findings, and no acquired documents. Cross-examination requires at least two fact sets to compare; with zero inputs, no contradictions can be identified and no benchmarks can be applied.",
+    "All standard due-diligence domains are uncovered: CAPEX vs. materials/equipment cost indices, contracted MW vs. executed interconnection/offtake agreements, schedule dates vs. permitting milestones, site control claims vs. title/lease evidence, and construction schedule vs. equipment lead times. Document acquisition and fact extraction must occur before cross-examination can begin."
+  ],
+  "action_pack": {
+    "rfis": [
+      "Provide site address, APN, and proof of site control (purchase agreement, lease, or option) for the proposed project in Ventura County.",
+      "Provide zoning designation for the parcel and written confirmation from Ventura County Planning Division that solar+storage is a permitted or conditional use.",
+      "Provide preliminary title report and any recorded easements, liens, or encumbrances affecting the site.",
+      "Provide the interconnection application and queue position with Southern California Edison (SCE), including any study results (Feasibility, System Impact, Facilities Study).",
+      "Provide a copy of the executed interconnection agreement or, if not yet executed, the current status and timeline for completion.",
+      "Provide the executed power purchase agreement (PPA) or evidence of a merchant project, including offtaker creditworthiness and contract terms.",
+      "Provide the full financial model with CAPEX, OPEX, revenue, tax equity, and debt assumptions, including sensitivity analysis.",
+      "Provide equipment quotes and supply agreements for PV modules, inverters, transformers, and battery storage, including lead times and delivery schedules.",
+      "Provide the construction schedule with milestones for permitting, procurement, construction, and commercial operation date.",
+      "Provide evidence of tax credit eligibility (ITC/PTC) including beginning-of-construction documentation (e.g., notice to proceed, physical work, or 5% safe harbor).",
+      "Provide the CEQA status and any environmental assessments, including biological, cultural, and traffic studies.",
+      "Provide documentation of community outreach and any opposition or support from local stakeholders.",
+      "Provide evidence of compliance with California Fire Code and local fire department requirements for battery storage.",
+      "Provide any existing or planned interconnection upgrades and associated cost estimates from SCE."
+    ],
+    "agency_actions": [
+      {
+        "agency": "Ventura County Planning Division",
+        "action": "Submit application for a Conditional Use Permit (CUP) or verify that solar+storage is a permitted use under the current zoning ordinance.",
+        "why": "Zoning prohibition is a kill-criterion; must confirm the project is allowed before further investment.",
+        "deadline": "Submit within 30 days; approval typically 6–12 months."
+      },
+      {
+        "agency": "Southern California Edison (SCE)",
+        "action": "Initiate interconnection study (Feasibility, System Impact, Facilities Study) and obtain a cost estimate and timeline for interconnection agreement.",
+        "why": "Interconnection is a critical path item; without a viable interconnection, the project cannot proceed.",
+        "deadline": "Initiate within 30 days; studies may take 6–18 months depending on queue position."
+      },
+      {
+        "agency": "California Public Utilities Commission (CPUC)",
+        "action": "Verify that the interconnection process and any PPA tariff comply with CPUC rules, and confirm if a CPUC approval is required for the offtake agreement.",
+        "why": "Regulatory compliance is necessary to avoid delays or rejection of the PPA.",
+        "deadline": "Review within 60 days; approval may take 3–6 months if required."
+      },
+      {
+        "agency": "California Energy Commission (CEC)",
+        "action": "Determine if the project exceeds 50 MW and requires a CEC license; if so, initiate the application process.",
+        "why": "Projects >50 MW must obtain CEC certification; failure to do so is a legal barrier.",
+        "deadline": "Determine applicability within 30 days; licensing can take 12–24 months if required."
+      },
+      {
+        "agency": "California Department of Fish and Wildlife (CDFW)",
+        "action": "Conduct a preliminary environmental review to identify any sensitive species or habitats on the site and initiate consultation if needed.",
+        "why": "CEQA compliance may require mitigation for biological resources; early engagement reduces risk of delays.",
+        "deadline": "Initiate within 60 days; consultation may take 3–6 months."
+      },
+      {
+        "agency": "Ventura County Air Pollution Control District (VCAPCD)",
+        "action": "Verify if construction or operation requires an air quality permit (e.g., for diesel generators or dust control).",
+        "why": "Air quality permits are often overlooked and can cause construction delays.",
+        "deadline": "Assess within 30 days; permit issuance typically 2–4 months."
+      }
+    ],
+    "verification_requests": [
+      "Verify SCE interconnection queue position and study results directly with SCE, including any required network upgrades and cost allocation.",
+      "Verify offtaker creditworthiness and contract terms (e.g., PPA price, duration, termination clauses) through financial statements and credit reports.",
+      "Verify equipment lead times from suppliers (PV modules, inverters, transformers, battery systems) against the construction schedule; obtain written confirmation of lead times.",
+      "Verify tax credit eligibility documentation (beginning-of-construction evidence) with tax counsel to ensure compliance with IRS rules.",
+      "Verify site control and title by obtaining a title commitment and reviewing lease/purchase agreement for assignability and termination clauses.",
+      "Verify CEQA status with Ventura County Planning Division to confirm whether an exemption applies or an EIR is required.",
+      "Verify any community opposition or support through public records and stakeholder interviews."
+    ],
+    "conditions_precedent": [
+      "Zoning confirmed to allow solar+storage (permitted or conditional use) with no unresolved prohibition.",
+      "Site control secured via executed purchase agreement or lease with clear title and no fatal encumbrances.",
+      "Interconnection agreement executed or at least a completed System Impact Study with no fatal constraints and acceptable upgrade costs.",
+      "Offtake agreement executed (or merchant project validated with market analysis) with creditworthy counterparty.",
+      "Tax credit eligibility established with documented beginning-of-construction evidence (ITC/PTC).",
+      "Equipment procurement contracts in place with lead times compatible with the construction schedule.",
+      "CEQA compliance achieved (exemption confirmed or EIR certified) with no unresolved environmental issues.",
+      "Financial model validated against benchmark CAPEX ($1.43–1.56/Wac) and revenue projections, with sensitivity analysis showing acceptable returns.",
+      "All required permits (CUP, building, electrical, fire) identified and application submitted or obtained.",
+      "Community opposition assessed and mitigation plan in place if needed."
+    ]
+  },
+  "recommended_next_action": "Entire diligence record is empty: zero extracted facts, zero acquired documents, zero research findings — no dimension can be scored above red",
+  "acquired_data": [],
+  "user": "zero-downtime"
+}

@@ -513,11 +513,39 @@
   "timeline": [
     {
       "id": "tl-0",
+      "label": "CA Dept. of Fish and Wildlife (CDFW), South Coast Region 5 \u2014 Engage on CESA take",
+      "date": "2026-01-01",
+      "kind": "milestone",
+      "band": "risk",
+      "datePrecision": "year",
+      "position": 0.0
+    },
+    {
+      "id": "tl-1",
+      "label": "U.S. Fish and Wildlife Service, Ventura Fish and Wildlife Office \u2014 Request techn",
+      "date": "2026-01-01",
+      "kind": "milestone",
+      "band": "risk",
+      "datePrecision": "year",
+      "position": 0.0
+    },
+    {
+      "id": "tl-2",
+      "label": "State Water Resources Control Board (SMARTS) and Los Angeles Regional Water Boar",
+      "date": "2026-01-01",
+      "kind": "milestone",
+      "band": "risk",
+      "datePrecision": "year",
+      "position": 0.0
+    },
+    {
+      "id": "tl-3",
       "label": "ITC deadline",
       "date": "2027-12-31",
       "kind": "deadline",
       "band": "risk",
-      "position": 50,
+      "datePrecision": "day",
+      "position": 100.0,
       "description": "OBBBA \u00a748E(e)(4): solar/wind placed in service after Dec 31, 2027 loses the 30% ITC unless construction began by Jul 4, 2026 (4-yr continuity safe harbor then applies). Standalone storage exempt; full credit for BOC through 2033.",
       "sourceUrl": "https://www.irs.gov/irb/2025-36_IRB",
       "groundTruth": "OBBBA \u00a748E(e)(4): solar/wind placed in service after Dec 31, 2027 loses the 30% ITC unless construction began by Jul 4, 2026 (4-yr continuity safe harbor then applies). Standalone storage exempt; full credit for BOC through 2033."

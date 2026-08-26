@@ -1,0 +1,24 @@
+{
+  "project": "Synthetic Legacy Probe 25 MW",
+  "location": "Test County, NV",
+  "readiness": 35.0,
+  "decision": "Do not proceed",
+  "dimensions": [],
+  "red_flags": [],
+  "contradictions": [],
+  "missing_info": ["synthetic gap"],
+  "action_pack": {
+    "rfis": [],
+    "agency_actions": [
+      {"agency": "County", "action": "CUP application", "why": "synthetic", "deadline": "Q1 2028, before construction start"},
+      {"agency": "CDFW", "action": "Protocol surveys", "why": "synthetic", "deadline": "Sep 2027"},
+      {"agency": "BLM", "action": "Undated action", "why": "synthetic", "deadline": "within 90 days"}
+    ],
+    "verification_requests": [],
+    "conditions_precedent": [],
+    "timeline": []
+  },
+  "recommended_next_action": null,
+  "acquired_data": [],
+  "user": null
+}

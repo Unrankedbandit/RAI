@@ -3,10 +3,38 @@ agent loop is validated JSON — no free-text handoffs."""
 from __future__ import annotations
 
 from typing import Literal
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 Severity = Literal["critical", "high", "medium", "low"]
 RAG = Literal["red", "amber", "green"]
+
+Decision = Literal["Proceed", "Investigate", "Hold"]
+
+# Legacy free-text decision variants seen in stored reports / older scorer
+# output, normalized onto the canonical Decision literals. The stored corpus
+# today is already canonical ("Hold" x21, "Proceed" x1) — this validator keeps
+# pre-contract and case-variant values validating.
+_DECISION_ALIASES = {
+    "proceed": "Proceed",
+    "investigate": "Investigate",
+    "hold": "Hold",
+    "do not proceed": "Hold",
+    "do-not-proceed": "Hold",
+    "no-go": "Hold",
+    "no go": "Hold",
+    "proceed with conditions": "Investigate",
+    "conditional proceed": "Investigate",
+    "conditional": "Investigate",
+}
+
+
+def _normalize_decision(v: object) -> object:
+    """before-validator for decision fields: map legacy/case variants onto the
+    canonical Proceed/Investigate/Hold literals. Unknown strings pass through
+    unchanged so the Literal check rejects them with a clear error."""
+    if isinstance(v, str):
+        return _DECISION_ALIASES.get(v.strip().lower(), v.strip())
+    return v
 
 
 class ProjectProfile(BaseModel):
@@ -92,15 +120,17 @@ class ContradictionSet(BaseModel):
 class DimensionScore(BaseModel):
     name: str
     rag: RAG
-    score: float  # 0-100
+    score: float = Field(ge=0, le=100)  # 0-100
     flags: list[str]
 
 
 class Score(BaseModel):
-    readiness: float
-    decision: Literal["Proceed", "Investigate", "Hold"]
+    readiness: float = Field(ge=0, le=100)
+    decision: Decision
     dimensions: list[DimensionScore]
     top_risks: list[str]
+
+    _normalize = field_validator("decision", mode="before")(_normalize_decision)
 
 
 class AgencyAction(BaseModel):
@@ -134,6 +164,35 @@ class TimelineEntry(BaseModel):
     # (e.g. "CEC Opt-In statutory 270-day decision") and how this entry sits
     # against it ("at benchmark", "aggressive vs ~2.5-yr empirical EIR").
     ground_truth: str | None = None
+    # Row id in the ground-truth benchmark store (agent_backend/benchmarks.py,
+    # surfaced via kb_lookup CURATED BENCHMARKS hits). When set it MUST
+    # reference a benchmarks-store row id — validated against the store when
+    # it is available.
+    benchmark_id: str | None = None
+
+    @field_validator("benchmark_id")
+    @classmethod
+    def _benchmark_id_must_exist(cls, v: str | None) -> str | None:
+        """Check benchmark_id against the benchmark store IF the store file
+        exists and is readable; no-op (pass) when the store is missing or
+        broken — degrade paths must never become invalid."""
+        if v is None:
+            return v
+        try:
+            from . import benchmarks  # local import: store is optional
+            conn = benchmarks._connect()
+            try:
+                row = conn.execute(
+                    "SELECT 1 FROM benchmarks WHERE id = ?", (v,)
+                ).fetchone()
+            finally:
+                conn.close()
+        except Exception:
+            return v  # store missing/broken/unreadable -> never reject
+        if row is None:
+            raise ValueError(
+                f"benchmark_id {v!r} not found in benchmark store")
+        return v
 
 
 class ActionPack(BaseModel):
@@ -165,8 +224,8 @@ class ChatAnswer(BaseModel):
 class Report(BaseModel):
     project: str
     location: str
-    readiness: float
-    decision: str
+    readiness: float = Field(ge=0, le=100)
+    decision: Decision
     dimensions: list[DimensionScore]
     red_flags: list[RedFlag]
     contradictions: list[Contradiction]
@@ -177,3 +236,5 @@ class Report(BaseModel):
     # Which hackathon login started this run (gate header X-Hax-User). Optional
     # and schema-compatible: older reports simply have null.
     user: str | None = None
+
+    _normalize = field_validator("decision", mode="before")(_normalize_decision)

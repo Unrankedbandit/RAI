@@ -1,0 +1,161 @@
+{
+  "project": "Parcel 017010031000 — ? ac",
+  "location": "Napa County, CA",
+  "readiness": 6.0,
+  "decision": "Hold",
+  "dimensions": [
+    {
+      "name": "land",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "Site acreage null; project identity incomplete",
+        "No leases, easements, purchase options, or title evidence acquired — site control unverifiable"
+      ]
+    },
+    {
+      "name": "law",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "KILL CRITERION UNRESOLVED: no zoning designation or ordinance applicability — kill-switch screening impossible (Napa County ag-land solar restrictions unscreened)",
+        "KILL CRITERION UNRESOLVED: no beginning-of-construction or ITC/PTC qualification documentation — OBBBA tax-credit cliff exposure untested",
+        "No permit milestones, CEQA status, or environmental/biological surveys"
+      ]
+    },
+    {
+      "name": "finance",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "No CAPEX claim to test against $1.43–1.56/Wac installed benchmark",
+        "No sources & uses, debt sizing, escalation/contingency, or sponsor equity commitment"
+      ]
+    },
+    {
+      "name": "materials",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "No supply agreements, POs, or lead-time confirmations",
+        "Transformer/GSU market norm 128–144 weeks — with no COD or procurement dates, schedule feasibility unassessable"
+      ]
+    },
+    {
+      "name": "demand",
+      "rag": "red",
+      "score": 10.0,
+      "flags": [
+        "No PPA, tolling, or merchant assumptions — contracted vs uncontracted MW unknown",
+        "Macro tailwind only: CAISO hybrid PPA ~$64.49/MWh (Q1 2026, +13% YoY) and CPUC 6,000 MW NQC procurement pull support marketability if project is real"
+      ]
+    }
+  ],
+  "red_flags": [],
+  "contradictions": [],
+  "missing_info": [
+    "TOTAL DATA ABSENCE: facts=[], findings=[], acquired=[] — no documents have been ingested and no facts extracted, so pairwise cross-examination (CAPEX vs indices, contracted MW vs executed agreements, schedule vs permits/lead times, site control vs title) is impossible. No quantified claims exist to convert, compare, or delta.",
+    "Project identity unknown: technology, capacity (MW vs MWh), site location/acreage, and development stage are all unestablished — benchmark selection (cost $/W, lead times, queue norms) cannot even be scoped.",
+    "CAPEX/budget: no cost claim to test against installed-cost benchmarks or materials indices; no escalation/contingency figure to assess.",
+    "Site control: no leases, easements, purchase options, or title evidence acquired — control claims cannot be verified.",
+    "Zoning/permitting: no zoning designation, ordinance applicability, or permit milestones — no kill-switch screening possible.",
+    "Interconnection: no queue position, cluster study, POI, or executed interconnection agreement — contracted MW cannot be reconciled and network-upgrade exposure is unassessed.",
+    "Offtake/revenue: no PPA, tolling, or merchant assumptions — contracted vs uncontracted MW unknown.",
+    "Schedule: no COD or milestone dates to test against permitting timelines and long-lead equipment (transformers/GSU, modules, BESS) procurement windows.",
+    "Equipment supply: no supply agreements, POs, or lead-time confirmations acquired.",
+    "Environmental/biological: no survey reports, species constraints, or seasonal-window analysis.",
+    "Tax-credit eligibility: no beginning-of-construction evidence or ITC/PTC qualification documentation.",
+    "Financing: no sources & uses, debt sizing, or sponsor equity commitment.",
+    "Community/tribal/EJ: no consultation records, CBA, or screening data.",
+    "No facts or documents were provided for cross-examination. What is the subject project — technology, capacity (MW and MWh), site location (county/state), acreage, and target COD — so that benchmark research and contradiction screening can be scoped?",
+    "Which core diligence documents exist and can be acquired for extraction (site control/title, interconnection agreement or queue study, offtake/PPA, EPC or CAPEX budget, equipment supply agreements/POs, permit matrix, environmental surveys, BOC/tax-credit evidence)? Without at least two independent fact sets, no contradiction analysis can run."
+  ],
+  "action_pack": {
+    "rfis": [
+      "Provide project overview: technology (solar+storage), capacity (MW and MWh), site location (county, state, acreage), target COD, and development stage.",
+      "Provide site control documents: leases, easements, purchase options, and title report.",
+      "Provide zoning and permitting status: zoning designation, ordinance applicability, conditional use permit application, and CEQA status.",
+      "Provide interconnection documents: CAISO queue position, cluster study, interconnection agreement, POI, and network upgrade estimates.",
+      "Provide offtake documents: PPA, tolling agreement, or merchant assumptions, including counterparty credit information.",
+      "Provide CAPEX budget: detailed cost breakdown, escalation, contingency, and EPC contract.",
+      "Provide schedule: milestone dates, COD, and procurement plan.",
+      "Provide equipment supply agreements: POs and lead times for transformers, modules, and BESS.",
+      "Provide environmental surveys: biological, cultural, wetland, and any other required studies.",
+      "Provide tax credit documentation: beginning-of-construction evidence and ITC/PTC qualification.",
+      "Provide financing plan: sources & uses, debt term sheet, and equity commitment.",
+      "Provide community/tribal consultation records, community benefits agreement (CBA), and environmental justice screening."
+    ],
+    "agency_actions": [
+      {
+        "agency": "Napa County Planning, Building, and Environmental Services",
+        "action": "Engage to verify zoning designation and initiate conditional use permit application and CEQA review.",
+        "why": "To confirm the project is permitted under Napa County ag-land restrictions and to identify any kill-switch issues early.",
+        "deadline": "Within 30 days"
+      },
+      {
+        "agency": "California Department of Fish and Wildlife (CDFW)",
+        "action": "Engage for California Endangered Species Act consultation and potential incidental take permit.",
+        "why": "To assess biological constraints, seasonal windows, and mitigation requirements for sensitive species.",
+        "deadline": "Within 45 days"
+      },
+      {
+        "agency": "U.S. Fish and Wildlife Service (USFWS)",
+        "action": "Engage for Section 7 consultation if federal nexus exists (e.g., federal permits or funding).",
+        "why": "To evaluate impacts on federally listed species and ensure compliance with the Endangered Species Act.",
+        "deadline": "Within 45 days"
+      },
+      {
+        "agency": "Regional Water Quality Control Board (RWQCB)",
+        "action": "Engage for NPDES Construction Stormwater Permit and any 401 water quality certification.",
+        "why": "To ensure compliance with water quality regulations and avoid construction delays.",
+        "deadline": "Within 60 days"
+      },
+      {
+        "agency": "California Independent System Operator (CAISO)",
+        "action": "Engage to confirm interconnection queue position, study status, and network upgrade requirements.",
+        "why": "To assess interconnection feasibility, timeline, and cost exposure critical to project viability.",
+        "deadline": "Within 30 days"
+      },
+      {
+        "agency": "California Public Utilities Commission (CPUC)",
+        "action": "Engage to confirm eligibility for the 6,000 MW NQC procurement program and resource adequacy requirements.",
+        "why": "To validate offtake marketability and revenue certainty for the project.",
+        "deadline": "Within 30 days"
+      },
+      {
+        "agency": "Internal Revenue Service (IRS)",
+        "action": "Engage for guidance on ITC/PTC beginning-of-construction rules and eligibility.",
+        "why": "To ensure tax credit eligibility, which represents ~30-40% of project value, and avoid cliff exposure.",
+        "deadline": "Within 30 days"
+      },
+      {
+        "agency": "Napa County Agricultural Commissioner",
+        "action": "Engage to assess agricultural land impact and mitigation requirements.",
+        "why": "To address ag-land preservation concerns and secure necessary approvals for solar+storage on agricultural land.",
+        "deadline": "Within 30 days"
+      }
+    ],
+    "verification_requests": [
+      "Verify PPA counterparty creditworthiness and contract terms with a third-party credit agency.",
+      "Verify CAISO queue position and study results directly with CAISO.",
+      "Verify transformer lead times with major manufacturers (e.g., GE, Siemens, ABB) and module suppliers (e.g., First Solar, LONGi) for current lead times.",
+      "Verify land ownership and title with the Napa County Recorder's office.",
+      "Verify environmental survey results with a qualified biologist and cross-check with CDFW/USFWS data."
+    ],
+    "conditions_precedent": [
+      "Receipt and review of all core diligence documents: site control, interconnection, offtake, CAPEX, schedule, equipment, environmental, tax credits, and financing.",
+      "Resolution of zoning kill-switch: confirmation that the project is permitted under Napa County zoning and ag-land restrictions.",
+      "Confirmation of site control with valid leases/options and clear title.",
+      "Confirmation of interconnection queue position with no fatal network upgrade issues.",
+      "Execution of offtake agreement or a credible merchant plan with market analysis.",
+      "CAPEX within benchmark range ($1.43–1.56/Wac) with adequate contingency.",
+      "Schedule feasibility confirmed against equipment lead times (e.g., transformer lead time 128–144 weeks).",
+      "Environmental surveys complete with no fatal constraints and mitigation plan in place.",
+      "Tax credit eligibility confirmed with beginning-of-construction evidence.",
+      "Financing plan with committed equity and debt term sheet."
+    ]
+  },
+  "recommended_next_action": "TOTAL DATA ABSENCE: zero documents ingested, zero facts extracted — no cross-examination possible and no benchmark scoping achievable",
+  "acquired_data": [],
+  "user": "rai"
+}

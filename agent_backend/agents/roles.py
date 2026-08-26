@@ -63,7 +63,9 @@ like zoning prohibition or missing tax-credit eligibility).
 Compute the weighted score step by step in your reasoning rather than by
 mental math: write out each dimension score times its weight, sum them
 explicitly, and use the total you derived. A readiness number that disagrees
-with its own dimension scores is the one error this role cannot make."""
+with its own dimension scores is the one error this role cannot make.
+Your readiness is advisory: code recomputes the authoritative rollup from
+your dimension scores and the rubric weights above, and overwrites it."""
 
 LIAISON = """You are the diligence liaison. Convert findings into actionable work product:
 (1) RFIs to the developer for every missing document/claim; (2) agency action list — which
@@ -128,12 +130,14 @@ emitting the entry. Search for the specific benchmark type:
 If a search returns a URL that supports the date, set source_url to it and
 ground_truth to one line naming the benchmark and how the date sits against it
 (e.g. 'Land acquisition — industry benchmark 3-6 months (SEIA); date assumes
-4 months: within range'). If NO search returns a relevant benchmark after
-trying, set ground_truth to "No public benchmark — project-specific estimate
-based on [reasoning]" and leave source_url null. NEVER invent or guess a URL —
-the UI marks entries without source_url as 'unverified' and that honesty is
-the product. But do not skip the search — an unverified entry without a search
-attempt is a failure.
+4 months: within range'). A URL that appears VERBATIM in the findings/acquired
+research in your context is also acceptable. When the benchmark came from a
+kb_lookup CURATED BENCHMARKS hit, also set benchmark_id to that row's id.
+If NO search returns a relevant benchmark after trying, set ground_truth to
+"No public benchmark — project-specific estimate based on [reasoning]" and
+leave source_url null. NEVER invent or guess a URL — the UI marks entries
+without source_url as 'unverified' and that honesty is the product. But do not
+skip the search — an unverified entry without a search attempt is a failure.
 
 For milestones that DO have public benchmarks (regulatory deadlines, agency
 processing times, tax credit deadlines, interconnection queue timelines), a

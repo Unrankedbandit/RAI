@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useProjectDetail } from "@/lib/agent/useProjectDetail";
 import { bandColorVar } from "@/lib/band";
 import { clsx } from "@/lib/clsx";
+import { eventDateLabel } from "@/lib/timeline";
 
 /**
  * Print-optimized due-diligence memo — the target of the Reports tab's
@@ -146,7 +147,7 @@ export default function MemoPage() {
               {timeline.map((e) => (
                 <li key={e.id} className="flex gap-2">
                   <span className="w-24 flex-none font-medium text-ink">
-                    {e.dateDisplay ?? e.date}
+                    {eventDateLabel(e)}
                   </span>
                   <span>
                     {e.label}

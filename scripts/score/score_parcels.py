@@ -115,7 +115,17 @@ def _overlap_fraction(layer: dict, poly) -> float | None:
         return 0.0
     area = 0.0
     for i in hits:
-        area += poly.intersection(layer["geoms"][int(i)]).area
+        g = layer["geoms"][int(i)]
+        try:
+            area += poly.intersection(g).area
+        except Exception:
+            # Invalid layer geometry slips through occasionally (a few CPAD
+            # holdings) — GEOS TopologyException killed the LA run once.
+            # Repair the candidate and retry once; then skip it.
+            try:
+                area += poly.intersection(g.buffer(0)).area
+            except Exception:
+                continue
     return min(area / poly.area, 1.0) if poly.area > 0 else 0.0
 
 
@@ -251,7 +261,13 @@ def main() -> int:
             except json.JSONDecodeError:
                 skipped += 1
                 continue
-            scored = score_feature(st, extra, feature, perf)
+            try:
+                scored = score_feature(st, extra, feature, perf)
+            except Exception:
+                # A pathological parcel must never kill a multi-million
+                # parcel run — count it skipped and move on.
+                skipped += 1
+                continue
             if scored is None:
                 skipped += 1
                 continue

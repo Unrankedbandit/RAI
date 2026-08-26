@@ -1,0 +1,151 @@
+{
+  "project": "Parcel 48H-7800-2-1 — ? ac",
+  "location": "Alameda County, CA",
+  "readiness": 5.75,
+  "decision": "Hold",
+  "dimensions": [
+    {
+      "name": "land",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "Site acreage is null — cannot test against ~5–7 ac/MW benchmark for 100 MW solar+storage",
+        "No leases, deeds, easements, or title commitments — site control entirely unverified",
+        "No zoning determination for Alameda County parcel; KB shows CA counties can impose outright solar/BESS prohibitions on ag land (Solano ZT 12-04 precedent) — unresolved kill-criterion"
+      ]
+    },
+    {
+      "name": "law",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "No permit register, zoning evidence, or milestone dates — permitting path (CEQA vs. CEC AB 205 Opt-In) cannot be assessed",
+        "Tax-credit eligibility unverified: no COD, no beginning-of-construction evidence; under OBBBA the solar ITC/PTC BOC deadline (Jul 4, 2026) has passed — missing tax-credit eligibility is an unresolved kill-criterion",
+        "No environmental surveys, species constraints, or water sourcing plan; no community/tribal consultation status"
+      ]
+    },
+    {
+      "name": "finance",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "No CAPEX figure to test against $1.43–1.56/Wac installed benchmark (plus ~$200–350/kWh for BESS)",
+        "No DSCR, leverage, contingency, or tax-credit assumptions — model cannot be tested against ≥1.20x P90 covenant norms",
+        "No financial model provided at all"
+      ]
+    },
+    {
+      "name": "materials",
+      "rag": "red",
+      "score": 5.0,
+      "flags": [
+        "No supply agreements, POs, or quoted lead times for transformers/GSUs (benchmark 128–144 weeks), modules, BESS, or switchgear",
+        "No integrated schedule with NTP/COD to test long-lead procurement feasibility",
+        "FEOC-compliant BESS cell sourcing and domestic-content status unknown"
+      ]
+    },
+    {
+      "name": "demand",
+      "rag": "red",
+      "score": 10.0,
+      "flags": [
+        "No PPAs, tolling agreements, or LOIs — contracted vs. merchant volume unassessable against ≥80% contracted threshold",
+        "No interconnection agreement or queue position; CAISO historical completion ~20%, IR→COD ~5 years",
+        "Only mitigant: CA market fundamentals favor solar+storage (4-hr BESS ≈90–95% NQC; standalone solar NQC ~10% and ineligible for new CPUC procurement) — configuration is at least the viable one"
+      ]
+    }
+  ],
+  "red_flags": [],
+  "contradictions": [],
+  "missing_info": [
+    "Entire fact base is empty: no documents acquired, no facts extracted, no research findings attached to this run — cross-examination is impossible until extraction produces at least two comparable claims.",
+    "CAPEX / budget: no cost figures to test against installed-cost benchmarks ($/Wac) or materials and labor escalation indices.",
+    "Equipment procurement / supply chain: no supply agreements, purchase orders, or quoted lead times (transformers/GSUs, modules, BESS, switchgear) to test against the construction schedule and COD.",
+    "Interconnection / contracted capacity: no MW claims and no executed interconnection or transmission service agreements to reconcile against each other.",
+    "Permitting: no permit register, zoning determination, or milestone dates to test schedule feasibility.",
+    "Site control: no leases, deeds, easements, or title commitments to verify acreage and control claims.",
+    "Project schedule: no integrated schedule with NTP/COD milestones to compare against permitting timelines and long-lead equipment deliveries.",
+    "Offtake / revenue: no PPAs, tolling agreements, or LOIs; contracted vs. merchant volume cannot be assessed.",
+    "Financial model: no DSCR, leverage, contingency, or tax-credit assumptions to test against covenants and incentive deadlines.",
+    "Environmental / ecological: no survey results, species constraints, or water sourcing plan.",
+    "Community / stakeholder: no community agreements, tribal consultation status, or local opposition evidence.",
+    "No source documents were provided in this run. Obtain the core diligence set — CAPEX model/budget, EPC and major equipment supply agreements, interconnection agreement and queue position, permit register and zoning evidence, site control/title documents, integrated project schedule, and offtake agreements — so fact extraction and cross-examination can proceed.",
+    "Once documents are acquired, extract every quantified claim (MW, MWh, $/Wac, $M, acres, dates, lead times in weeks, capacity factor, escalation %) with units preserved, so unit-mismatch and percentage-delta checks can be run across fact sets."
+  ],
+  "action_pack": {
+    "rfis": [
+      "Provide site control documents: leases, deeds, easements, and title commitments for the parcel, including total acreage and legal description.",
+      "Provide zoning determination from Alameda County confirming the parcel is zoned for solar+storage use, or evidence of a conditional use permit application.",
+      "Provide a complete permit register with all required permits (CEQA, CEC AB 205 opt-in, county, state, federal) and milestone dates.",
+      "Provide environmental surveys (biological, cultural, water) and any species constraints or mitigation plans.",
+      "Provide water sourcing plan and any water rights or supply agreements.",
+      "Provide community agreements, tribal consultation status, and any local opposition evidence.",
+      "Provide CAPEX model/budget with cost breakdown ($/Wac, $/kWh for BESS) and escalation assumptions.",
+      "Provide EPC agreement and major equipment supply agreements (modules, BESS, transformers, switchgear) with lead times.",
+      "Provide interconnection agreement and CAISO queue position, including any study results.",
+      "Provide offtake agreements (PPAs, tolling, LOIs) with contracted volume and counterparty details.",
+      "Provide financial model with DSCR, leverage, contingency, and tax-credit assumptions.",
+      "Provide integrated project schedule with NTP and COD milestones.",
+      "Provide evidence of beginning of construction (BOC) for tax credit eligibility under OBBBA.",
+      "Provide FEOC-compliant BESS cell sourcing documentation and domestic content status.",
+      "Provide any other material contracts or claims not listed above."
+    ],
+    "agency_actions": [
+      {
+        "agency": "California Independent System Operator (CAISO)",
+        "action": "Confirm queue position and initiate or review interconnection study under the CAISO Generator Interconnection Procedures (GIP).",
+        "why": "To assess interconnection feasibility and timeline; only ~20% of queued projects reach COD.",
+        "deadline": "30 days from engagement"
+      },
+      {
+        "agency": "California Energy Commission (CEC)",
+        "action": "Determine eligibility for AB 205 opt-in permitting process for solar+storage projects.",
+        "why": "To streamline permitting and avoid lengthy CEQA review; if eligible, can reduce timeline.",
+        "deadline": "30 days"
+      },
+      {
+        "agency": "Alameda County Planning Department",
+        "action": "Obtain zoning determination and permit requirements for the parcel.",
+        "why": "To confirm the project is permissible; CA counties can prohibit solar/BESS on ag land.",
+        "deadline": "30 days"
+      },
+      {
+        "agency": "California Department of Fish and Wildlife (CDFW)",
+        "action": "Initiate environmental consultation and request species surveys.",
+        "why": "To identify any endangered species constraints and required mitigation.",
+        "deadline": "60 days"
+      },
+      {
+        "agency": "U.S. Fish and Wildlife Service (USFWS)",
+        "action": "Initiate consultation under Section 7 of the Endangered Species Act if listed species are present.",
+        "why": "To ensure compliance with federal endangered species law.",
+        "deadline": "60 days"
+      },
+      {
+        "agency": "Regional Water Quality Control Board (RWQCB) - San Francisco Bay Region",
+        "action": "Determine water quality permit requirements (e.g., NPDES stormwater, 401 certification).",
+        "why": "To ensure compliance with water quality regulations.",
+        "deadline": "60 days"
+      }
+    ],
+    "verification_requests": [
+      "Request from CAISO the current queue position and any interconnection study results for the project's queue number.",
+      "Request from potential offtakers (e.g., PG&E, SCE) confirmation of any executed PPAs or LOIs for the project.",
+      "Request from equipment suppliers (e.g., transformer manufacturers) written confirmation of lead times for GSU transformers and other long-lead items."
+    ],
+    "conditions_precedent": [
+      "All critical documents (site control, permits, interconnection, offtake, financial model, schedule) received and verified.",
+      "Zoning and permitting feasibility confirmed by Alameda County and CEC (if applicable).",
+      "Interconnection agreement executed or at least a confirmed queue position with a realistic COD timeline.",
+      "Offtake agreements executed for at least 80% of capacity.",
+      "Financial model validated against benchmarks (CAPEX, DSCR, etc.).",
+      "Tax credit eligibility confirmed (BOC evidence and compliance with OBBBA).",
+      "Site control verified with title commitments and acreage.",
+      "Environmental surveys completed and no fatal flaws.",
+      "Supply chain lead times confirmed to meet schedule."
+    ]
+  },
+  "recommended_next_action": "Empty fact base: zero documents acquired, zero facts extracted — no claim can be verified or cross-examined; diligence must restart with document acquisition",
+  "acquired_data": [],
+  "user": null
+}

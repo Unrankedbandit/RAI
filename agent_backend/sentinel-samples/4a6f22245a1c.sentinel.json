@@ -1,0 +1,856 @@
+{
+  "project": {
+    "id": "4a6f22245a1c",
+    "name": "Parcel 025-340-12-00 \u2014 ? ac",
+    "location": "Trinity County, CA",
+    "capacityMW": 0,
+    "latitude": 0,
+    "longitude": 0,
+    "activationScore": 12.0,
+    "band": "risk",
+    "scoreReason": "Empty dossier: 0.0 MW capacity, null acreage, zero extracted facts, zero acquired documents \u2014 no statutory path, financials, or site control can be established",
+    "status": "at-risk",
+    "pillars": [
+      {
+        "name": "Land",
+        "score": 10.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "8 flags open",
+        "subAgents": [
+          "extractor:land-docs",
+          "scout:zoning",
+          "researcher:land_use"
+        ],
+        "factors": [
+          {
+            "id": "land-flag-0",
+            "name": "site_acres null and capacity 0.0 MW \u2014 no site to underwrite",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "site_acres null and capacity 0.0 MW \u2014 no site to underwrite",
+            "sources": []
+          },
+          {
+            "id": "land-flag-1",
+            "name": "Parcel 025-340-12-00 ownership, acreage, and zoning unverified (county assessor/planning p",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Parcel 025-340-12-00 ownership, acreage, and zoning unverified (county assessor/planning pages 404)",
+            "sources": []
+          },
+          {
+            "id": "land-flag-2",
+            "name": "No site control, title evidence, or lease/purchase terms (benchmark: CA solar leases ~$935",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No site control, title evidence, or lease/purchase terms (benchmark: CA solar leases ~$935\u20131,600/ac/yr)",
+            "sources": []
+          },
+          {
+            "id": "land-flag-3",
+            "name": "High probability parcel or gen-tie crosses federal land (Shasta-Trinity NF / Trinity Alps ",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "High probability parcel or gen-tie crosses federal land (Shasta-Trinity NF / Trinity Alps Wilderness)",
+            "sources": []
+          },
+          {
+            "id": "land-flag-4",
+            "name": "Forested/mountainous terrain \u2014 steep-slope, erosion, and timberland-conversion constraints",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Forested/mountainous terrain \u2014 steep-slope, erosion, and timberland-conversion constraints; lower solar resource",
+            "sources": []
+          },
+          {
+            "id": "ev-land-0",
+            "name": "Timberland Conversion Permit likely required (forested parcel)",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Trinity County is heavily forested. Converting timberland to solar requires a Timberland Conversion Permit under the Z'berg-Nejedly Forest Practice Act \u2014 a distinct, lengthy, and often-contested approval not present in the dossier. Parcel vegetation/land-use class is unverified.",
+            "sources": [
+              "kb_lookup: construction-phase permit stack (CGP/SWPPP/1602)"
+            ],
+            "evidenceId": "ev-land-0"
+          },
+          {
+            "id": "ev-land-1",
+            "name": "Zoning district unverified \u2014 potential solar prohibition in rural/forestry districts",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Trinity County's zoning for parcel 025-340-12-00 could not be confirmed (county planning/assessor pages returned 404). Rural forested counties commonly restrict or prohibit commercial solar in timber/agriculture districts. If prohibited, the only viable path is CEC Opt-In (\u226550 MW + \u2265200 MWh), which preempts local zoning.",
+            "sources": [
+              "kb_lookup: zoning kill-switch pattern; CEC Opt-In preempts local zoning",
+              "https://www.trinitycounty.ca.gov/653/General-Plan-and-Zoning-Ordinance-Update (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-land-1"
+          },
+          {
+            "id": "ev-land-2",
+            "name": "Poor solar resource for far-northern mountainous site",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "Trinity County's far-northern latitude, mountainous terrain, and forest cover yield materially lower GHI than the Central Valley (Solano ~5.32 kWh/m\u00b2/day) or desert sites (5.8\u20136.2). Lower capacity factor and steep-slope siting reduce energy yield and raise cost per MWh. No irradiance study is in the dossier.",
+            "sources": [
+              "kb_lookup: resource benchmarks (Copper Mountain 4 CF 32.3%; Solano GHI 5.32)",
+              "https://databasin.org/datasets/cc41590ab20a4e60b6551b486d1d8497/ (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-land-2"
+          },
+          {
+            "id": "ev-land-3",
+            "name": "Transformer/GSU lead time 128\u2013144 weeks \u2014 order window missed for near-term COD",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "2025\u201326 market norm for large power transformers/GSUs is 128\u2013144 weeks (~2.5\u20132.8 years). For any 2028\u20132029 COD, orders had to be placed by mid-2025. No equipment procurement plan is documented.",
+            "sources": [
+              "kb_lookup: transformers worse than demo \u2014 128\u2013144 weeks",
+              "https://www.industrialsage.com/power-transformer-lead-times-us-grid-shortage/ (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-land-3"
+          },
+          {
+            "id": "ev-land-4",
+            "name": "Rural community opposition and limited local infrastructure",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "Trinity County is a small, economically depressed, forested county with no established utility-scale solar land-use pattern. Large industrial solar on forested land is likely to draw local opposition; the county lacks the staff and grid infrastructure to support a large project. No community engagement or CBA is documented.",
+            "sources": [
+              "kb_lookup: community/CBA benchmarks; rural ag siting opposition",
+              "https://trinity2050.com/communityplans.html (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-land-4"
+          }
+        ]
+      },
+      {
+        "name": "Law",
+        "score": 10.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "9 flags open",
+        "subAgents": [
+          "researcher:state_law",
+          "researcher:federal_law",
+          "researcher:ecology_epa"
+        ],
+        "factors": [
+          {
+            "id": "law-flag-0",
+            "name": "KILL-CRITERION: ITC/PTC beginning-of-construction deadline (Jul 4, 2026, Notice 2025-42) a",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "KILL-CRITERION: ITC/PTC beginning-of-construction deadline (Jul 4, 2026, Notice 2025-42) already passed with zero BOC evidence \u2014 tax-credit eligibility unresolved",
+            "sources": []
+          },
+          {
+            "id": "law-flag-1",
+            "name": "KILL-CRITERION RISK: zoning district unverified; rural forestry districts commonly prohibi",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "KILL-CRITERION RISK: zoning district unverified; rural forestry districts commonly prohibit commercial solar \u2014 only CEC Opt-In (\u226550 MW solar + \u2265200 MWh storage) preempts, and eligibility is unestablished at 0.0 MW",
+            "sources": []
+          },
+          {
+            "id": "law-flag-2",
+            "name": "No CEQA class or statutory path defined; full EIR 18\u201330 months if local route",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No CEQA class or statutory path defined; full EIR 18\u201330 months if local route",
+            "sources": []
+          },
+          {
+            "id": "law-flag-3",
+            "name": "Timberland Conversion Permit (PRC \u00a74621 et seq.) likely required and absent",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Timberland Conversion Permit (PRC \u00a74621 et seq.) likely required and absent",
+            "sources": []
+          },
+          {
+            "id": "law-flag-4",
+            "name": "ESA/CESA exposure (northern spotted owl, Trinity River salmon/steelhead) unassessed; AB 52",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "ESA/CESA exposure (northern spotted owl, Trinity River salmon/steelhead) unassessed; AB 52 tribal consultation and Sacred Lands search not started \u2014 fatal EIR defect if not concluded before certification",
+            "sources": []
+          },
+          {
+            "id": "ev-law-5",
+            "name": "Empty project dossier \u2014 no capacity, acreage, or facts to underwrite",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Project record lists capacity 0.0 MW, site acres null, and zero extracted facts. No CEQA class, no Opt-In eligibility (needs \u226550 MW solar + \u2265200 MWh storage), no COD, no BOC, no interconnection, no financials. Cannot establish statutory path, tax-credit eligibility, or economic viability.",
+            "sources": [
+              "kb_lookup: CEC Opt-In Certification (AB 205/AB 209)",
+              "https://www.energy.ca.gov/programs-and-topics/topics/power-plants/opt-certification-program (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-law-5"
+          },
+          {
+            "id": "ev-law-6",
+            "name": "ITC/PTC cliff deadline already passed \u2014 BOC evidence unverified",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Under OBBBA, a solar project with COD after 2029 forfeits the 30% ITC unless physical-work beginning-of-construction was documented by July 4, 2026 \u2014 a deadline that has already passed. The dossier provides no BOC evidence, no COD, and no capacity. This is the single largest go/no-go item.",
+            "sources": [
+              "kb_lookup: ITC cliff \u2014 deadline already passed (OBBBA/Notice 2025-42)",
+              "https://foleyhoag.com/news-and-insights/publications/alerts-and-updates/2026/june/federal-court-vacates-irs-notice-2025-42-restoring-five-percent-safe-harbor-for-beginning-of-const/ (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-law-6"
+          },
+          {
+            "id": "ev-law-7",
+            "name": "Likely federal land / gen-tie crossing \u2192 NEPA + ROW, multi-year",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Trinity County is dominated by Shasta-Trinity National Forest and Trinity Alps Wilderness. Any gen-tie crossing federal land requires a BLM ROW grant, NEPA review, and plan conformance \u2014 precedent runs 2\u20133 years and is appeal-prone. Parcel ownership and gen-tie route are unverified.",
+            "sources": [
+              "kb_lookup: BLM 2024 Western Solar Plan ROD; Townsite Solar 2 precedent",
+              "https://www.blm.gov/press-release/bureau-land-management-releases-proposed-western-solar-plan (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-law-7"
+          },
+          {
+            "id": "ev-law-8",
+            "name": "Northern spotted owl / Trinity River fish habitat \u2014 ESA risk unassessed",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Trinity County is core northern spotted owl and Trinity River anadromous-fish habitat. Forest conversion and stream crossings would require ESA/CESA consultation and seasonal survey windows; no biological surveys, no AB 52 tribal consultation, and no Sacred Lands search are in the dossier.",
+            "sources": [
+              "kb_lookup: species protocols drive schedule (miss a window = +1 year)",
+              "https://www.wfpa.org/natural-resources-conservation/wildlife-conservation/northern-spotted-owl/ (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-law-8"
+          }
+        ]
+      },
+      {
+        "name": "Finance",
+        "score": 5.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "5 flags open",
+        "subAgents": [
+          "researcher:financials",
+          "cross-examiner"
+        ],
+        "factors": [
+          {
+            "id": "finance-flag-0",
+            "name": "No CAPEX, no financial model, no offtake, no interconnection cost estimate \u2014 nothing to un",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No CAPEX, no financial model, no offtake, no interconnection cost estimate \u2014 nothing to underwrite",
+            "sources": []
+          },
+          {
+            "id": "finance-flag-1",
+            "name": "30% solar ITC forfeited absent documented BOC (~$60M per 250 MW benchmark); storage ITC su",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "30% solar ITC forfeited absent documented BOC (~$60M per 250 MW benchmark); storage ITC survives but unquantified",
+            "sources": []
+          },
+          {
+            "id": "finance-flag-2",
+            "name": "Merchant battery revenue collapsed $115\u2192$52/kW-yr (2022\u21922025); 11.5% solar curtailment and",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Merchant battery revenue collapsed $115\u2192$52/kW-yr (2022\u21922025); 11.5% solar curtailment and routine negative midday prices unaddressed",
+            "sources": []
+          },
+          {
+            "id": "finance-flag-3",
+            "name": "No CCA in Trinity County \u2014 offtake limited to PG&E/CPUC procurement or bilateral, none ide",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No CCA in Trinity County \u2014 offtake limited to PG&E/CPUC procurement or bilateral, none identified",
+            "sources": []
+          },
+          {
+            "id": "ev-finance-9",
+            "name": "No financial model \u2014 CAPEX, escalation, and revenue unverifiable",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No CAPEX, $/W, escalation reserve, or revenue model is provided. Real benchmark is $1.43\u20131.56/Wac installed (LBNL/NREL); any figure near half of market is a red flag. Merchant tails must be underwritten to 2025 benchmarks ($52/kW-yr battery revenue), not 2022 vintage.",
+            "sources": [
+              "kb_lookup: CAPEX confirmed impossible at $0.74/W; merchant revenue compression",
+              "https://nikhs.substack.com/p/kla-3qfy26-earnings-the-complexity (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-finance-9"
+          }
+        ]
+      },
+      {
+        "name": "Materials",
+        "score": 15.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "3 flags open",
+        "subAgents": [
+          "researcher:supply_chain"
+        ],
+        "factors": [
+          {
+            "id": "materials-flag-0",
+            "name": "No equipment supply contracts, procurement plan, or extracted facts to test against materi",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No equipment supply contracts, procurement plan, or extracted facts to test against materials indices",
+            "sources": []
+          },
+          {
+            "id": "materials-flag-1",
+            "name": "Transformer/GSU lead time 128\u2013144 weeks (~2.5\u20132.8 yrs) unaddressed \u2014 orders not placed",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Transformer/GSU lead time 128\u2013144 weeks (~2.5\u20132.8 yrs) unaddressed \u2014 orders not placed",
+            "sources": []
+          },
+          {
+            "id": "materials-flag-2",
+            "name": "BESS (NFPA 855 / UL 9540A) fire-marshal pathway not scoped",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "BESS (NFPA 855 / UL 9540A) fire-marshal pathway not scoped",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Demand",
+        "score": 25.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "5 flags open",
+        "subAgents": [
+          "researcher:demand",
+          "researcher:interconnection"
+        ],
+        "factors": [
+          {
+            "id": "demand-flag-0",
+            "name": "No offtake or contracted capacity; zero project-specific demand evidence",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No offtake or contracted capacity; zero project-specific demand evidence",
+            "sources": []
+          },
+          {
+            "id": "demand-flag-1",
+            "name": "Standalone solar NQC ~10% and ineligible for new 6 GW CPUC procurement \u2014 4-hr storage (90\u2013",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Standalone solar NQC ~10% and ineligible for new 6 GW CPUC procurement \u2014 4-hr storage (90\u201395% NQC) mandatory but unconfigured at 0.0 MW",
+            "sources": []
+          },
+          {
+            "id": "demand-flag-2",
+            "name": "Structural CA demand exists (SB 100/SB 1020, 100% zero-carbon by 2045) \u2014 the only positive",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Structural CA demand exists (SB 100/SB 1020, 100% zero-carbon by 2045) \u2014 the only positive signal, but macro-level only",
+            "sources": []
+          },
+          {
+            "id": "ev-demand-10",
+            "name": "Weak rural northern-CA transmission \u2014 interconnection is the critical path",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Trinity County is in PG&E/CAISO territory with weak rural transmission. CAISO queue is >500 GW with only ~20% reaching COD; PG&E deprioritized projects average +8.4 years delay. No queue position, POI, or study is documented. For any near-term COD, a cluster study must complete ~mid-2027.",
+            "sources": [
+              "kb_lookup: CAISO queue reality; PG&E deprioritized projects +8.4 years"
+            ],
+            "evidenceId": "ev-demand-10"
+          },
+          {
+            "id": "ev-demand-11",
+            "name": "No offtake/PPA \u2014 projects without PPAs nearly always withdraw from CAISO queue",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Trinity County has no CCA (PG&E territory). Offtake requires PG&E IRP/CPUC procurement or a bilateral PPA. CAISO TPD allocation prioritizes executed PPAs \u2014 projects without PPAs nearly always withdraw. No offtake strategy is documented.",
+            "sources": [
+              "kb_lookup: CAISO TPD allocation priority; no CCAs in PG&E territory",
+              "http://eslawfirm.com/blog/caiso-proposes-improvements-interconnection-process-and-coor (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-demand-11"
+          }
+        ]
+      }
+    ]
+  },
+  "eyebrow": "Solar \u00b7 0 MW \u00b7 Trinity County, CA",
+  "runSummary": "0 documents analyzed \u00b7 3 open items",
+  "scoreBandLabel": "Risk \u00b7 12/100",
+  "scoreNote": "Empty dossier: 0.0 MW capacity, null acreage, zero extracted facts, zero acquired documents \u2014 no statutory path, financials, or site control can be established",
+  "evidence": {
+    "ev-land-0": {
+      "id": "ev-land-0",
+      "factorName": "Timberland Conversion Permit likely required (forested parcel)",
+      "kind": "single",
+      "summary": "Trinity County is heavily forested. Converting timberland to solar requires a Timberland Conversion Permit under the Z'berg-Nejedly Forest Practice Act \u2014 a distinct, lengthy, and often-contested approval not present in the dossier. Parcel vegetation/land-use class is unverified.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: construction-phase permit stack (CGP/SWPPP/1602)",
+          "location": "permitting",
+          "highlight": "Trinity County is heavily forested. Converting timberland to solar requires a Timberland Conversion Permit under the Z'berg-Nejedly Forest Practice Act \u2014 a distinct, lengthy, and often-contested approval not present in the dossier. Parcel vegetation/land-use class is unverified.",
+          "extractedLabel": "permitting",
+          "extractedValue": "Forest Practice Act TCR required for timberland conversion"
+        }
+      ]
+    },
+    "ev-land-1": {
+      "id": "ev-land-1",
+      "factorName": "Zoning district unverified \u2014 potential solar prohibition in rural/forestry districts",
+      "kind": "single",
+      "summary": "Trinity County's zoning for parcel 025-340-12-00 could not be confirmed (county planning/assessor pages returned 404). Rural forested counties commonly restrict or prohibit commercial solar in timber/agriculture districts. If prohibited, the only viable path is CEC Opt-In (\u226550 MW + \u2265200 MWh), which preempts local zoning.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: zoning kill-switch pattern; CEC Opt-In preempts local zoning",
+          "location": "zoning",
+          "highlight": "Trinity County's zoning for parcel 025-340-12-00 could not be confirmed (county planning/assessor pages returned 404). Rural forested counties commonly restrict or prohibit commercial solar in timber/agriculture districts. If prohibited, the only viable path is CEC Opt-In (\u226550 MW + \u2265200 MWh), which preempts local zoning.",
+          "extractedLabel": "zoning",
+          "extractedValue": "Local route 18\u201336 months with denial risk; Opt-In 270-day CEC clock"
+        },
+        {
+          "title": "https://www.trinitycounty.ca.gov/653/General-Plan-and-Zoning-Ordinance-Update (backfilled 2026-08-23, verified)",
+          "location": "zoning",
+          "highlight": "Trinity County's zoning for parcel 025-340-12-00 could not be confirmed (county planning/assessor pages returned 404). Rural forested counties commonly restrict or prohibit commercial solar in timber/agriculture districts. If prohibited, the only viable path is CEC Opt-In (\u226550 MW + \u2265200 MWh), which preempts local zoning.",
+          "extractedLabel": "zoning",
+          "extractedValue": "Local route 18\u201336 months with denial risk; Opt-In 270-day CEC clock"
+        }
+      ]
+    },
+    "ev-land-2": {
+      "id": "ev-land-2",
+      "factorName": "Poor solar resource for far-northern mountainous site",
+      "kind": "single",
+      "summary": "Trinity County's far-northern latitude, mountainous terrain, and forest cover yield materially lower GHI than the Central Valley (Solano ~5.32 kWh/m\u00b2/day) or desert sites (5.8\u20136.2). Lower capacity factor and steep-slope siting reduce energy yield and raise cost per MWh. No irradiance study is in the dossier.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: resource benchmarks (Copper Mountain 4 CF 32.3%; Solano GHI 5.32)",
+          "location": "resource_supply_chain",
+          "highlight": "Trinity County's far-northern latitude, mountainous terrain, and forest cover yield materially lower GHI than the Central Valley (Solano ~5.32 kWh/m\u00b2/day) or desert sites (5.8\u20136.2). Lower capacity factor and steep-slope siting reduce energy yield and raise cost per MWh. No irradiance study is in the dossier.",
+          "extractedLabel": "resource_supply_chain",
+          "extractedValue": "GHI 5.8\u20136.2 kWh/m\u00b2/day (desert); Solano 5.32; Trinity expected well below"
+        },
+        {
+          "title": "https://databasin.org/datasets/cc41590ab20a4e60b6551b486d1d8497/ (backfilled 2026-08-23, verified)",
+          "location": "resource_supply_chain",
+          "highlight": "Trinity County's far-northern latitude, mountainous terrain, and forest cover yield materially lower GHI than the Central Valley (Solano ~5.32 kWh/m\u00b2/day) or desert sites (5.8\u20136.2). Lower capacity factor and steep-slope siting reduce energy yield and raise cost per MWh. No irradiance study is in the dossier.",
+          "extractedLabel": "resource_supply_chain",
+          "extractedValue": "GHI 5.8\u20136.2 kWh/m\u00b2/day (desert); Solano 5.32; Trinity expected well below"
+        }
+      ]
+    },
+    "ev-land-3": {
+      "id": "ev-land-3",
+      "factorName": "Transformer/GSU lead time 128\u2013144 weeks \u2014 order window missed for near-term COD",
+      "kind": "single",
+      "summary": "2025\u201326 market norm for large power transformers/GSUs is 128\u2013144 weeks (~2.5\u20132.8 years). For any 2028\u20132029 COD, orders had to be placed by mid-2025. No equipment procurement plan is documented.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: transformers worse than demo \u2014 128\u2013144 weeks",
+          "location": "resource_supply_chain",
+          "highlight": "2025\u201326 market norm for large power transformers/GSUs is 128\u2013144 weeks (~2.5\u20132.8 years). For any 2028\u20132029 COD, orders had to be placed by mid-2025. No equipment procurement plan is documented.",
+          "extractedLabel": "resource_supply_chain",
+          "extractedValue": "Transformer lead time 128\u2013144 weeks"
+        },
+        {
+          "title": "https://www.industrialsage.com/power-transformer-lead-times-us-grid-shortage/ (backfilled 2026-08-23, verified)",
+          "location": "resource_supply_chain",
+          "highlight": "2025\u201326 market norm for large power transformers/GSUs is 128\u2013144 weeks (~2.5\u20132.8 years). For any 2028\u20132029 COD, orders had to be placed by mid-2025. No equipment procurement plan is documented.",
+          "extractedLabel": "resource_supply_chain",
+          "extractedValue": "Transformer lead time 128\u2013144 weeks"
+        }
+      ]
+    },
+    "ev-land-4": {
+      "id": "ev-land-4",
+      "factorName": "Rural community opposition and limited local infrastructure",
+      "kind": "single",
+      "summary": "Trinity County is a small, economically depressed, forested county with no established utility-scale solar land-use pattern. Large industrial solar on forested land is likely to draw local opposition; the county lacks the staff and grid infrastructure to support a large project. No community engagement or CBA is documented.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: community/CBA benchmarks; rural ag siting opposition",
+          "location": "community",
+          "highlight": "Trinity County is a small, economically depressed, forested county with no established utility-scale solar land-use pattern. Large industrial solar on forested land is likely to draw local opposition; the county lacks the staff and grid infrastructure to support a large project. No community engagement or CBA is documented.",
+          "extractedLabel": "community",
+          "extractedValue": "CBA anchors $0.5\u20135M one-time; treat <$1,000/MW as below-market"
+        },
+        {
+          "title": "https://trinity2050.com/communityplans.html (backfilled 2026-08-23, verified)",
+          "location": "community",
+          "highlight": "Trinity County is a small, economically depressed, forested county with no established utility-scale solar land-use pattern. Large industrial solar on forested land is likely to draw local opposition; the county lacks the staff and grid infrastructure to support a large project. No community engagement or CBA is documented.",
+          "extractedLabel": "community",
+          "extractedValue": "CBA anchors $0.5\u20135M one-time; treat <$1,000/MW as below-market"
+        }
+      ]
+    },
+    "ev-law-5": {
+      "id": "ev-law-5",
+      "factorName": "Empty project dossier \u2014 no capacity, acreage, or facts to underwrite",
+      "kind": "single",
+      "summary": "Project record lists capacity 0.0 MW, site acres null, and zero extracted facts. No CEQA class, no Opt-In eligibility (needs \u226550 MW solar + \u2265200 MWh storage), no COD, no BOC, no interconnection, no financials. Cannot establish statutory path, tax-credit eligibility, or economic viability.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: CEC Opt-In Certification (AB 205/AB 209)",
+          "location": "state_law",
+          "highlight": "Project record lists capacity 0.0 MW, site acres null, and zero extracted facts. No CEQA class, no Opt-In eligibility (needs \u226550 MW solar + \u2265200 MWh storage), no COD, no BOC, no interconnection, no financials. Cannot establish statutory path, tax-credit eligibility, or economic viability.",
+          "extractedLabel": "state_law",
+          "extractedValue": "Opt-In eligibility: solar \u226550 MW, storage \u2265200 MWh"
+        },
+        {
+          "title": "https://www.energy.ca.gov/programs-and-topics/topics/power-plants/opt-certification-program (backfilled 2026-08-23, verified)",
+          "location": "state_law",
+          "highlight": "Project record lists capacity 0.0 MW, site acres null, and zero extracted facts. No CEQA class, no Opt-In eligibility (needs \u226550 MW solar + \u2265200 MWh storage), no COD, no BOC, no interconnection, no financials. Cannot establish statutory path, tax-credit eligibility, or economic viability.",
+          "extractedLabel": "state_law",
+          "extractedValue": "Opt-In eligibility: solar \u226550 MW, storage \u2265200 MWh"
+        }
+      ]
+    },
+    "ev-law-6": {
+      "id": "ev-law-6",
+      "factorName": "ITC/PTC cliff deadline already passed \u2014 BOC evidence unverified",
+      "kind": "single",
+      "summary": "Under OBBBA, a solar project with COD after 2029 forfeits the 30% ITC unless physical-work beginning-of-construction was documented by July 4, 2026 \u2014 a deadline that has already passed. The dossier provides no BOC evidence, no COD, and no capacity. This is the single largest go/no-go item.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: ITC cliff \u2014 deadline already passed (OBBBA/Notice 2025-42)",
+          "location": "state_law",
+          "highlight": "Under OBBBA, a solar project with COD after 2029 forfeits the 30% ITC unless physical-work beginning-of-construction was documented by July 4, 2026 \u2014 a deadline that has already passed. The dossier provides no BOC evidence, no COD, and no capacity. This is the single largest go/no-go item.",
+          "extractedLabel": "state_law",
+          "extractedValue": "BOC documented by Jul 4, 2026 (Notice 2025-42); continuity safe harbor \u2192 PIS by Dec 31, 2030"
+        },
+        {
+          "title": "https://foleyhoag.com/news-and-insights/publications/alerts-and-updates/2026/june/federal-court-vacates-irs-notice-2025-42-restoring-five-percent-safe-harbor-for-beginning-of-const/ (backfilled 2026-08-23, verified)",
+          "location": "state_law",
+          "highlight": "Under OBBBA, a solar project with COD after 2029 forfeits the 30% ITC unless physical-work beginning-of-construction was documented by July 4, 2026 \u2014 a deadline that has already passed. The dossier provides no BOC evidence, no COD, and no capacity. This is the single largest go/no-go item.",
+          "extractedLabel": "state_law",
+          "extractedValue": "BOC documented by Jul 4, 2026 (Notice 2025-42); continuity safe harbor \u2192 PIS by Dec 31, 2030"
+        }
+      ]
+    },
+    "ev-law-7": {
+      "id": "ev-law-7",
+      "factorName": "Likely federal land / gen-tie crossing \u2192 NEPA + ROW, multi-year",
+      "kind": "single",
+      "summary": "Trinity County is dominated by Shasta-Trinity National Forest and Trinity Alps Wilderness. Any gen-tie crossing federal land requires a BLM ROW grant, NEPA review, and plan conformance \u2014 precedent runs 2\u20133 years and is appeal-prone. Parcel ownership and gen-tie route are unverified.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: BLM 2024 Western Solar Plan ROD; Townsite Solar 2 precedent",
+          "location": "federal_law",
+          "highlight": "Trinity County is dominated by Shasta-Trinity National Forest and Trinity Alps Wilderness. Any gen-tie crossing federal land requires a BLM ROW grant, NEPA review, and plan conformance \u2014 precedent runs 2\u20133 years and is appeal-prone. Parcel ownership and gen-tie route are unverified.",
+          "extractedLabel": "federal_law",
+          "extractedValue": "BLM NEPA ~2\u20133 years; ROW grant + plan conformance required for federal crossings"
+        },
+        {
+          "title": "https://www.blm.gov/press-release/bureau-land-management-releases-proposed-western-solar-plan (backfilled 2026-08-23, verified)",
+          "location": "federal_law",
+          "highlight": "Trinity County is dominated by Shasta-Trinity National Forest and Trinity Alps Wilderness. Any gen-tie crossing federal land requires a BLM ROW grant, NEPA review, and plan conformance \u2014 precedent runs 2\u20133 years and is appeal-prone. Parcel ownership and gen-tie route are unverified.",
+          "extractedLabel": "federal_law",
+          "extractedValue": "BLM NEPA ~2\u20133 years; ROW grant + plan conformance required for federal crossings"
+        }
+      ]
+    },
+    "ev-law-8": {
+      "id": "ev-law-8",
+      "factorName": "Northern spotted owl / Trinity River fish habitat \u2014 ESA risk unassessed",
+      "kind": "single",
+      "summary": "Trinity County is core northern spotted owl and Trinity River anadromous-fish habitat. Forest conversion and stream crossings would require ESA/CESA consultation and seasonal survey windows; no biological surveys, no AB 52 tribal consultation, and no Sacred Lands search are in the dossier.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: species protocols drive schedule (miss a window = +1 year)",
+          "location": "ecology_epa",
+          "highlight": "Trinity County is core northern spotted owl and Trinity River anadromous-fish habitat. Forest conversion and stream crossings would require ESA/CESA consultation and seasonal survey windows; no biological surveys, no AB 52 tribal consultation, and no Sacred Lands search are in the dossier.",
+          "extractedLabel": "ecology_epa",
+          "extractedValue": "ESA-listed species presence drives survey windows; miss a season = +1 year; AB 52 consultation must conclude before EIR certification"
+        },
+        {
+          "title": "https://www.wfpa.org/natural-resources-conservation/wildlife-conservation/northern-spotted-owl/ (backfilled 2026-08-23, verified)",
+          "location": "ecology_epa",
+          "highlight": "Trinity County is core northern spotted owl and Trinity River anadromous-fish habitat. Forest conversion and stream crossings would require ESA/CESA consultation and seasonal survey windows; no biological surveys, no AB 52 tribal consultation, and no Sacred Lands search are in the dossier.",
+          "extractedLabel": "ecology_epa",
+          "extractedValue": "ESA-listed species presence drives survey windows; miss a season = +1 year; AB 52 consultation must conclude before EIR certification"
+        }
+      ]
+    },
+    "ev-finance-9": {
+      "id": "ev-finance-9",
+      "factorName": "No financial model \u2014 CAPEX, escalation, and revenue unverifiable",
+      "kind": "single",
+      "summary": "No CAPEX, $/W, escalation reserve, or revenue model is provided. Real benchmark is $1.43\u20131.56/Wac installed (LBNL/NREL); any figure near half of market is a red flag. Merchant tails must be underwritten to 2025 benchmarks ($52/kW-yr battery revenue), not 2022 vintage.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: CAPEX confirmed impossible at $0.74/W; merchant revenue compression",
+          "location": "financials",
+          "highlight": "No CAPEX, $/W, escalation reserve, or revenue model is provided. Real benchmark is $1.43\u20131.56/Wac installed (LBNL/NREL); any figure near half of market is a red flag. Merchant tails must be underwritten to 2025 benchmarks ($52/kW-yr battery revenue), not 2022 vintage.",
+          "extractedLabel": "financials",
+          "extractedValue": "$1.43\u20131.56/Wac installed; battery gross revenue $52/kW-yr (2025)"
+        },
+        {
+          "title": "https://nikhs.substack.com/p/kla-3qfy26-earnings-the-complexity (backfilled 2026-08-23, verified)",
+          "location": "financials",
+          "highlight": "No CAPEX, $/W, escalation reserve, or revenue model is provided. Real benchmark is $1.43\u20131.56/Wac installed (LBNL/NREL); any figure near half of market is a red flag. Merchant tails must be underwritten to 2025 benchmarks ($52/kW-yr battery revenue), not 2022 vintage.",
+          "extractedLabel": "financials",
+          "extractedValue": "$1.43\u20131.56/Wac installed; battery gross revenue $52/kW-yr (2025)"
+        }
+      ]
+    },
+    "ev-demand-10": {
+      "id": "ev-demand-10",
+      "factorName": "Weak rural northern-CA transmission \u2014 interconnection is the critical path",
+      "kind": "single",
+      "summary": "Trinity County is in PG&E/CAISO territory with weak rural transmission. CAISO queue is >500 GW with only ~20% reaching COD; PG&E deprioritized projects average +8.4 years delay. No queue position, POI, or study is documented. For any near-term COD, a cluster study must complete ~mid-2027.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: CAISO queue reality; PG&E deprioritized projects +8.4 years",
+          "location": "interconnection",
+          "highlight": "Trinity County is in PG&E/CAISO territory with weak rural transmission. CAISO queue is >500 GW with only ~20% reaching COD; PG&E deprioritized projects average +8.4 years delay. No queue position, POI, or study is documented. For any near-term COD, a cluster study must complete ~mid-2027.",
+          "extractedLabel": "interconnection",
+          "extractedValue": "IR\u2192COD ~5 years; PG&E deprioritized projects +8.4 years; only ~20% of queued projects reach COD"
+        }
+      ]
+    },
+    "ev-demand-11": {
+      "id": "ev-demand-11",
+      "factorName": "No offtake/PPA \u2014 projects without PPAs nearly always withdraw from CAISO queue",
+      "kind": "single",
+      "summary": "Trinity County has no CCA (PG&E territory). Offtake requires PG&E IRP/CPUC procurement or a bilateral PPA. CAISO TPD allocation prioritizes executed PPAs \u2014 projects without PPAs nearly always withdraw. No offtake strategy is documented.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: CAISO TPD allocation priority; no CCAs in PG&E territory",
+          "location": "demand",
+          "highlight": "Trinity County has no CCA (PG&E territory). Offtake requires PG&E IRP/CPUC procurement or a bilateral PPA. CAISO TPD allocation prioritizes executed PPAs \u2014 projects without PPAs nearly always withdraw. No offtake strategy is documented.",
+          "extractedLabel": "demand",
+          "extractedValue": "Executed PPA first for TPD allocation; projects without PPAs nearly always withdraw"
+        },
+        {
+          "title": "http://eslawfirm.com/blog/caiso-proposes-improvements-interconnection-process-and-coor (backfilled 2026-08-23, verified)",
+          "location": "demand",
+          "highlight": "Trinity County has no CCA (PG&E territory). Offtake requires PG&E IRP/CPUC procurement or a bilateral PPA. CAISO TPD allocation prioritizes executed PPAs \u2014 projects without PPAs nearly always withdraw. No offtake strategy is documented.",
+          "extractedLabel": "demand",
+          "extractedValue": "Executed PPA first for TPD allocation; projects without PPAs nearly always withdraw"
+        }
+      ]
+    }
+  },
+  "timeline": [
+    {
+      "id": "tl-0",
+      "label": "ITC deadline",
+      "date": "2027-12-31",
+      "kind": "deadline",
+      "band": "risk",
+      "datePrecision": "day",
+      "position": 50,
+      "description": "OBBBA \u00a748E(e)(4): solar/wind placed in service after Dec 31, 2027 loses the 30% ITC unless construction began by Jul 4, 2026 (4-yr continuity safe harbor then applies). Standalone storage exempt; full credit for BOC through 2033.",
+      "sourceUrl": "https://www.irs.gov/irb/2025-36_IRB",
+      "groundTruth": "OBBBA \u00a748E(e)(4): solar/wind placed in service after Dec 31, 2027 loses the 30% ITC unless construction began by Jul 4, 2026 (4-yr continuity safe harbor then applies). Standalone storage exempt; full credit for BOC through 2033."
+    }
+  ],
+  "documents": [],
+  "priorityActions": [
+    {
+      "id": "pa-1",
+      "rank": 1,
+      "title": "Site control secured with legal description and acreage.",
+      "detail": "Site control secured with legal description and acreage.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-2",
+      "rank": 2,
+      "title": "Zoning confirmed to allow solar+storage, or CEC Opt-In eligibility established.",
+      "detail": "Zoning confirmed to allow solar+storage, or CEC Opt-In eligibility established.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-land-1"
+    },
+    {
+      "id": "pa-3",
+      "rank": 3,
+      "title": "BOC evidence provided and verified for ITC/PTC.",
+      "detail": "BOC evidence provided and verified for ITC/PTC.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-4",
+      "rank": 4,
+      "title": "Interconnection study completed with acceptable cost and timeline.",
+      "detail": "Interconnection study completed with acceptable cost and timeline.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-land-2"
+    },
+    {
+      "id": "pa-5",
+      "rank": 5,
+      "title": "Offtake agreement executed or credible path to offtake.",
+      "detail": "Offtake agreement executed or credible path to offtake.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-demand-11"
+    },
+    {
+      "id": "pa-6",
+      "rank": 6,
+      "title": "Environmental review initiated and no fatal issues.",
+      "detail": "Environmental review initiated and no fatal issues.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-7",
+      "rank": 7,
+      "title": "AB 52 consultation completed.",
+      "detail": "AB 52 consultation completed.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-8",
+      "rank": 8,
+      "title": "Financial model reviewed and meets investment criteria.",
+      "detail": "Financial model reviewed and meets investment criteria.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-9",
+      "rank": 9,
+      "title": "Equipment supply contracts executed with acceptable lead times.",
+      "detail": "Equipment supply contracts executed with acceptable lead times.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-10",
+      "rank": 10,
+      "title": "Provide site control evidence: deed, lease, option, or purchase agreement for Parcel 025-3",
+      "detail": "Provide site control evidence: deed, lease, option, or purchase agreement for Parcel 025-340-12-00, including acreage and legal description.",
+      "impact": "medium",
+      "scoreDelta": 3
+    },
+    {
+      "id": "pa-11",
+      "rank": 11,
+      "title": "Provide a title report and any encumbrances, easements, or restrictions affecting the parc",
+      "detail": "Provide a title report and any encumbrances, easements, or restrictions affecting the parcel.",
+      "impact": "medium",
+      "scoreDelta": 3
+    },
+    {
+      "id": "pa-12",
+      "rank": 12,
+      "title": "Provide zoning verification from Trinity County: current zoning district, allowed uses, an",
+      "detail": "Provide zoning verification from Trinity County: current zoning district, allowed uses, and any conditional use permit requirements.",
+      "impact": "medium",
+      "scoreDelta": 3,
+      "evidenceLink": "ev-land-0"
+    }
+  ],
+  "projectedScoreAfterMitigation": 40.0,
+  "suggestedQuestions": [
+    {
+      "question": "What's the top item to clear next?",
+      "answer": {
+        "role": "assistant",
+        "text": "Empty dossier: 0.0 MW capacity, null acreage, zero extracted facts, zero acquired documents \u2014 no statutory path, financials, or site control can be established"
+      }
+    },
+    {
+      "question": "Why is the activation score 12?",
+      "answer": {
+        "role": "assistant",
+        "text": "2 critical red flags and 0 cross-document contradictions. Weakest pillars: finance 5, land 10."
+      }
+    }
+  ],
+  "chatHistory": [
+    {
+      "role": "assistant",
+      "text": "I've completed diligence on Parcel 025-340-12-00 \u2014 ? ac. Activation score 12/100 \u2014 decision: Hold. 2 critical flags, 0 cross-document contradictions, 3 open information requests. Ask me what to prioritize."
+    }
+  ],
+  "report": {
+    "badge": "RED FLAG REPORT",
+    "title": "Parcel 025-340-12-00 \u2014 ? ac \u2014 due-diligence report",
+    "preparedBy": "Red Flag agent framework",
+    "summary": "Empty dossier: 0.0 MW capacity, null acreage, zero extracted facts, zero acquired documents \u2014 no statutory path, financials, or site control can be established",
+    "findings": [
+      {
+        "title": "Empty project dossier \u2014 no capacity, acreage, or facts to underwrite",
+        "text": "Project record lists capacity 0.0 MW, site acres null, and zero extracted facts. No CEQA class, no Opt-In eligibility (needs \u226550 MW solar + \u2265200 MWh storage), no COD, no BOC, no interconnection, no financials. Cannot establish statutory path, tax-credit eligibility, or economic viability."
+      },
+      {
+        "title": "ITC/PTC cliff deadline already passed \u2014 BOC evidence unverified",
+        "text": "Under OBBBA, a solar project with COD after 2029 forfeits the 30% ITC unless physical-work beginning-of-construction was documented by July 4, 2026 \u2014 a deadline that has already passed. The dossier provides no BOC evidence, no COD, and no capacity. This is the single largest go/no-go item."
+      },
+      {
+        "title": "Likely federal land / gen-tie crossing \u2192 NEPA + ROW, multi-year",
+        "text": "Trinity County is dominated by Shasta-Trinity National Forest and Trinity Alps Wilderness. Any gen-tie crossing federal land requires a BLM ROW grant, NEPA review, and plan conformance \u2014 precedent runs 2\u20133 years and is appeal-prone. Parcel ownership and gen-tie route are unverified."
+      },
+      {
+        "title": "Timberland Conversion Permit likely required (forested parcel)",
+        "text": "Trinity County is heavily forested. Converting timberland to solar requires a Timberland Conversion Permit under the Z'berg-Nejedly Forest Practice Act \u2014 a distinct, lengthy, and often-contested approval not present in the dossier. Parcel vegetation/land-use class is unverified."
+      },
+      {
+        "title": "Zoning district unverified \u2014 potential solar prohibition in rural/forestry districts",
+        "text": "Trinity County's zoning for parcel 025-340-12-00 could not be confirmed (county planning/assessor pages returned 404). Rural forested counties commonly restrict or prohibit commercial solar in timber/agriculture districts. If prohibited, the only viable path is CEC Opt-In (\u226550 MW + \u2265200 MWh), which preempts local zoning."
+      }
+    ],
+    "recommendedActions": [
+      "Site control secured with legal description and acreage.",
+      "Zoning confirmed to allow solar+storage, or CEC Opt-In eligibility established.",
+      "BOC evidence provided and verified for ITC/PTC.",
+      "Interconnection study completed with acceptable cost and timeline.",
+      "Offtake agreement executed or credible path to offtake."
+    ],
+    "sourceBasis": "0 source documents + 0 acquired research packs"
+  },
+  "map": {
+    "parcelSize": "\u2014",
+    "toggles": [
+      {
+        "id": "zoning",
+        "label": "Zoning",
+        "on": true
+      },
+      {
+        "id": "protected-land",
+        "label": "Protected land",
+        "on": true
+      },
+      {
+        "id": "transmission",
+        "label": "Transmission",
+        "on": false
+      }
+    ],
+    "distances": [],
+    "zones": [],
+    "pin": {
+      "left": 50,
+      "top": 50,
+      "label": "Trinity County, CA"
+    }
+  },
+  "teamMembers": []
+}

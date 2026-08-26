@@ -13,6 +13,7 @@ never fails the review request.
 from __future__ import annotations
 
 import json
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -77,4 +78,44 @@ def decide(store: Path, report_id: str, *, decision: str, reviewer: str,
     )
     trace.event("review.decided", f"{reviewer} {decision} report {report_id}",
                 decision=decision, reviewer=reviewer, report_id=report_id)
+    if decision == "APPROVED":
+        # Benchmark verification write-back: an approval vouches for every
+        # source the report cited, so flip those benchmark rows to verified.
+        # NOTE (audit 2026-08-25): reports today carry ~no source_urls —
+        # ground_truth was populated in 0 of 42 reports — so this usually
+        # matches nothing yet; it lights up as the liaison starts citing.
+        try:
+            _verify_cited_sources(store, report_id, reviewer)
+        except Exception:
+            pass  # fire-and-forget, same discipline as the Port mirror
     return record
+
+
+_URL_RE = re.compile(r"https?://[^\s)\]>\"',;]+")
+
+
+def _verify_cited_sources(store: Path, report_id: str, reviewer: str) -> int:
+    """Collect the report's cited source URLs and mark matching benchmark
+    rows verified. Sources: every timeline entry's source_url, any URL inside
+    its ground_truth note, and any URL in a red flag's or contradiction's
+    sources list (the Report schema has no `findings` field — review
+    2026-08-25)."""
+    from . import benchmarks
+    path = store / f"{report_id}.json"
+    if not path.exists():
+        return 0
+    report = json.loads(path.read_text(encoding="utf-8"))
+    urls: set[str] = set()
+    for entry in (report.get("action_pack") or {}).get("timeline") or []:
+        src = entry.get("source_url")
+        if isinstance(src, str) and src.strip():
+            urls.add(src.strip())
+        gt = entry.get("ground_truth")
+        if isinstance(gt, str):
+            urls.update(_URL_RE.findall(gt))
+    for key in ("red_flags", "contradictions"):
+        for finding in report.get(key) or []:
+            for s in finding.get("sources") or []:
+                if isinstance(s, str):
+                    urls.update(_URL_RE.findall(s))
+    return benchmarks.mark_verified(reviewer=reviewer, source_urls=sorted(urls))

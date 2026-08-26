@@ -39,7 +39,27 @@ def xlsx_extract(filename: str) -> str:
 
 
 def kb_lookup(query: str, max_hits: int = 5) -> str:
-    """Keyword search the compiled due-diligence knowledge base for benchmark context."""
+    """Keyword search the compiled due-diligence knowledge base for benchmark context.
+
+    Answers from the curated benchmark store first (agent_backend/benchmarks.py)
+    and prepends those hits over the markdown-grep passages below. Any store
+    error — unseeded DB, corrupt file — falls back to grep-only silently."""
+    curated = ""
+    try:
+        from . import benchmarks
+        rows = benchmarks.lookup(query, limit=max_hits)
+        if rows:
+            lines = ["CURATED BENCHMARKS (ground-truth store):"]
+            for r in rows:
+                tag = "verified" if r.get("verified_at") else "unverified"
+                value = f"{r['value']} {r['unit']}".strip()
+                lines.append(
+                    f"- {r['name']} — {value}"
+                    + (f" ({r['geography']})" if r.get("geography") else "")
+                    + f" [{r['source_url']}] {tag}")
+            curated = "\n".join(lines)
+    except Exception:
+        curated = ""
     terms = [t.lower() for t in re.findall(r"[a-zA-Z0-9$%.-]{3,}", query)]
     hits: list[tuple[int, str]] = []
     for md in KB_DIR.glob("*.md"):
@@ -48,7 +68,8 @@ def kb_lookup(query: str, max_hits: int = 5) -> str:
             if score:
                 hits.append((score, para.strip()))
     hits.sort(key=lambda h: -h[0])
-    return "\n\n---\n\n".join(p for _, p in hits[:max_hits]) or "no knowledge-base matches"
+    grep = "\n\n---\n\n".join(p for _, p in hits[:max_hits]) or "no knowledge-base matches"
+    return f"{curated}\n\n---\n\n{grep}" if curated else grep
 
 
 def web_search(query: str) -> str:

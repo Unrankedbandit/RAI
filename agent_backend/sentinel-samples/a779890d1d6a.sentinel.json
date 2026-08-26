@@ -662,70 +662,114 @@
   "timeline": [
     {
       "id": "tl-0",
-      "label": "Clark County Department of Environment and Sustainability (MSHCP and Air Quality",
-      "date": "2026-10-01",
+      "label": "USFWS Nevada Fish and Wildlife Office, with Clark County Desert Conservation Pro",
+      "date": "2026-01-01",
       "kind": "milestone",
       "band": "watch",
+      "datePrecision": "year",
       "position": 0.0
     },
     {
       "id": "tl-1",
+      "label": "Clark County Department of Environment and Sustainability (MSHCP and Air Quality",
+      "date": "2026-10-01",
+      "kind": "milestone",
+      "band": "watch",
+      "datePrecision": "quarter",
+      "position": 18.7
+    },
+    {
+      "id": "tl-2",
       "label": "Boulder City Community Development Department, Planning Commission, and City Cou",
       "date": "2026-10-01",
       "kind": "milestone",
       "band": "watch",
-      "position": 0.0
+      "datePrecision": "quarter",
+      "position": 18.7
     },
     {
-      "id": "tl-2",
+      "id": "tl-3",
       "label": "Boulder City municipal land program / Public Works \u2014 Execute the solar land leas",
       "date": "2026-10-01",
       "kind": "milestone",
       "band": "watch",
-      "position": 0.0
+      "datePrecision": "quarter",
+      "position": 18.7
     },
     {
-      "id": "tl-3",
+      "id": "tl-4",
       "label": "BLM Southern Nevada District Office / Las Vegas Field Office \u2014 Determine whether",
       "date": "2026-10-01",
       "kind": "milestone",
       "band": "watch",
-      "position": 0.0
+      "datePrecision": "quarter",
+      "position": 18.7
     },
     {
-      "id": "tl-4",
+      "id": "tl-5",
       "label": "Nevada SHPO \u2014 Complete Class III cultural surveys and SHPO consultation (Section",
       "date": "2026-10-01",
       "kind": "milestone",
       "band": "watch",
-      "position": 0.0
+      "datePrecision": "quarter",
+      "position": 18.7
     },
     {
-      "id": "tl-5",
+      "id": "tl-6",
       "label": "Public Utilities Commission of Nevada (PUCN) \u2014 File the UEPA permit application ",
       "date": "2027-01-01",
       "kind": "milestone",
       "band": "watch",
-      "position": 20.2
+      "datePrecision": "quarter",
+      "position": 25.0
     },
     {
-      "id": "tl-6",
+      "id": "tl-7",
       "label": "Nevada Division of Water Resources (State Engineer) \u2014 Apply for temporary water ",
       "date": "2027-01-01",
       "kind": "milestone",
       "band": "watch",
-      "position": 20.2
+      "datePrecision": "quarter",
+      "position": 25.0
     },
     {
-      "id": "tl-7",
+      "id": "tl-8",
       "label": "ITC deadline",
       "date": "2027-12-31",
       "kind": "deadline",
       "band": "watch",
-      "position": 100.0,
+      "datePrecision": "day",
+      "position": 49.9,
       "description": "OBBBA \u00a748E(e)(4): solar/wind placed in service after Dec 31, 2027 loses the 30% ITC unless construction began by Jul 4, 2026 (4-yr continuity safe harbor then applies). Standalone storage exempt; full credit for BOC through 2033.",
       "sourceUrl": "https://www.irs.gov/irb/2025-36_IRB",
       "groundTruth": "OBBBA \u00a748E(e)(4): solar/wind placed in service after Dec 31, 2027 loses the 30% ITC unless construction began by Jul 4, 2026 (4-yr continuity safe harbor then applies). Standalone storage exempt; full credit for BOC through 2033."
+    },
+    {
+      "id": "tl-9",
+      "label": "Nevada Division of Environmental Protection, Bureau of Water Pollution Control \u2014",
+      "date": "2028-01-01",
+      "kind": "milestone",
+      "band": "watch",
+      "datePrecision": "year",
+      "position": 50.0
+    },
+    {
+      "id": "tl-10",
+      "label": "FERC \u2014 File for market-based rate authority before first wholesale sale; confirm",
+      "date": "2029-01-01",
+      "kind": "milestone",
+      "band": "watch",
+      "datePrecision": "year",
+      "position": 75.0
+    },
+    {
+      "id": "tl-11",
+      "label": "IRS / U.S. Treasury (via tax counsel) \u2014 Document any pre-Jul 4, 2026 physical-wo",
+      "date": "2030-01-01",
+      "kind": "milestone",
+      "band": "watch",
+      "datePrecision": "year",
+      "position": 100.0
     }
   ],
   "documents": [],

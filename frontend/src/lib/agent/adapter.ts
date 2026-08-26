@@ -8,6 +8,7 @@
 // asserts byte-identical output on every fixture in agent_backend/reports/.
 
 import type {
+  DatePrecision,
   Evidence,
   EvidenceSource,
   Factor,
@@ -97,10 +98,21 @@ export function band(score: number): RiskBand {
 }
 
 function status(decision: string): "on-track" | "needs-review" | "at-risk" {
-  const d = decision.toLowerCase();
-  if (d.includes("proceed")) return "on-track";
-  if (d.includes("investigate")) return "needs-review";
-  return "at-risk";
+  // Exact decision -> status mapping. Post-contract Report.decision is
+  // "Proceed" | "Investigate" | "Hold"; legacy stored reports carry free
+  // text, so anything unrecognized falls back CONSERVATIVELY to
+  // needs-review — never on-track (substring matching once rendered
+  // "Do not proceed" green). Keep in lockstep with sentinel_adapter.py.
+  switch (decision.trim().toLowerCase()) {
+    case "proceed":
+      return "on-track";
+    case "investigate":
+      return "needs-review";
+    case "hold":
+      return "at-risk";
+    default:
+      return "needs-review";
+  }
 }
 
 function sevBand(severity: string): [RiskBand, StatusLabel] {
@@ -211,16 +223,28 @@ function linkEvidence(text: string, evidence: Record<string, Evidence>): string 
   return bestScore >= 2 ? best : undefined;
 }
 
-function isoFrom(text: string | null): string | undefined {
+/**
+ * Vague deadline string -> [first-of-period ISO date, precision].
+ *
+ * The ISO date is a SORT KEY ONLY — `precision` records how much of it the
+ * source string actually pinned down, so a fabricated day is never rendered
+ * as fact: "Sep 2027" -> ["2027-09-01", "month"], "Q3 2027" ->
+ * ["2027-07-01", "quarter"], a bare "2028" -> ["2028-01-01", "year"].
+ * Exact ISO dates are handled by the caller with precision "day". Keep in
+ * lockstep with _iso_from in agent_backend/sentinel_adapter.py.
+ */
+function isoFrom(text: string | null): [string, DatePrecision] | undefined {
   if (!text) return undefined;
   const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
   const m1 = /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+(\d{4})/.exec(text);
   if (m1) {
     const month = months.indexOf(m1[1].toLowerCase().slice(0, 3)) + 1;
-    return `${m1[2]}-${String(month).padStart(2, "0")}-01`;
+    return [`${m1[2]}-${String(month).padStart(2, "0")}-01`, "month"];
   }
   const m2 = /Q([1-4])\s*(\d{4})/.exec(text);
-  if (m2) return `${m2[2]}-${String(Number(m2[1]) * 3 - 2).padStart(2, "0")}-01`;
+  if (m2) return [`${m2[2]}-${String(Number(m2[1]) * 3 - 2).padStart(2, "0")}-01`, "quarter"];
+  const m3 = /(?<!\d)((?:19|20)\d{2})(?!\d)/.exec(text);
+  if (m3) return [`${m3[1]}-01-01`, "year"];
   return undefined;
 }
 
@@ -233,10 +257,18 @@ const SEV_TO_BAND: Record<string, RiskBand> = {
   low: "strong",
 };
 
-/** "2026-08-03" -> "Aug 3, 2026" (mockData's tooltip date format). */
-function dateDisplay(iso: string): string {
+/**
+ * Human tooltip date at the entry's TRUE precision: "2026-08-03"/day ->
+ * "Aug 3, 2026" (mockData's format), but month/quarter/year precisions
+ * render as "Sep 2027" / "Q3 2027" / "2027" so a fabricated first-of-period
+ * day never reads as an exact date.
+ */
+function dateDisplay(iso: string, precision: DatePrecision = "day"): string {
   const [y, m, d] = iso.split("-");
+  if (precision === "year") return y;
   const mon = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][Number(m) - 1];
+  if (precision === "month") return `${mon} ${y}`;
+  if (precision === "quarter") return `Q${Math.floor((Number(m) + 2) / 3)} ${y}`;
   return `${mon} ${Number(d)}, ${y}`;
 }
 
@@ -358,6 +390,7 @@ export function toSentinel(report: AgentReport, meta: SentinelMeta): ProjectDeta
     label: string;
     date: string;
     kind: "milestone" | "deadline";
+    datePrecision: DatePrecision;
     shortLabel?: string;
     dateDisplay?: string;
     description?: string;
@@ -366,14 +399,20 @@ export function toSentinel(report: AgentReport, meta: SentinelMeta): ProjectDeta
     band?: RiskBand;
   }[] = [];
   for (const [tIdx, t] of (report.action_pack.timeline ?? []).entries()) {
-    const iso = /^\d{4}-\d{2}-\d{2}$/.test(t.date || "") ? t.date : isoFrom(t.date);
-    if (iso) {
+    // datePrecision teeth (validation floor) + tIdx for the cited_sources
+    // fill below (PR #47) — precision rides the parse, the backfill keys on
+    // the entry's position.
+    const parsed: [string, DatePrecision] | undefined =
+      /^\d{4}-\d{2}-\d{2}$/.test(t.date || "") ? [t.date, "day"] : isoFrom(t.date);
+    if (parsed) {
+      const [iso, precision] = parsed;
       const entry: (typeof rawTimeline)[number] = {
         label: t.label.slice(0, 80),
         date: iso,
         kind: t.kind,
+        datePrecision: precision,
         shortLabel: t.label.slice(0, 26),
-        dateDisplay: dateDisplay(iso),
+        dateDisplay: dateDisplay(iso, precision),
         band: SEV_TO_BAND[t.severity] ?? "watch",
       };
       if (t.detail) entry.description = t.detail;
@@ -392,14 +431,17 @@ export function toSentinel(report: AgentReport, meta: SentinelMeta): ProjectDeta
   }
   if (rawTimeline.length === 0) {
     for (const a of report.action_pack.agency_actions) {
-      const iso = isoFrom(a.deadline);
-      if (iso) rawTimeline.push({ label: `${a.agency} — ${a.action}`.slice(0, 80), date: iso, kind: "milestone" });
+      const parsed = isoFrom(a.deadline);
+      if (parsed) {
+        rawTimeline.push({ label: `${a.agency} — ${a.action}`.slice(0, 80), date: parsed[0], kind: "milestone", datePrecision: parsed[1] });
+      }
     }
   }
   rawTimeline.push({
     label: "ITC deadline",
     date: ITC_DEADLINE,
     kind: "deadline",
+    datePrecision: "day", // pinned to the exact statutory date
     description: ITC_GROUND_TRUTH,
     sourceUrl: ITC_SOURCE_URL,
     groundTruth: ITC_GROUND_TRUTH,
@@ -417,6 +459,8 @@ export function toSentinel(report: AgentReport, meta: SentinelMeta): ProjectDeta
       date: e.date,
       kind: e.kind,
       band: e.band ?? b,
+      // How much of `date` is real — every raw entry sets it above.
+      datePrecision: e.datePrecision,
       position: maxT === minT ? 50 : Math.round(((Date.parse(e.date) - minT) / (maxT - minT)) * 1000) / 10,
     };
     if (e.shortLabel !== undefined) ev.shortLabel = e.shortLabel;

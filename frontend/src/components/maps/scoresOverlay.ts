@@ -57,7 +57,12 @@ const SCORE_OUTLINE = [
 
 /**
  * The overlay's vector layers for the given basemap, spread onto <Layer>
- * children of the pmtiles Source in MapLayersControl. Fill + hairline
+ * children of the pmtiles Source in MapLayersControl. TWO LOD tiers
+ * (bake_scores_lod.sh, 2026-08-25 research): `scorecells` (grid-cell mean
+ * score) paints z0-9 — the statistically honest low-zoom heat choropleth,
+ * since tippecanoe's drop-as-needed would otherwise thin parcels and lose
+ * the signal; `scores` (full parcels) takes over at z10. Layers absent from
+ * an older single-tier archive simply render nothing. Fill + hairline
  * outline on the tippecanoe source-layer `scores` (contract §8b). Stable
  * ids across basemaps — a basemap swap only repaints.
  */
@@ -65,9 +70,20 @@ export function scoresLayers(basemap: BasemapId): LayerProps[] {
   const dark = basemap === "dark";
   return [
     {
+      id: "ovl-scorecells-fill",
+      type: "fill",
+      "source-layer": "scorecells",
+      maxzoom: 10,
+      paint: {
+        "fill-color": SCORE_COLOR,
+        "fill-opacity": dark ? 0.7 : 0.55,
+      },
+    },
+    {
       id: "ovl-scores-fill",
       type: "fill",
       "source-layer": "scores",
+      minzoom: 10,
       paint: {
         "fill-color": SCORE_COLOR,
         "fill-opacity": dark ? 0.75 : 0.6,
@@ -77,6 +93,7 @@ export function scoresLayers(basemap: BasemapId): LayerProps[] {
       id: "ovl-scores-outline",
       type: "line",
       "source-layer": "scores",
+      minzoom: 10,
       paint: {
         "line-color": SCORE_OUTLINE,
         "line-opacity": dark ? 0.8 : 0.65,
