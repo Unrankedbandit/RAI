@@ -73,6 +73,13 @@ MAX_TOKENS = int(os.getenv("AGENT_MAX_TOKENS", "16000"))
 # wants a much larger MAX_TOKENS to go with it.
 EFFORT = os.getenv("AGENT_EFFORT", "high")
 
+# Initial-context budget per agent. The old 9k hard cap silently discarded
+# ~88% of a CrossExaminer run's input (77k chars of extracted facts, cut
+# mid-JSON) — the main-tier models take 128k+ token contexts, so budget
+# ~100k chars and shed WHOLE list items (never a mid-JSON slice) when a
+# payload is genuinely oversized.
+MAX_CONTEXT_CHARS = int(os.getenv("AGENT_CONTEXT_CHARS", "100000"))
+
 ToolFn = Callable[..., Any]
 
 # Reads ANTHROPIC_API_KEY from the environment. One client for the process:
@@ -93,6 +100,43 @@ def _extract_json(text: str) -> Any:
         if match:
             return json.loads(match.group(0))
         raise
+
+
+def _fit_context(context: dict[str, Any], cap: int = MAX_CONTEXT_CHARS) -> tuple[str, int, int]:
+    """Serialize `context` to <= `cap` chars WITHOUT slicing mid-JSON.
+
+    When oversized, drop whole items from the longest list and annotate the
+    payload: a blind [:cap] cut both corrupts the JSON and makes agents
+    report data they never saw as "missing" — the note tells the model the
+    input is partial. Returns (json, original_chars, items_omitted).
+    """
+    ctx = json.dumps(context, default=str)
+    original = len(ctx)
+    if original <= cap:
+        return ctx, original, 0
+    shrunk = {k: (list(v) if isinstance(v, list) else v) for k, v in context.items()}
+    omitted = 0
+    while True:
+        longest = max(
+            (k for k, v in shrunk.items() if isinstance(v, list) and v),
+            key=lambda k: len(shrunk[k]),
+            default=None,
+        )
+        # Reserve ~400 chars for the truncation note itself.
+        if longest is None or len(json.dumps(shrunk, default=str)) <= cap - 400:
+            break
+        shrunk[longest].pop()
+        omitted += 1
+    if omitted:
+        shrunk["_truncated"] = (
+            f"{omitted} item(s) omitted to fit the context budget — this data is "
+            f"PARTIAL. Do not report omitted entries as missing; note the limit "
+            f"in coverage gaps instead."
+        )
+        ctx = json.dumps(shrunk, default=str)
+    if len(ctx) > cap:  # no list items left to shed — last-resort hard cut
+        ctx = ctx[:cap]
+    return ctx, original, omitted
 
 
 async def _openai_chat(messages: list[dict], role_prompt: str, tools: dict, model: str | None = None) -> dict:
@@ -255,19 +299,20 @@ class Agent:
         self.on_status(f"[{self.name}] starting")
         if self.trace:
             self.trace.event("agent.start", self.name, model=_model, level="debug")
-        ctx = json.dumps(context or {}, default=str)
-        if len(ctx) > 9000:
+        ctx, original_chars, omitted = _fit_context(context or {})
+        if omitted or original_chars > len(ctx):
             # Same trap as the anthropic path's tool.truncated: silent
             # truncation hides why an agent "ignored" input it never saw.
             self.trace.warn(
                 "context.truncated",
-                f"initial context is {len(ctx)} chars, truncated to 9000",
+                f"initial context is {original_chars} chars, truncated to {len(ctx)}"
+                + (f" ({omitted} whole items omitted)" if omitted else ""),
             )
         messages: list[dict[str, Any]] = [
             {
                 "role": "user",
                 "content": (
-                    f"{task}\n\nContext:\n{ctx[:9000]}\n\n"
+                    f"{task}\n\nContext:\n{ctx}\n\n"
                     f"Use tools if you need more information. When done, reply with ONLY JSON "
                     f"matching this schema:\n{json.dumps(self.contract.model_json_schema())}"
                 ),
@@ -349,11 +394,18 @@ class Agent:
         self.on_status(f"[{self.name}] starting")
         # The role prompt rides in `system`, not as a message — that keeps the
         # cached prefix stable across every turn of the loop.
+        ctx, original_chars, omitted = _fit_context(context or {})
+        if omitted or original_chars > len(ctx):
+            self.trace.warn(
+                "context.truncated",
+                f"initial context is {original_chars} chars, truncated to {len(ctx)}"
+                + (f" ({omitted} whole items omitted)" if omitted else ""),
+            )
         messages: list[dict[str, Any]] = [
             {
                 "role": "user",
                 "content": (
-                    f"{task}\n\nContext:\n{json.dumps(context or {}, default=str)[:9000]}\n\n"
+                    f"{task}\n\nContext:\n{ctx}\n\n"
                     f"Use tools if you need more information. When done, reply with ONLY JSON "
                     f"matching this schema:\n{json.dumps(self.contract.model_json_schema())}"
                 ),
