@@ -1,0 +1,20 @@
+{
+  "name": "RAI",
+  "install": "bash .cursor/install.sh",
+  "terminals": [
+    {
+      "name": "backend",
+      "command": ".venv/bin/python -m uvicorn agent_backend.main:app --host 0.0.0.0 --port 8000",
+      "description": "FastAPI agent backend on http://localhost:8000 (serves /api/projects, uploads, analyze + SSE). Runs on mock/sample data without model keys."
+    },
+    {
+      "name": "frontend",
+      "command": "cd frontend && NEXT_PUBLIC_AGENT_API=http://localhost:8000 npm run dev",
+      "description": "Next.js 16 dashboard on http://localhost:3000, pointed at the local backend via NEXT_PUBLIC_AGENT_API (the code default is a remote host). Degrades to mock data if the backend is down."
+    }
+  ],
+  "ports": [
+    { "name": "frontend", "port": 3000 },
+    { "name": "backend", "port": 8000 }
+  ]
+}
