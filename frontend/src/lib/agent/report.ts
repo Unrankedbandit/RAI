@@ -66,6 +66,19 @@ export interface AgentAcquiredData {
   still_missing: string[];
 }
 
+/** One cited source extracted from the report — from the cited_sources table.
+ *  Present only when the backend has PostgreSQL configured. */
+export interface CitedSource {
+  id: number;
+  finding_type: "red_flag" | "contradiction" | "acquired_data" | "timeline";
+  finding_index: number;
+  source_text: string;
+  source_url: string | null;
+  source_label: string;
+  verified: boolean;
+  created_at: string;
+}
+
 /** The full report the agent pipeline writes (agent_backend/reports/*.json). */
 export interface AgentReport {
   project: string;
@@ -79,4 +92,7 @@ export interface AgentReport {
   action_pack: AgentActionPack;
   recommended_next_action: string | null;
   acquired_data: AgentAcquiredData[];
+  /** Cited sources from the DB — embedded by GET /api/reports/{id} when
+   *  PostgreSQL is configured. Absent in file-fallback and mock paths. */
+  _cited_sources?: CitedSource[];
 }
