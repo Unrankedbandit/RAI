@@ -11,12 +11,13 @@ import uuid
 from pathlib import Path
 from typing import Literal
 
-from fastapi import BackgroundTasks, FastAPI, File, Header, HTTPException, UploadFile
+from fastapi import BackgroundTasks, FastAPI, File, Header, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from . import grid, memo, review, share
+from . import db, grid, memo, redis_state, review, share
+from .db import DATABASE_URL
 from .agents.base import Agent
 from .agents.roles import ANALYST, ROLE_TOOLS
 from .gate import GapGate
@@ -32,6 +33,11 @@ from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def _lifespan(_app: FastAPI):
+    # Database + Redis init (no-op when DATABASE_URL / REDIS_URL unset —
+    # the existing file/in-memory behavior is the fallback).
+    await db.init_pool()
+    await db.run_migrations()
+    await redis_state.init_client()
     # Crash recovery: pipeline jobs live in process memory, so a restart
     # orphans their Port entities mid-flight. Sweep any RUNNING zombies to
     # FAILED/WorkerLost before serving — the catalog must never claim a run
@@ -42,6 +48,8 @@ async def _lifespan(_app: FastAPI):
     # loop stays free (grid endpoints 503 until loaded — frontend hides it).
     grid.preload()
     yield
+    await db.close_pool()
+    await redis_state.close_client()
 
 
 app = FastAPI(title="Red Flag Agent Backend", lifespan=_lifespan)
@@ -166,23 +174,84 @@ ALLOWED_UPLOAD = re.compile(r"\.(pdf|xlsx|csv|docx|txt)$", re.IGNORECASE)
 
 
 @app.post("/api/uploads")
-async def uploads(files: list[UploadFile] = File(...)):
+async def uploads(request: Request,
+                  files: list[UploadFile] = File(...),
+                  x_hax_user: str | None = Header(None)):
     """Receive the actual dossier files (multipart). Saved into the document
     directory the extractors read, so a subsequent /analyze with the returned
-    filenames processes the real uploaded bytes."""
+    filenames processes the real uploaded bytes. When the DB is configured,
+    each file is also extracted and persisted to the documents table with
+    IP-based user attribution."""
+    client_ip = db.extract_client_ip(request)
+    user_id = await db.resolve_user(client_ip, display_name=x_hax_user)
     saved = []
     for f in files:
         name = Path(f.filename or "").name  # strip any client-supplied path
         if not name or not ALLOWED_UPLOAD.search(name):
             continue
-        (DOC_DIR / name).write_bytes(await f.read())
+        content = await f.read()
+        (DOC_DIR / name).write_bytes(content)
+
+        # Persist to documents table with extracted text (no-op without DB).
+        ext = Path(name).suffix.lower().lstrip(".")
+        file_type = "xlsx" if ext == "xlsx" else ext if ext in ("pdf", "csv", "docx", "txt") else "txt"
+        extracted_text = None
+        page_count = None
+        sheet_count = None
+        if file_type == "pdf":
+            try:
+                from pypdf import PdfReader
+                import io
+                reader = PdfReader(io.BytesIO(content))
+                page_count = len(reader.pages)
+                extracted_text = "\n".join(
+                    f"--- page {i+1} ---\n{p.extract_text() or ''}"
+                    for i, p in enumerate(reader.pages)
+                )[:12000]
+            except Exception:
+                pass
+        elif file_type == "xlsx":
+            try:
+                import openpyxl, io
+                wb = openpyxl.load_workbook(io.BytesIO(content), data_only=True)
+                sheet_count = len(wb.sheetnames)
+                lines = []
+                for ws in wb.worksheets:
+                    lines.append(f"=== SHEET: {ws.title} ===")
+                    for row in ws.iter_rows(values_only=True):
+                        cells = [str(c) if c is not None else "" for c in row]
+                        if any(cells):
+                            lines.append(" | ".join(cells))
+                extracted_text = "\n".join(lines)[:12000]
+            except Exception:
+                pass
+
+        await db.save_document(
+            name,
+            file_type=file_type,
+            file_size=len(content),
+            page_count=page_count,
+            sheet_count=sheet_count,
+            extracted_text=extracted_text,
+            client_ip=client_ip,
+            user_id=user_id,
+        )
         saved.append(name)
     return {"files": saved}
 
 
 @app.post("/api/projects/analyze")
-async def analyze(req: AnalyzeRequest, x_hax_user: str | None = Header(None)):
+async def analyze(req: AnalyzeRequest, request: Request,
+                  x_hax_user: str | None = Header(None)):
     from .agents.base import PROVIDER
+    # IP-based user identity: every job run is tied to the caller's IP.
+    # X-Hax-User (gate SSO) takes precedence as the display name; the IP
+    # is always captured as the user identity for audit and attribution.
+    client_ip = db.extract_client_ip(request)
+    user_id = await db.resolve_user(client_ip, display_name=x_hax_user)
+    # The user label that the pipeline stamps on the Report: SSO name when
+    # available, else the raw IP so the report is still attributable.
+    user_label = x_hax_user or client_ip
     # Admission control: refuse early only when every run slot is taken AND the
     # queue is full — anything less just queues (see work()). Checked before any
     # job state exists so a 429 leaves nothing behind.
@@ -194,6 +263,14 @@ async def analyze(req: AnalyzeRequest, x_hax_user: str | None = Header(None)):
     queue: asyncio.Queue = asyncio.Queue()
     JOB_QUEUES[job_id] = queue
     JOB_LOGS[job_id] = []
+
+    # The one SSE frame that names the lane — the dashboard badges off this.
+    # Explicit request mode wins; the env default fills in for old clients.
+    mode = req.mode or os.getenv("PIPELINE_MODE", "fast")
+
+    # Persist job metadata to PostgreSQL (survives restart; no-op without DB).
+    await db.save_job(job_id, pipeline_mode=mode, user_email=x_hax_user,
+                      client_ip=client_ip, user_id=user_id)
 
     # One trace per job. Its sink pushes structured events onto the same queue
     # the SSE endpoint drains, so the dashboard and the console see identical
@@ -207,6 +284,9 @@ async def analyze(req: AnalyzeRequest, x_hax_user: str | None = Header(None)):
         queue.put_nowait(ev)
         JOB_LOGS[job_id].append(ev)
         reporter.handle_event(ev)
+        # Dual-write trace events to Redis (cross-process visibility; no-op
+        # without REDIS_URL).
+        asyncio.ensure_future(redis_state.append_trace(job_id, ev))
 
     trace = Trace(job_id, sink=sink)
     JOB_TRACES[job_id] = trace
@@ -215,8 +295,6 @@ async def analyze(req: AnalyzeRequest, x_hax_user: str | None = Header(None)):
         project=req.name, location=req.location, documents=req.docs,
     )
     # The one SSE frame that names the lane — the dashboard badges off this.
-    # Explicit request mode wins; the env default fills in for old clients.
-    mode = req.mode or os.getenv("PIPELINE_MODE", "fast")
     trace.event("job.mode", f"pipeline mode: {mode}", mode=mode)
     trace.event("job.created", f"job {job_id} queued")
     reporter.start(req.name, req.location, req.docs)
@@ -253,12 +331,16 @@ async def analyze(req: AnalyzeRequest, x_hax_user: str | None = Header(None)):
         await _run_gate().acquire()
         RUN_STATE["queued"] -= 1
         RUN_STATE["active"] += 1
+        # Mirror admission counters to Redis (cross-process; no-op without Redis).
+        await redis_state.incr_queued()
+        await redis_state.incr_active()
+        await db.update_job(job_id, status="running")
         status("[capacity] run slot acquired")
         try:
             report = await asyncio.wait_for(
                 run_pipeline(
                     req.name, req.location, req.docs, on_status=status, trace=trace,
-                    gap_gate=gate, user=x_hax_user, mode=mode,
+                    gap_gate=gate, user=user_label, mode=mode,
                 ),
                 timeout=PIPELINE_TIMEOUT,
             )
@@ -266,6 +348,15 @@ async def analyze(req: AnalyzeRequest, x_hax_user: str | None = Header(None)):
             path.write_text(report.model_dump_json(indent=2), encoding="utf-8")
             trace.event("job.persisted", f"report written to {path}",
                         bytes=path.stat().st_size)
+            # Dual-write: persist to PostgreSQL (source of truth when DB is
+            # configured; file remains for backward compat / migration).
+            await db.save_report(
+                job_id, report.model_dump(),
+                name=req.name, location=req.location,
+                pipeline_mode=mode, user_email=x_hax_user,
+                client_ip=client_ip, user_id=user_id,
+            )
+            await db.update_job(job_id, status="completed", report_id=job_id)
             # Human-in-the-loop gate: the run is not "done" in Port until a
             # person reviews the report there and flips status to APPROVED.
             reporter.awaiting_review(
@@ -283,6 +374,7 @@ async def analyze(req: AnalyzeRequest, x_hax_user: str | None = Header(None)):
                    "aborted instead of hanging; check the bridge and retry")
             trace.error("job.timeout", msg)
             reporter.failed("PipelineTimeout", msg)
+            await db.update_job(job_id, status="timeout", error_message=msg)
             trace.print_summary()
             JOB_LOGS[job_id].append(f"__ERROR__ {msg}")
             queue.put_nowait(f"__ERROR__ {msg}")
@@ -292,6 +384,8 @@ async def analyze(req: AnalyzeRequest, x_hax_user: str | None = Header(None)):
             trace.error("job.failed", f"{type(e).__name__}: {e}",
                         traceback=traceback.format_exc()[-2000:])
             reporter.failed(type(e).__name__, str(e))
+            await db.update_job(job_id, status="failed",
+                                error_message=f"{type(e).__name__}: {e}")
             trace.print_summary()
             JOB_LOGS[job_id].append(f"__ERROR__ {type(e).__name__}: {e}")
             queue.put_nowait(f"__ERROR__ {type(e).__name__}: {e}")
@@ -302,6 +396,8 @@ async def analyze(req: AnalyzeRequest, x_hax_user: str | None = Header(None)):
             JOB_GATES.pop(job_id, None)
             RUN_STATE["active"] -= 1
             _run_gate().release()
+            # Mirror admission counter decrement to Redis.
+            await redis_state.decr_active()
 
     asyncio.create_task(work())
     return {"jobId": job_id}
@@ -349,6 +445,10 @@ async def health():
         "webSearch": {"configured": bool(os.getenv("BRIGHTDATA_API_TOKEN"))},
         "port": {"configured": _port.enabled, "apiBase": _port.api_base if _port.enabled else None},
         "docs": {"dir": os.getenv("DOC_DIR"), "knowledgeBase": os.getenv("KB_DIR")},
+        "database": {"configured": db.is_enabled(),
+                     "env": os.getenv("APP_ENV", "local"),
+                     "url": DATABASE_URL[:20] + "…" if DATABASE_URL else None},
+        "redis": {"configured": redis_state.is_enabled()},
         # Run admission control (see analyze): lets the dashboard and smoke
         # distinguish "busy" from "sick".
         "capacity": {"maxRuns": MAX_RUNS, "maxQueue": MAX_QUEUE,
@@ -405,6 +505,11 @@ async def resume(job_id: str, req: ResumeRequest):
 
 @app.get("/api/reports/{job_id}")
 async def get_report(job_id: str):
+    # Try PostgreSQL first (source of truth when DB is configured); fall
+    # back to the file store for backward compat / pre-migration reports.
+    db_report = await db.get_report(job_id)
+    if db_report is not None:
+        return db_report
     path = STORE / f"{job_id}.json"
     if not path.exists():
         # A missing job report means the run failed before persisting — say so
@@ -420,21 +525,35 @@ async def get_report(job_id: str):
 async def get_review(report_id: str):
     """Review state for a finished report. A report with no sidecar defaults
     to AWAITING_REVIEW — the pipeline's terminal state since PR #4."""
-    if not (STORE / f"{report_id}.json").exists():
+    exists = await db.report_exists(report_id)
+    if exists is not None:
+        if not exists:
+            raise HTTPException(status_code=404, detail=f"unknown report {report_id}")
+        db_review = await db.get_review(report_id)
+        if db_review is not None:
+            return db_review
+    elif not (STORE / f"{report_id}.json").exists():
         raise HTTPException(status_code=404, detail=f"unknown report {report_id}")
     return review.load(STORE, report_id)
 
 
 @app.post("/api/reports/{report_id}/review")
-async def post_review(report_id: str, req: ReviewDecisionRequest):
+async def post_review(report_id: str, req: ReviewDecisionRequest,
+                      request: Request):
     """Human sign-off on the FINAL report, from inside the app where the gaps
     are shown. Writes the sidecar, mirrors the decision to the Port
     factory_run entity (fire-and-forget — Port down never fails this), and
     emits a `review.decided` trace event. 409 on an already-decided report
     unless `override: true` is passed explicitly."""
-    if not (STORE / f"{report_id}.json").exists():
-        raise HTTPException(status_code=404, detail=f"unknown report {report_id}")
-    existing = review.load(STORE, report_id)
+    exists = await db.report_exists(report_id)
+    if exists is not None:
+        if not exists:
+            raise HTTPException(status_code=404, detail=f"unknown report {report_id}")
+        existing = await db.get_review(report_id) or {"status": review.AWAITING}
+    else:
+        if not (STORE / f"{report_id}.json").exists():
+            raise HTTPException(status_code=404, detail=f"unknown report {report_id}")
+        existing = review.load(STORE, report_id)
     if existing["status"] in review.DECIDED and not req.override:
         raise HTTPException(
             status_code=409,
@@ -444,24 +563,36 @@ async def post_review(report_id: str, req: ReviewDecisionRequest):
     # Reuse the job's trace when it's still in memory (so the decision lands
     # on the same replayable stream); otherwise a fresh job-scoped trace.
     trace = JOB_TRACES.get(report_id) or Trace(report_id)
-    return review.decide(STORE, report_id, decision=req.decision,
-                         reviewer=req.reviewer, rationale=req.rationale,
-                         client=_port, trace=trace)
+    result = review.decide(STORE, report_id, decision=req.decision,
+                           reviewer=req.reviewer, rationale=req.rationale,
+                           client=_port, trace=trace)
+    # Dual-write to PostgreSQL (source of truth when DB is configured).
+    review_ip = db.extract_client_ip(request)
+    await db.save_review(report_id, status=req.decision,
+                         reviewed_by=req.reviewer, rationale=req.rationale,
+                         client_ip=review_ip)
+    return result
 
 
 @app.post("/api/reports/{report_id}/ask")
-async def ask(report_id: str, req: AskRequest):
+async def ask(report_id: str, req: AskRequest, request: Request):
     """Ask a question about a finished report.
 
     Returns its own job id immediately and narrates on the existing
     /api/jobs/{id}/stream endpoint, so the Ask rail reuses the transport the
     scan already uses rather than introducing a second streaming shape.
     """
-    path = STORE / f"{report_id}.json"
-    if not path.exists():
-        raise HTTPException(status_code=404, detail=f"unknown report {report_id}")
-
-    report = Report.model_validate_json(path.read_text(encoding="utf-8"))
+    # Check report existence in DB first, then file.
+    exists = await db.report_exists(report_id)
+    if exists is not None:
+        if not exists:
+            raise HTTPException(status_code=404, detail=f"unknown report {report_id}")
+        report = Report.model_validate(await db.get_report(report_id))
+    else:
+        path = STORE / f"{report_id}.json"
+        if not path.exists():
+            raise HTTPException(status_code=404, detail=f"unknown report {report_id}")
+        report = Report.model_validate_json(path.read_text(encoding="utf-8"))
 
     ask_id = uuid.uuid4().hex[:12]
     queue: asyncio.Queue = asyncio.Queue()
@@ -494,6 +625,13 @@ async def ask(report_id: str, req: AskRequest):
                 status, "Analyst",
             )
             ANSWERS[ask_id] = answer
+            # Dual-write to PostgreSQL (survives restart; no-op without DB).
+            ask_ip = db.extract_client_ip(request)
+            await db.save_chat_answer(
+                ask_id, report_id=report_id, question=req.question,
+                answer=answer.answer, sources=answer.sources,
+                grounded=answer.grounded, client_ip=ask_ip,
+            )
             trace.event("job.done", f"ask {ask_id} complete")
             queue.put_nowait("__DONE__")
         except Exception as e:
@@ -508,6 +646,10 @@ async def ask(report_id: str, req: AskRequest):
 
 @app.get("/api/asks/{ask_id}")
 async def get_answer(ask_id: str):
+    # Try DB first (source of truth when configured), then in-memory.
+    db_answer = await db.get_chat_answer(ask_id)
+    if db_answer is not None:
+        return db_answer
     if ask_id not in ANSWERS:
         raise HTTPException(status_code=404, detail=f"no answer for {ask_id}")
     return ANSWERS[ask_id].model_dump()
@@ -519,7 +661,14 @@ async def portfolio():
 
     Archived ids (reports/archived.txt) are hidden from the listing only —
     their reports stay fetchable by id so permalinks keep working. Review
-    sidecar files (*.review.json) are not reports and never list."""
+    sidecar files (*.review.json) are not reports and never list.
+
+    When PostgreSQL is configured, the listing is a single indexed query.
+    Without a database, it falls back to the file-glob O(N) scan.
+    """
+    db_rows = await db.list_reports()
+    if db_rows is not None:
+        return db_rows
     archived = _archived_ids()
     pairs = [(p.stem, Report.model_validate_json(p.read_text(encoding="utf-8")))
              for p in STORE.glob("*.json")

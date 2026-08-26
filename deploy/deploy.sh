@@ -12,6 +12,7 @@
 #   API_PORT       uvicorn port                          (default: 8000)
 #   WEB_PORT       next start port                       (default: 3000)
 #   NEXT_PUBLIC_AGENT_API  baked into the frontend build (default: https://rai-live-api.josephbissell.com)
+#   APP_ENV        database environment: local|test|prod (default: prod)
 #
 # Secrets (BRIGHTDATA_API_TOKEN, LLM keys) are NEVER deployed — they live in
 # agent_backend/.env on the server, created once by deploy/bootstrap.sh.
@@ -23,6 +24,9 @@ FORCE="${FORCE:-0}"
 API_PORT="${API_PORT:-8000}"
 WEB_PORT="${WEB_PORT:-3000}"
 export NEXT_PUBLIC_AGENT_API="${NEXT_PUBLIC_AGENT_API:-https://rai-live-api.josephbissell.com}"
+# Database environment — APP_ENV=prod uses rai_prod, APP_ENV=test uses rai_test.
+# DATABASE_URL in agent_backend/.env (if set) always wins over this default.
+export APP_ENV="${APP_ENV:-prod}"
 
 step() { printf '\n=== %s ===\n' "$*"; }
 
