@@ -89,6 +89,21 @@ app.include_router(grid.router)
 # When DB is configured, reports/reviews/shares/answers live in PostgreSQL.
 STORE = Path(__file__).resolve().parent / "reports"
 STORE.mkdir(exist_ok=True)
+ARCHIVE_LIST = STORE / "archived.txt"
+
+
+def _archived_ids() -> set[str]:
+    """Load archived IDs from archived.txt — only used in file-fallback mode
+    (tests/dev without DATABASE_URL). When DB is configured, the
+    reports.archived column is the source of truth."""
+    try:
+        return {
+            line.strip()
+            for line in ARCHIVE_LIST.read_text(encoding="utf-8").splitlines()
+            if line.strip() and not line.startswith("#")
+        }
+    except FileNotFoundError:
+        return set()
 
 JOB_QUEUES: dict[str, asyncio.Queue] = {}
 JOB_TRACES: dict[str, Trace] = {}
@@ -667,9 +682,10 @@ async def portfolio():
     if db.is_enabled():
         return await db.list_reports() or []
     # File fallback (tests/dev without DATABASE_URL).
+    archived = _archived_ids()
     pairs = [(p.stem, Report.model_validate_json(p.read_text(encoding="utf-8")))
              for p in STORE.glob("*.json")
-             if not p.name.endswith(".review.json")]
+             if p.stem not in archived and not p.name.endswith(".review.json")]
     pairs.sort(key=lambda t: t[1].readiness)
     return [
         {"id": pid, "project": r.project, "location": r.location, "readiness": r.readiness,
