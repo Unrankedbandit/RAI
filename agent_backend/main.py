@@ -97,6 +97,30 @@ def _archived_ids() -> set[str]:
 
 JOB_QUEUES: dict[str, asyncio.Queue] = {}
 JOB_TRACES: dict[str, Trace] = {}
+# --- Run admission control (sized to the deploy hardware) -------------------
+# Every /analyze fans out a full pipeline: CPU-heavy doc extraction, parallel
+# gap analyzers, LLM streams. Uncapped, N simultaneous runs stack that load on
+# the host at once — that coincidence of spikes is what tripped the deploy
+# box's PSU on 2026-08-25 (dual RTX 3090 + Threadripper). Cap concurrent runs
+# at PIPELINE_MAX_RUNS; extras queue (SSE narrates position) up to
+# PIPELINE_MAX_QUEUE, beyond which /analyze answers 429 so clients back off
+# instead of piling work onto a saturated box. Defaults sized for the deploy
+# host (2 concurrent runs leave CPU/GPU headroom for the desktop + local
+# inference stack); override via env on bigger or smaller hardware.
+MAX_RUNS = int(os.getenv("PIPELINE_MAX_RUNS", "2"))
+MAX_QUEUE = int(os.getenv("PIPELINE_MAX_QUEUE", "4"))
+RUN_STATE = {"active": 0, "queued": 0}  # surfaced as /api/health capacity
+_RUN_GATE: asyncio.Semaphore | None = None
+
+
+def _run_gate() -> asyncio.Semaphore:
+    """Built lazily so it binds to the running event loop (same reason as the
+    LLM semaphore in agents/base.py)."""
+    global _RUN_GATE
+    if _RUN_GATE is None:
+        _RUN_GATE = asyncio.Semaphore(MAX_RUNS)
+    return _RUN_GATE
+
 # Per-job gap-review gate handles (GAP_REVIEW=1). Registered at analyze time,
 # popped when the job ends; gate.awaiting marks a run actually parked at the
 # gap-review pause point — the resume endpoint's 200/409 contract keys off it.
@@ -159,6 +183,13 @@ async def uploads(files: list[UploadFile] = File(...)):
 @app.post("/api/projects/analyze")
 async def analyze(req: AnalyzeRequest, x_hax_user: str | None = Header(None)):
     from .agents.base import PROVIDER
+    # Admission control: refuse early only when every run slot is taken AND the
+    # queue is full — anything less just queues (see work()). Checked before any
+    # job state exists so a 429 leaves nothing behind.
+    if _run_gate().locked() and RUN_STATE["queued"] >= MAX_QUEUE:
+        raise HTTPException(status_code=429,
+                            detail=f"pipeline at capacity ({MAX_RUNS} runs active, "
+                                   f"{MAX_QUEUE} queued) — retry in a few minutes")
     job_id = uuid.uuid4().hex[:12]
     queue: asyncio.Queue = asyncio.Queue()
     JOB_QUEUES[job_id] = queue
@@ -213,6 +244,16 @@ async def analyze(req: AnalyzeRequest, x_hax_user: str | None = Header(None)):
         def status(msg: str):
             queue.put_nowait(msg)
             JOB_LOGS[job_id].append(msg)
+        # Admission gate: wait for a run slot here; the SSE stream narrates the
+        # wait so the dashboard shows queueing instead of going quiet. The slot
+        # is released in the finally below, whatever happens.
+        RUN_STATE["queued"] += 1
+        status(f"[capacity] queued — {RUN_STATE['queued'] - 1} run(s) ahead "
+               f"(PIPELINE_MAX_RUNS={MAX_RUNS})")
+        await _run_gate().acquire()
+        RUN_STATE["queued"] -= 1
+        RUN_STATE["active"] += 1
+        status("[capacity] run slot acquired")
         try:
             report = await asyncio.wait_for(
                 run_pipeline(
@@ -259,6 +300,8 @@ async def analyze(req: AnalyzeRequest, x_hax_user: str | None = Header(None)):
             # ended while parked, release any future resume call as a 409.
             gate.awaiting = False
             JOB_GATES.pop(job_id, None)
+            RUN_STATE["active"] -= 1
+            _run_gate().release()
 
     asyncio.create_task(work())
     return {"jobId": job_id}
@@ -306,6 +349,10 @@ async def health():
         "webSearch": {"configured": bool(os.getenv("BRIGHTDATA_API_TOKEN"))},
         "port": {"configured": _port.enabled, "apiBase": _port.api_base if _port.enabled else None},
         "docs": {"dir": os.getenv("DOC_DIR"), "knowledgeBase": os.getenv("KB_DIR")},
+        # Run admission control (see analyze): lets the dashboard and smoke
+        # distinguish "busy" from "sick".
+        "capacity": {"maxRuns": MAX_RUNS, "maxQueue": MAX_QUEUE,
+                     "active": RUN_STATE["active"], "queued": RUN_STATE["queued"]},
     }
     t.end()
     return result
@@ -433,6 +480,9 @@ async def ask(report_id: str, req: AskRequest):
             # so it needs no web tools in this path. Capped by AGENT_TIMEOUT via
             # _degrade: an uncapped analyst on a sick bridge hung the Ask rail
             # the same way bare pipeline agents hung a run.
+            # Deliberately NOT run-gated: one cheap analyst call, already
+            # capped by the process-wide LLM semaphore — queuing a question
+            # behind a full pipeline run would just feel broken.
             answer = await _degrade(
                 Agent(
                     "Analyst", ANALYST, ChatAnswer, ROLE_TOOLS["analyst"], status, trace=trace,

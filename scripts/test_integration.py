@@ -60,6 +60,12 @@ check("health shape", "ok" in body and "llm" in body and "webSearch" in body,
 check("health ok mirrors llm.configured", body["ok"] == body["llm"].get("configured"))
 check("health reports llm unconfigured in this process",
       body["llm"].get("configured") is False, str(body["llm"]))
+check("health capacity shape",
+      isinstance(body.get("capacity"), dict)
+      and body["capacity"].get("maxRuns", 0) >= 1
+      and body["capacity"].get("active") == 0
+      and body["capacity"].get("queued") == 0,
+      str(body.get("capacity")))
 
 # ---------- (b) analyze contract (missing credential) ----------
 print("== analyze ==")
@@ -76,6 +82,30 @@ r = c.get(f"/api/jobs/{job}/trace")
 check("trace 200 for live job", r.status_code == 200)
 check("missing-credential surfaced in job events",
       "LLM_API_KEY" in r.text and "not configured" in r.text)
+
+# ---------- (b2) admission control: 429 only when saturated ----------
+print("== admission control ==")
+import asyncio  # noqa: E402
+
+import agent_backend.main as main_mod  # noqa: E402
+
+_saved_queue, _saved_gate = main_mod.MAX_QUEUE, main_mod._RUN_GATE
+try:
+    main_mod.MAX_QUEUE = 0
+    main_mod._RUN_GATE = asyncio.Semaphore(0)  # locked by construction
+    r = c.post("/api/projects/analyze",
+               json={"name": "saturation probe", "location": "Ventura County, CA",
+                     "docs": [], "mode": "fast"})
+    check("analyze 429 when run gate locked + queue full",
+          r.status_code == 429, f"got {r.status_code}")
+    check("429 names the cause", "capacity" in r.text.lower(), r.text[:160])
+finally:
+    main_mod.MAX_QUEUE, main_mod._RUN_GATE = _saved_queue, _saved_gate
+
+r = c.post("/api/projects/analyze",
+           json={"name": "post-restore probe", "location": "Ventura County, CA",
+                 "docs": [], "mode": "fast"})
+check("analyze 200 again after gate restored", r.status_code == 200, r.text[:200])
 
 # ---------- (c/d/e/f) negative-path contracts ----------
 print("== negative paths ==")
