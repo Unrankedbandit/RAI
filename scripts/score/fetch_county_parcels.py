@@ -54,22 +54,24 @@ APN_CANDIDATES = [
 ]
 
 
-def load_registry() -> dict[str, str]:
-    """Parse counties.ts for {name, status:'live', api:'arcgis', endpoint}.
+def load_registry() -> dict[str, dict[str, str]]:
+    """Parse counties.ts for {name, status, api, endpoint}.
 
     A regex over the literal entries is robust enough here — the file is
     formatted one county per line and the alternative (a duplicated Python
-    registry) would drift from the frontend's truth."""
+    registry) would drift from the frontend's truth. Returns only 'live'
+    counties with an endpoint; value carries the api so the caller picks
+    the ArcGIS or Socrata pager."""
     text = COUNTIES_TS.read_text(encoding="utf-8")
-    entries: dict[str, str] = {}
+    entries: dict[str, dict[str, str]] = {}
     for m in re.finditer(
         r"\{\s*name:\s*'([^']+)',\s*status:\s*'(live|partial|mosaic-only)',"
         r"\s*api:\s*'(arcgis|socrata)',(?:\s*endpoint:\s*'([^']+)')?",
         text,
     ):
         name, status, api, endpoint = m.groups()
-        if status == "live" and api == "arcgis" and endpoint:
-            entries[name] = endpoint
+        if status == "live" and endpoint:
+            entries[name] = {"api": api, "endpoint": endpoint}
     return entries
 
 
@@ -108,15 +110,23 @@ def main() -> int:
     if args.source == "i15":
         endpoint = I15_ENDPOINT
         where = f"COUNTYNAME='{args.county.strip().title()}'"
-    else:
-        registry = load_registry()
-        endpoint = registry.get(args.county) or registry.get(
-            args.county.strip().title())
-        if not endpoint:
-            live = ", ".join(sorted(registry))
-            print(f"error: no live arcgis endpoint for {args.county!r}.\n"
-                  f"live counties: {live}")
-            return 2
+        run_arcgis(args, endpoint, where)
+        return 0
+    registry = load_registry()
+    entry = registry.get(args.county) or registry.get(
+        args.county.strip().title())
+    if not entry:
+        live = ", ".join(sorted(registry))
+        print(f"error: no live endpoint for {args.county!r}.\n"
+              f"live counties: {live}")
+        return 2
+    if entry["api"] == "socrata":
+        return run_socrata(args, entry["endpoint"])
+    run_arcgis(args, entry["endpoint"], where)
+    return 0
+
+
+def run_arcgis(args, endpoint: str, where: str) -> int:
 
     SCORES_DIR.mkdir(parents=True, exist_ok=True)
     out_path = SCORES_DIR / f"{args.county}.geojsonl"
@@ -195,6 +205,138 @@ def main() -> int:
                 print(f"  --max-pages {args.max_pages} reached", flush=True)
                 return 0
     # Completed: clear the checkpoint so the next run starts fresh.
+    progress_path.unlink(missing_ok=True)
+    print(f"done: {total} parcels -> {out_path} "
+          f"({time.time() - t0:.1f}s)", flush=True)
+    return 0
+
+
+SOCRATA_PAGE_SIZE = 2000  # geometry rows run ~1 KB each — 2 MB pages
+# WKT geometry columns arrive in projected coordinates: dataset id -> CRS.
+# nr6j-72z7 (San Mateo) verified EPSG:2227 on 2026-08-25 (probe coordinate
+# transforms to South San Francisco).
+SOCRATA_WKT_CRS = {"nr6j-72z7": "EPSG:2227"}
+
+
+def run_socrata(args, endpoint: str) -> int:
+    """Socrata pager for the two live Socrata counties (San Mateo, Santa
+    Clara). $limit/$offset chunking (past the 50k/req cap is fine — probed
+    2026-08-25), geometry column auto-detected (dict value with a GeoJSON
+    'type' — `shape` on San Mateo, `the_geom` on Santa Clara), APN kept when
+    present. Same .progress resume + output shape as the ArcGIS path."""
+    SCORES_DIR.mkdir(parents=True, exist_ok=True)
+    out_path = SCORES_DIR / f"{args.county}.geojsonl"
+    progress_path = out_path.with_suffix(out_path.suffix + ".progress")
+
+    # Schema probe: one row's keys + which value is the geometry. Two shapes
+    # exist in the wild (probed 2026-08-25): GeoJSON dict (Santa Clara's
+    # `the_geom`) and WKT text in State Plane feet (San Mateo's `shape`).
+    rows = get_json(endpoint, {"$limit": 1}, "socrata schema probe")
+    sample = rows[0] if isinstance(rows, list) and rows else {}
+    if not isinstance(sample, dict) or not sample:
+        print(f"error: socrata probe returned no rows for {args.county!r}")
+        return 2
+    geo_col, geo_mode = None, None
+    for k, v in sample.items():
+        if isinstance(v, dict) and isinstance(v.get("type"), str):
+            geo_col, geo_mode = k, "geojson"
+            break
+        if isinstance(v, str) and v.lstrip()[:8].upper().startswith(
+                ("POLYGON", "MULTIPOL", "POINT", "MULTIPOI", "LINESTRI",
+                 "MULTILIN")):
+            geo_col, geo_mode = k, "wkt"
+            break
+    if not geo_col:
+        print(f"error: no geometry column found on {endpoint}")
+        return 2
+    # WKT columns are projected coordinates — per-dataset CRS, verified by
+    # transforming a probe coordinate (nr6j-72z7 → South San Francisco).
+    to_wgs84 = None
+    if geo_mode == "wkt":
+        from pyproj import Transformer
+        from shapely.ops import transform as shp_transform
+        import shapely.wkt  # noqa: F401 — used in the row loop below
+        dataset_id = endpoint.rstrip("/").split("/")[-1].replace(".json", "")
+        crs = SOCRATA_WKT_CRS.get(dataset_id)
+        if not crs:
+            print(f"error: WKT geometry on {endpoint} but no known CRS — "
+                  f"verify the State Plane zone and add it to SOCRATA_WKT_CRS")
+            return 2
+        tf = Transformer.from_crs(crs, "EPSG:4326", always_xy=True)
+
+        def to_wgs84(geom):  # shapely geom -> GeoJSON dict in EPSG:4326
+            from shapely.geometry import mapping
+            return mapping(shp_transform(
+                lambda x, y, z=None: tf.transform(x, y), geom))
+
+    apn_col = next(
+        (k for k in sample if k.lower() in ("apn", "ain", "parcelnumber")),
+        None,
+    )
+    select = f"{apn_col},{geo_col}" if apn_col else geo_col
+    print(f"{args.county}: {endpoint}\n"
+          f"  socrata geo_col={geo_col} mode={geo_mode} apn_col={apn_col} "
+          f"page={SOCRATA_PAGE_SIZE}", flush=True)
+
+    offset = 0
+    if progress_path.exists():
+        offset = int(progress_path.read_text().strip() or 0)
+        print(f"  resuming at offset {offset}", flush=True)
+    mode = "a" if offset else "w"
+
+    total = offset
+    pages = 0
+    t0 = time.time()
+    with out_path.open(mode, encoding="utf-8") as out:
+        while True:
+            params = {"$limit": SOCRATA_PAGE_SIZE, "$offset": offset,
+                      "$select": select}
+            try:
+                rows = get_json(endpoint, params, f"page @ offset {offset}")
+            except Exception:
+                skipped_path = out_path.with_suffix(out_path.suffix + ".skipped")
+                with skipped_path.open("a", encoding="utf-8") as sk:
+                    sk.write(f"{offset}\n")
+                print(f"  !! SKIP page @ offset {offset} after "
+                      f"{MAX_RETRIES} retries (logged to {skipped_path.name})",
+                      flush=True)
+                offset += SOCRATA_PAGE_SIZE
+                progress_path.write_text(str(offset))
+                continue
+            if not isinstance(rows, list) or not rows:
+                break
+            for row in rows:
+                raw = row.get(geo_col)
+                geometry = None
+                if geo_mode == "geojson":
+                    if isinstance(raw, dict):
+                        geometry = raw
+                elif isinstance(raw, str) and raw.strip():
+                    try:
+                        geometry = to_wgs84(shapely.wkt.loads(raw))
+                    except Exception:
+                        geometry = None  # malformed WKT row — skip, keep paging
+                if not geometry:
+                    continue  # rows without geometry can't be scored
+                props = {}
+                if apn_col and row.get(apn_col) is not None:
+                    props["apn"] = str(row[apn_col])
+                feature = {"type": "Feature", "geometry": geometry,
+                           "properties": props}
+                out.write(json.dumps(feature, separators=(",", ":")) + "\n")
+            out.flush()
+            offset += len(rows)
+            total += len(rows)
+            pages += 1
+            progress_path.write_text(str(offset))
+            print(f"  page {pages}: +{len(rows)} "
+                  f"(total {total}, {total / (time.time() - t0):.0f}/s)",
+                  flush=True)
+            if len(rows) < SOCRATA_PAGE_SIZE:
+                break
+            if args.max_pages and pages >= args.max_pages:
+                print(f"  --max-pages {args.max_pages} reached", flush=True)
+                return 0
     progress_path.unlink(missing_ok=True)
     print(f"done: {total} parcels -> {out_path} "
           f"({time.time() - t0:.1f}s)", flush=True)

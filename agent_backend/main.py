@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import os
 import re
 import traceback
@@ -14,7 +15,7 @@ from typing import Literal
 from fastapi import BackgroundTasks, FastAPI, File, Header, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 
 from . import db, grid, memo, redis_state, review, share
 from .db import DATABASE_URL
@@ -90,6 +91,16 @@ app.include_router(grid.router)
 STORE = Path(__file__).resolve().parent / "reports"
 STORE.mkdir(exist_ok=True)
 ARCHIVE_LIST = STORE / "archived.txt"
+
+logger = logging.getLogger(__name__)
+
+
+def _concise_validation_error(e: ValidationError) -> str:
+    """First-error one-liner — the client needs the broken field, not a
+    100-line pydantic dump (and never a 500 traceback)."""
+    first = e.errors()[0]
+    loc = ".".join(str(p) for p in first["loc"]) or "(root)"
+    return f"{loc}: {first['msg']} ({e.error_count()} error(s))"
 
 
 def _archived_ids() -> set[str]:
@@ -533,7 +544,22 @@ async def get_report(job_id: str):
             status_code=404,
             detail=f"no report for job {job_id} — the run may have failed; check /api/jobs/{job_id}/trace",
         )
-    return json.loads(path.read_text(encoding="utf-8"))
+    raw = path.read_text(encoding="utf-8")
+    try:
+        # Re-validate on read: a stored file that no longer conforms (schema
+        # tightened, disk corruption, hand-edit) must surface as a concise
+        # 422, not a raw blob the frontend mis-renders. Return the VALIDATED
+        # model (not raw bytes) so legacy spellings normalize — otherwise the
+        # portfolio list (model-driven) and this detail view could disagree
+        # (review 2026-08-25).
+        report = Report.model_validate_json(raw)
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=422,
+            detail=f"stored report {job_id} fails schema validation: "
+                   f"{_concise_validation_error(e)}",
+        )
+    return report.model_dump(mode="json")
 
 
 @app.get("/api/reports/{report_id}/sources")
@@ -711,21 +737,39 @@ async def get_answer(ask_id: str):
 async def portfolio():
     """Portfolio dashboard: every completed report, worst first.
 
-    Archived reports are hidden from the listing but remain fetchable by id so
-    permalinks keep working. When PostgreSQL is configured, the listing is a
-    single indexed query. Without a database, falls back to the file-glob scan.
-    """
+    Archived ids (reports/archived.txt) are hidden from the listing only —
+    their reports stay fetchable by id so permalinks keep working. Review
+    sidecar files (*.review.json) are not reports and never list.
+
+    When PostgreSQL is configured, the listing is a single indexed query.
+    Without a database, falls back to the file-glob scan below.
+
+    File-fallback response envelope: {"projects": [...rows...],
+    "skipped_invalid": [names]}. A stored file that fails schema validation
+    is SKIPPED (logged + named in skipped_invalid) rather than 500ing the
+    entire board — one corrupt file must not poison the portfolio."""
     if db.is_enabled():
         return await db.list_reports() or []
     # File fallback (tests/dev without DATABASE_URL).
     archived = _archived_ids()
-    pairs = [(p.stem, Report.model_validate_json(p.read_text(encoding="utf-8")))
-             for p in STORE.glob("*.json")
-             if p.stem not in archived and not p.name.endswith(".review.json")]
+    pairs: list[tuple[str, Report]] = []
+    skipped: list[str] = []
+    for p in STORE.glob("*.json"):
+        if p.stem in archived or p.name.endswith(".review.json"):
+            continue
+        try:
+            pairs.append((p.stem, Report.model_validate_json(p.read_text(encoding="utf-8"))))
+        except ValidationError as e:
+            logger.warning("portfolio: skipping invalid report file %s — %s",
+                           p.name, _concise_validation_error(e))
+            skipped.append(p.name)
     pairs.sort(key=lambda t: t[1].readiness)
-    return [
-        {"id": pid, "project": r.project, "location": r.location, "readiness": r.readiness,
-         "decision": r.decision, "user": r.user,
-         "dimensions": [d.model_dump() for d in r.dimensions]}
-        for pid, r in pairs
-    ]
+    return {
+        "projects": [
+            {"id": pid, "project": r.project, "location": r.location, "readiness": r.readiness,
+             "decision": r.decision, "user": r.user,
+             "dimensions": [d.model_dump() for d in r.dimensions]}
+            for pid, r in pairs
+        ],
+        "skipped_invalid": sorted(skipped),
+    }

@@ -1,0 +1,2041 @@
+{
+  "project": {
+    "id": "6a0089f01bfd",
+    "name": "FanoutCheck",
+    "location": "Ventura County, CA",
+    "capacityMW": 0,
+    "latitude": 0,
+    "longitude": 0,
+    "activationScore": 22.0,
+    "band": "risk",
+    "scoreReason": "Tax-credit kill criterion unresolved: OBBBA BOC deadline (July 4, 2026) asserted passed with no BOC evidence package \u2014 solar ITC/PTC potentially $0; make BOC documentation a condition precedent",
+    "status": "at-risk",
+    "pillars": [
+      {
+        "name": "Land",
+        "score": 20.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "20 flags open",
+        "subAgents": [
+          "extractor:land-docs",
+          "scout:zoning",
+          "researcher:land_use"
+        ],
+        "factors": [
+          {
+            "id": "land-flag-0",
+            "name": "site_acres is null \u2014 cannot test land adequacy for 100 MW (benchmark ~5\u201310 ac/MW \u2192 ~500\u20131,",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "site_acres is null \u2014 cannot test land adequacy for 100 MW (benchmark ~5\u201310 ac/MW \u2192 ~500\u20131,000 acres required)",
+            "sources": []
+          },
+          {
+            "id": "land-flag-1",
+            "name": "No title/lease/site-control evidence in the record",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No title/lease/site-control evidence in the record",
+            "sources": []
+          },
+          {
+            "id": "land-flag-2",
+            "name": "Williamson Act / Farmland Security Zone contract status unverified (incompatible-use expos",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Williamson Act / Farmland Security Zone contract status unverified (incompatible-use exposure; exit paths 9-yr nonrenewal, 12.5%/25% FMV cancellation, or 6.25% solar-use easement)",
+            "sources": []
+          },
+          {
+            "id": "land-flag-3",
+            "name": "Every land claim uncorroborated \u2014 facts array is empty",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Every land claim uncorroborated \u2014 facts array is empty",
+            "sources": []
+          },
+          {
+            "id": "ev-land-0",
+            "name": "CEQA full EIR is a 12\u201324+ month critical path with high litigation exposure",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "A 100 MW solar+storage project on farmland in CA requires a full EIR: 12\u201324 months to certify, 18\u201330 months total entitlement, +1\u20133 years if litigated. Renewables are the most-frequently-challenged project type (~43% plaintiff win rate vs EIRs). Farmland impact is scored via the Agricultural LESA Model and is likely 'significant and unavoidable,' requiring a Statement of Overriding Considerations. This alone can push any COD target out by 2\u20133+ years.",
+            "sources": [
+              "kb_lookup: CEQA EIR benchmark",
+              "kb_lookup: renewables most-challenged project type",
+              "https://www.slc.ca.gov/ceqa/ (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-land-0"
+          },
+          {
+            "id": "ev-land-1",
+            "name": "OBBBA ITC beginning-of-construction cliff \u2014 deadline already passed",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Under OBBBA (July 2025) and IRS Notice 2025-42, a project with COD July 2028 receives $0 in solar ITC/PTC unless beginning-of-construction was documented by July 4, 2026 \u2014 a deadline that has already passed. No 5% safe harbor applies to >1.5 MW solar. Any permitting delay compounds this; the BOC evidence package is the single biggest go/no-go item. Storage ITC (\u00a748E) survives the solar/wind cliff.",
+            "sources": [
+              "kb_lookup: OBBBA tax credit cliff",
+              "kb_lookup: IRS Notice 2025-42",
+              "https://www.cesa.org/resource-library/resource/obbba-summary-diagram/ (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-land-1"
+          },
+          {
+            "id": "ev-land-2",
+            "name": "Williamson Act land is an incompatible use \u2014 cancellation cost and schedule risk",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Commercial solar is an incompatible use on Williamson Act-contracted land. Exit paths: 9-year nonrenewal, or cancellation at 12.5% of unrestricted FMV (25% for Farmland Security Zone), or a solar-use easement at 6.25% (impaired farmland only). Ventura County has substantial agricultural/Williamson Act acreage; the parcel's contract status must be verified before entitlement. Cancellation adds cost and a discretionary county action that can be challenged.",
+            "sources": [
+              "kb_lookup: Williamson Act incompatible use and exit paths",
+              "https://awm.venturacounty.gov/land-conservation-act-williamson-act/ (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-land-2"
+          },
+          {
+            "id": "ev-land-3",
+            "name": "CEC Opt-In route eligibility and mandatory CBA/prevailing-wage conditions",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "The CEC Opt-In Certification (AB 205/AB 209) is the only path that preempts local zoning, but eligibility requires solar \u226550 MW AND storage \u2265200 MWh. The 100 MW solar qualifies on solar, but the storage must be \u2265200 MWh or the project is ineligible. The certificate requires a certified community benefits agreement plus prevailing wage and skilled-and-trained workforce. If storage <200 MWh, the project falls back to the full local entitlement + CEQA EIR path.",
+            "sources": [
+              "kb_lookup: CEC Opt-In Certification AB 205/AB 209 PRC \u00a7\u00a725545\u201325545.9"
+            ],
+            "evidenceId": "ev-land-3"
+          },
+          {
+            "id": "ev-land-4",
+            "name": "CAISO interconnection schedule compounds the permitting timeline",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Ventura is in CAISO/SCE territory. CAISO queue is >500 GW / ~1,000 projects; historically only ~20% of queued projects reach COD, and typical IR\u2192COD is ~5 years. Network-upgrade cost shock is the #1 dropout driver. Any COD target must be reconciled against both the CEQA EIR timeline and the interconnection cluster study schedule.",
+            "sources": [
+              "kb_lookup: CAISO queue and IR\u2192COD benchmark",
+              "https://www.caiso.com/generation-transmission/generation/generator-interconnection (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-land-4"
+          },
+          {
+            "id": "ev-land-5",
+            "name": "AB 52 tribal consultation must conclude before EIR certification (fatal defect)",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "AB 52 requires tribal consultation notice \u226414 days of complete application, and consultation must conclude before EIR certification \u2014 a fatal defect if not. Ventura County is within Chumash tribal territory; NAHC Sacred Lands File search is required. Missing this sequencing invalidates the EIR and restarts the entitlement clock.",
+            "sources": [
+              "kb_lookup: AB 52 tribal consultation timing"
+            ],
+            "evidenceId": "ev-land-5"
+          },
+          {
+            "id": "ev-land-6",
+            "name": "BESS fire-marshal sign-off (NFPA 855 / UL 9540A) is a gating construction permit",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "The storage component requires fire-marshal sign-off under NFPA 855 / UL 9540A, plus county grading, building/electrical permits, and the Construction General Permit (Order 2022-0057-DWQ) with SWPPP by a QSD in SMARTS before any ground disturbance. These are sequential construction-phase permits that add schedule risk if not staged early.",
+            "sources": [
+              "kb_lookup: construction-phase permit stack",
+              "https://www.engineeringfireprotection.com/post/bridging-ul-9540a-testing-and-nfpa-855-compliance (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-land-6"
+          },
+          {
+            "id": "ev-land-7",
+            "name": "Transformer/GSU lead time of 128\u2013144 weeks constrains COD",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "The 2025\u201326 market norm for large power transformers/GSUs is 128\u2013144 weeks (~2.5\u20132.8 years). For any near-term COD, orders had to be placed by mid-2025. This is a procurement/permitting dependency that must be locked before entitlement completes.",
+            "sources": [
+              "kb_lookup: transformer lead time benchmark",
+              "https://www.industrialsage.com/power-transformer-lead-times-us-grid-shortage/ (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-land-7"
+          },
+          {
+            "id": "ev-land-8",
+            "name": "Ventura-specific zoning and ordinance status unverified \u2014 data gap",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "No live Ventura County data was retrievable: the Ventura County planning fetch was rejected and web searches returned only KB (Solano/Nevada) content. The KB's 'zoning kill switch' (solar prohibited in all ag districts) is Solano-specific and must NOT be assumed for Ventura. Confirm current Ventura County Code land-use tables, any solar/BESS ordinance, and the parcel's zoning/Williamson Act status directly before relying on any local-permit or CEC Opt-In path.",
+            "sources": [
+              "web_fetch: ventura.org/rma/planning (rejected)",
+              "web_search: Ventura County solar/BESS ordinance (returned KB only)",
+              "https://citizenportal.ai/articles/6552998/california/ventura-county/Ventura-County/California/Ventura-County-planning-commission-approves-Phase-2-text-amendments-to-noncoastal-zoning-ordinance (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-land-8"
+          },
+          {
+            "id": "ev-land-9",
+            "name": "No site-specific zoning verification possible \u2014 threshold data gap",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Project has site_acres = null and zero scout-acquired data. Ventura County's actual solar ordinance (Ordinance No. 4100) and the parcel's zoning district could not be retrieved: ventura.org fetches were rejected, municode returned only a JS shell, qcode returned HTTP 403, and web_search fell back to a KB that is Solano County/Boulder City NV-centric. It is therefore UNCONFIRMED whether the parcel is even zoned to allow a 100 MW utility-scale solar+storage facility. This is a threshold/kill criterion, not a schedule risk \u2014 zoning district and use-permit path must be confirmed before any further diligence.",
+            "sources": [
+              "kb_lookup (Ventura County solar zoning agricultural)",
+              "web_fetch ventura.org (rejected)",
+              "web_fetch municode (JS shell)",
+              "web_fetch qcode.us (HTTP 403)",
+              "https://www.cityofventura.ca.gov/CivicAlerts.aspx?AID=621 (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-land-9"
+          },
+          {
+            "id": "ev-land-10",
+            "name": "Full CEQA EIR required for farmland conversion \u2014 12\u201330+ month entitlement path",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "A 100 MW solar+storage facility on Ventura County farmland (a top-tier ag county) will require a full EIR: 12\u201324 months to certify, 18\u201330 months total entitlement, +1\u20133 years if litigated. Renewables are the most-frequently-challenged project type under CEQA (~43% plaintiff win rate vs EIRs). Ventura's ag-protectionist posture and FMMP Important Farmland classification raise the likelihood of a 'significant and unavoidable' farmland-impact finding requiring a Statement of Overriding Considerations.",
+            "sources": [
+              "kb_lookup (California solar zoning agricultural land Williamson Act)",
+              "https://awm.venturacounty.gov/land-conservation-act-williamson-act/ (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-land-10"
+          },
+          {
+            "id": "ev-land-11",
+            "name": "Williamson Act incompatibility risk on contracted farmland",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Ventura County has extensive Williamson Act contracted farmland. If the parcel is under contract, commercial solar is an incompatible use. Exit requires 9-yr nonrenewal, cancellation at 12.5% of unrestricted FMV (25% for Farmland Security Zone), or a solar-use easement at 6.25% (impaired farmland only). This adds material cost and schedule and can be a de facto kill criterion on prime farmland.",
+            "sources": [
+              "kb_lookup (California solar zoning agricultural land Williamson Act)",
+              "https://awm.venturacounty.gov/land-conservation-act-williamson-act/ (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-land-11"
+          },
+          {
+            "id": "ev-land-12",
+            "name": "CEC Opt-In Certification is the viable path but carries conditions and county-opposition r",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "At 100 MW solar + storage, the project is eligible for CEC Opt-In Certification (solar \u226550 MW, storage \u2265200 MWh), which yields a 270-day state decision and a certificate in lieu of all local permits \u2014 the route that bypasses restrictive local zoning. However, it requires a certified community benefits agreement, prevailing wage, and skilled-and-trained workforce, and does NOT preempt Water Board, air-district, or federal permits. County opposition risk is documented (Corby BESS docket 24-OPT-05 as template).",
+            "sources": [
+              "kb_lookup (California solar zoning agricultural land Williamson Act)",
+              "https://www.coxcastle.com/publication-california-opens-new-permitting-pathway-for-renewable-energy-projects (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-land-12"
+          },
+          {
+            "id": "ev-land-13",
+            "name": "Ag-protectionist local politics and General Plan farmland-preservation conflict",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "Ventura County's General Plan strongly protects agricultural land, and the county is a top-tier producer of citrus, avocados, strawberries, and vegetables. A 100 MW facility on farmland will face local opposition and likely require a General Plan amendment and/or conditional use permit with material denial risk. Mitigation norms (ag conservation easements at 1:1, up to 2:1 on prime; decommissioning bond ~100% of removal cost) add cost. Site acres are null, so prime-farmland exposure cannot yet be quantified.",
+            "sources": [
+              "kb_lookup (California solar zoning agricultural land Williamson Act)"
+            ],
+            "evidenceId": "ev-land-13"
+          },
+          {
+            "id": "ev-land-14",
+            "name": "Main transformer/GSU lead time is the hardest schedule gate and no PO evidence exists",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Large power transformers/GSUs carry a 128\u2013144 week (~2.5\u20132.8 yr) lead time (Wood Mac 2025), with a ~30% national supply deficit, 80% imported, and prices up +60\u201395% since 2019 at ~$3\u20138M/unit. For a 100 MW solar+storage project needing 1\u20132 GSUs, the purchase order must be placed ~2.5\u20132.8 years before COD. The acquired data contains no transformer PO, no delivery confirmation, and no lead-time quote \u2014 so the project cannot demonstrate it can meet any near-term COD target.",
+            "sources": [
+              "kb_lookup: supply chain (Aug 2026) \u2014 transformers/GSUs 128\u2013144 wks, ~30% deficit, +60\u201395% prices, $3\u20138M/unit",
+              "https://eepower.com/tech-insights/transformer-supply-chain-woes-persist-as-energy-demand-grows/ (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-land-14"
+          },
+          {
+            "id": "ev-land-15",
+            "name": "PV module supply constrained by AD/CVD shutdown and US-made premium; no module MSA documen",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "SE Asia (Cambodia, Malaysia, Thailand, Vietnam) module supply is effectively shut by AD/CVD orders; India/Indonesia/Laos finals land Jul\u2013Oct 2026. Compliant imports run ~$0.34\u20130.40/W while US-made modules are ~$0.56/W (+60% premium) and supply-constrained. The project has no documented module MSA with FEOC/MACR attestation, UFLPA traceability, or tariff-reopener clause \u2014 leaving it exposed to tariff and availability risk for its ~100 MW of modules.",
+            "sources": [
+              "kb_lookup: supply chain (Aug 2026) \u2014 PV modules; AD/CVD finals India Jul 13 2026, Laos Sep 9 2026, ITC injury vote Oct 19 2026",
+              "https://www.federalregister.gov/documents/2026/02/26/2026-03895/crystalline-silicon-photovoltaic-cells-whether-or-not-assembled-into-modules-from-india-preliminary (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-land-15"
+          },
+          {
+            "id": "ev-land-16",
+            "name": "BESS FEOC compliance and integrator queue congestion unverified",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "US turnkey BESS runs $200\u2013350/kWh (vs ~$70/kWh global pack) with 26\u201352 week integrator slots, and FEOC rules (IRS Notice 2026-15) exclude CATL/BYD cells \u2014 pushing demand to a congested pool of compliant integrators. The 100 MW project's storage component (4-hr BESS is economically mandatory in CA) has no documented BESS slot reservation or FEOC-compliant cell supply confirmation in the acquired data.",
+            "sources": [
+              "kb_lookup: supply chain (Aug 2026) \u2014 BESS pack $70/kWh global vs US turnkey $200\u2013350/kWh; FEOC excludes CATL/BYD",
+              "https://carina.energy/feoc-compliance-guide-bess/ (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-land-16"
+          },
+          {
+            "id": "ev-land-17",
+            "name": "Section 232 steel/copper tariffs create unhedged escalation exposure",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "Section 232 tariffs at 50% on steel/aluminum (Jun 2025) and copper (Aug 2025), plus silver near ~$70/oz, raise racking, cabling, and module-BOM costs. With no escalation-indexed or hedged procurement contracts documented, the project's capex is exposed to tariff-driven cost overruns on a 100 MW build.",
+            "sources": [
+              "kb_lookup: supply chain (Aug 2026) \u2014 steel/copper Section 232 at 50%",
+              "https://www.whitehouse.gov/fact-sheets/2026/04/fact-sheet-president-donald-j-trump-strengthens-tariffs-on-steel-aluminum-and-copper-imports/ (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-land-17"
+          },
+          {
+            "id": "ev-land-18",
+            "name": "No supply-chain documentation in acquired data \u2014 evidence gap on all major equipment",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "The scout-acquired data for this project is empty (acquired: []). None of the red-flag checklist items can be confirmed: no transformer PO with \u2264Q4 2027 delivery, no module MSA with FEOC/MACR attestation, no DC BOM \u226555% supplier certs, no BESS slot, and no \u22656-month float between major-equipment delivery and COD. This is a material diligence gap for a 100 MW solar+storage build in Ventura County.",
+            "sources": [
+              "kb_lookup: supply chain red-flag checklist (Aug 2026)"
+            ],
+            "evidenceId": "ev-land-18"
+          },
+          {
+            "id": "ev-land-19",
+            "name": "Storage capacity in MWh is unspecified \u2014 CEC Opt-In eligibility cannot be confirmed",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "The project data records only capacity_mw = 100.0 for the combined solar+storage system and contains no MWh figure for the battery. The CEC Opt-In threshold (PRC \u00a7\u00a725545\u201325545.9) requires storage \u2265 200 MWh AND solar \u2265 50 MW. The solar leg is met (100 MW \u2265 50 MW), but the storage leg is unverifiable from the provided facts. This single unknown decides the entire permitting route: if storage \u2265 200 MWh, the project qualifies for the 270-day CEC Opt-In certification (in lieu of all local permits); if storage < 200 MWh, it falls to the 18\u201330-month local CEQA EIR route in Ventura County. The MWh figure must be obtained before any schedule or entitlement analysis is credible.",
+            "sources": [
+              "kb_lookup: CEC Opt-In Certification (AB 205/AB 209, PRC \u00a7\u00a725545\u201325545.9) \u2014 eligible = solar \u2265 50 MW, storage \u2265 200 MWh; CEC decides within 270 days; certificate in lieu of all local permits",
+              "kb_lookup: CEQA full EIR 12\u201324 months to certify; 18\u201330 months total entitlement; +1\u20133 years if litigated",
+              "web_search: no project-specific MWh figure found for 'FanoutCheck'"
+            ],
+            "evidenceId": "ev-land-19"
+          },
+          {
+            "id": "ev-land-20",
+            "name": "If storage < 200 MWh, project is locked into the slower local CEQA EIR route",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Should the storage capacity prove to be below 200 MWh (e.g., a 100 MW / 4-hr system at 400 MWh would qualify, but a shorter-duration or smaller battery would not), the project cannot use the CEC Opt-In certification and must pursue a full local CEQA EIR in Ventura County \u2014 18\u201330 months of entitlement plus 1\u20133 years if litigated, with renewables the most-frequently-challenged project type (~43% plaintiff win rate). This is a schedule-critical branch that cannot be resolved until the MWh figure is supplied.",
+            "sources": [
+              "kb_lookup: CEQA full EIR 12\u201324 months to certify; 18\u201330 months total entitlement; +1\u20133 years if litigated; renewables most-frequently-challenged (~43% plaintiff win rate)"
+            ],
+            "evidenceId": "ev-land-20"
+          },
+          {
+            "id": "ev-land-21",
+            "name": "Solar ITC/PTC = $0 for July 2028 COD unless physical-work BOC was documented by July 4, 20",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "FanoutCheck is 100 MW solar (>1.5 MW), so under IRS Notice 2025-42 the 5% cost-incurred safe harbor is unavailable and ONLY the physical-work test can establish beginning-of-construction. The OBBBA deadline was July 4, 2026 \u2014 already passed as of the Aug 14, 2026 diligence date. Because COD is July 2028 (after the Dec 31, 2027 PIS alternative), the project qualifies ONLY if BOC was documented by July 4, 2026. If not, the solar ITC/PTC is $0 (~30% of solar capex, \u2248$40M+ on 100 MW). The full BOC evidence package (physical-work documentation, dated photos, contracts, invoices, site logs) and continuity records must be requested as a CONDITION PRECEDENT to any investment decision.",
+            "sources": [
+              "KB: OBBBA (July 2025) \u2014 'COD July 2028 gets $0 in ITC/PTC unless BOC documented by July 4, 2026'",
+              "KB: 'Notice 2025-42: no 5% safe harbor for >1.5 MW solar'",
+              "KB: 'Make BOC evidence a condition precedent'",
+              "IRS Notice 2025-42 (irs.gov/pub/irs-drop/n-25-42.pdf \u2014 fetched, binary/parse-limited)",
+              "https://www.mintz.com/insights-center/viewpoints/2906/2025-09-16-obbba-major-shift-federal-clean-energy-tax-incentives (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-land-21"
+          },
+          {
+            "id": "ev-land-22",
+            "name": "Continuity records must be produced to lock the Dec 31, 2030 PIS safe harbor",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Even if BOC was documented by July 4, 2026, the project must demonstrate continuous construction/effort and be placed in service by Dec 31, 2030 under the continuity safe harbor. A July 2028 COD fits within that window, but the continuity record (construction schedule, financing, permitting milestones, no >18-month gaps) must be part of the requested evidence package. Any gap in the continuity chain re-opens the credit to full forfeiture.",
+            "sources": [
+              "KB: 'Continuity safe harbor \u2192 PIS by Dec 31, 2030 (Q4 2029 fits)'",
+              "KB: 'Make BOC evidence a condition precedent'",
+              "https://www.treasurer.ca.gov/ctcac/inservice/inservice-guidelines (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-land-22"
+          },
+          {
+            "id": "ev-land-23",
+            "name": "Storage credit survives the solar cliff \u2014 quantify the split to avoid overstating total cr",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "The \u00a748E storage credit is NOT subject to the solar/wind July 4, 2026 cliff. If the storage component is \u22651.5 MW (likely, given a 100 MW hybrid), it retains its credit even if the solar portion is forfeited. The diligence model must split the credit between solar (at risk of $0) and storage (survives) rather than treating the entire project credit as lost \u2014 otherwise the downside is overstated and the financing structure mispriced.",
+            "sources": [
+              "KB: 'Storage ITC survives (~$15M, \u00a748E storage not subject to solar/wind cliff)'",
+              "KB: 'storage exempt from 2027 cliff'",
+              "https://www.stoel.com/insights/publications/the-one-big-beautiful-bill-modifies-renewable-energy-tax-credits (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-land-23"
+          }
+        ]
+      },
+      {
+        "name": "Law",
+        "score": 20.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "8 flags open",
+        "subAgents": [
+          "researcher:state_law",
+          "researcher:federal_law",
+          "researcher:ecology_epa"
+        ],
+        "factors": [
+          {
+            "id": "law-flag-0",
+            "name": "Permitting route indeterminate: CEC Opt-In (270-day, preempts local zoning) requires stora",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Permitting route indeterminate: CEC Opt-In (270-day, preempts local zoning) requires storage \u2265200 MWh \u2014 MWh nowhere stated; otherwise local CEQA full EIR 18\u201330 months, +1\u20133 years if litigated",
+            "sources": []
+          },
+          {
+            "id": "law-flag-1",
+            "name": "Ventura County zoning/land-use tables and any solar/BESS ordinance unverified; final zonin",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Ventura County zoning/land-use tables and any solar/BESS ordinance unverified; final zoning red flag is truncated mid-sentence; KB zoning kill-switch is Solano-specific and not transferable",
+            "sources": []
+          },
+          {
+            "id": "law-flag-2",
+            "name": "AB 52 tribal consultation / NAHC Sacred Lands File status unknown",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "AB 52 tribal consultation / NAHC Sacred Lands File status unknown",
+            "sources": []
+          },
+          {
+            "id": "law-flag-3",
+            "name": "No permit status for SWPPP/CGP, CDFW \u00a71602, grading/building, or NFPA 855/UL 9540A fire-ma",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No permit status for SWPPP/CGP, CDFW \u00a71602, grading/building, or NFPA 855/UL 9540A fire-marshal sign-off",
+            "sources": []
+          },
+          {
+            "id": "law-flag-4",
+            "name": "Federal OBBBA beginning-of-construction cliff asserted but temporally unanchored in the re",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Federal OBBBA beginning-of-construction cliff asserted but temporally unanchored in the record",
+            "sources": []
+          },
+          {
+            "id": "ev-law-24",
+            "name": "Full CEQA EIR required \u2014 12\u201324 month certification path with high litigation exposure",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "A 100 MW solar+storage conversion in Ventura County will require a full EIR (12\u201324 months to certify; 18\u201330 months total entitlement; +1\u20133 years if litigated). Renewables are the most-frequently-challenged project type with ~43% plaintiff win rate vs EIRs. No scout data was acquired to confirm a categorical-exemption or negative-declaration basis.",
+            "sources": [
+              "kb_lookup: CEQA EIR benchmarks",
+              "kb_lookup: CEC Opt-In Certification PRC \u00a7\u00a725545\u201325545.9"
+            ],
+            "evidenceId": "ev-law-24"
+          },
+          {
+            "id": "ev-law-25",
+            "name": "California condor (federally endangered) \u2014 Ventura County is core range; ESA \u00a77/\u00a710 consul",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Ventura County is core California condor range (Sespe Condor Sanctuary, Hopper Mountain NWR, Los Padres NF) with condor flyways crossing the county. USFWS confirms the species is federally endangered. Any large ground-disturbing project in Ventura triggers USFWS consultation; the CEC Opt-In route does NOT waive federal ESA. Site-specific proximity to condor flyways/foraging must be verified.",
+            "sources": [
+              "web_fetch: fws.gov California Condor (Gymnogyps californianus) species page",
+              "kb_lookup: CEC Opt-In Certification does not preempt federal permits",
+              "https://defenders.org/wildlife/california-condor (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-law-25"
+          },
+          {
+            "id": "ev-law-26",
+            "name": "San Joaquin kit fox (federally endangered) \u2014 eastern Ventura County habitat",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Eastern Ventura County (Cuyama Valley / Antelope Valley edge) is San Joaquin kit fox habitat. If the site lies in this zone, ESA \u00a77/\u00a710 consultation and protocol surveys are mandatory and can gate the layout freeze and schedule. Site location within the county is unverified (site_acres null, no scout data).",
+            "sources": [
+              "kb_lookup: federally listed species protocol surveys gate layout freeze",
+              "kb_lookup: CEC Opt-In does not preempt federal permits",
+              "https://wildlife.ca.gov/Science-Institute/News/tag/video (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-law-26"
+          },
+          {
+            "id": "ev-law-27",
+            "name": "Swainson's hawk (state threatened) seasonal blackout window \u2014 miss season, lose a year",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "Ventura agricultural land supports Swainson's hawk breeding. Surveys follow a strict seasonal protocol with a blackout window (Apr 21\u2013Jun 10); one active nest can seasonally sterilize 125\u2013500 acres. Missing the survey season adds ~1 year to the schedule.",
+            "sources": [
+              "kb_lookup: Swainson's hawk seasonal protocol and blackout window",
+              "https://ecos.fws.gov/ecp/species/1098 (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-law-27"
+          },
+          {
+            "id": "ev-law-28",
+            "name": "Construction General Permit (Order 2022-0057-DWQ) \u2014 SWPPP required before any ground distu",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "Any CA project disturbing \u22651 acre must obtain coverage under the Construction General Permit with a SWPPP prepared by a QSD in SMARTS before ground disturbance (risk level 1/2/3). A 100 MW solar+storage build will disturb far more than 1 acre; failure to secure coverage pre-disturbance is a compliance violation and can halt construction.",
+            "sources": [
+              "kb_lookup: Construction General Permit Order 2022-0057-DWQ SWPPP",
+              "https://www.waterboards.ca.gov/water_issues/programs/stormwater/construction.html (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-law-28"
+          },
+          {
+            "id": "ev-law-29",
+            "name": "CDFW \u00a71602 Lake and Streambed Alteration Agreement for drainage/streambed crossings",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "Ventura County sites typically have drainage ditches/streambeds that trigger a CDFW \u00a71602 LSAA before any alteration. This is a separate state permit from CEQA and adds to the entitlement stack; not preempted by the CEC Opt-In route.",
+            "sources": [
+              "kb_lookup: CDFW \u00a71602 LSAA for drainage ditches",
+              "kb_lookup: CEC Opt-In does not preempt state/federal permits",
+              "https://wildlife.ca.gov/Conservation/Environmental-Review/LSA/Fees (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-law-29"
+          },
+          {
+            "id": "ev-law-30",
+            "name": "Williamson Act incompatible use \u2014 contracted agricultural land blocks solar",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "If the Ventura site is under a Williamson Act contract, commercial solar is an incompatible use. Exit requires 9-yr nonrenewal, cancellation at 12.5% of unrestricted FMV (25% Farmland Security Zone), or a solar-use easement at 6.25% (impaired farmland only). Contract status is unverified.",
+            "sources": [
+              "kb_lookup: Williamson Act incompatible use and exit paths",
+              "https://www.fbm.com/publications/the-challenges-of-developing-utility-scale-renewable-energy-projects-on-land-under-williamson-act-contracts/ (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-law-30"
+          },
+          {
+            "id": "ev-law-31",
+            "name": "Critically overdrafted groundwater basins \u2014 construction water supply and SGMA risk",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "Ventura County basins (Oxnard, Pleasant Valley, Ojai) are critically overdrafted. Construction dust-control and panel-wash water sourcing must be secured without worsening overdraft; SGMA compliance and CEQA water-supply analysis are live issues. Water source is unverified.",
+            "sources": [
+              "kb_lookup: CEQA water-supply analysis",
+              "kb_lookup: construction dust-control water demand",
+              "https://aquaoso.com/insights/water-risk-trends-in-california/ (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-law-31"
+          },
+          {
+            "id": "ev-law-32",
+            "name": "CEC Opt-In Certification does not waive federal ESA/EPA or Water Board/air district permit",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "The AB 205/AB 209 Opt-In route (eligible: solar \u226550 MW, storage \u2265200 MWh; 270-day decision) preempts local zoning but explicitly does NOT preempt Water Board, air district, or federal permits. For a 100 MW project in condor/kit-fox country, USFWS ESA consultation and VCAPCD dust rules still apply and can dominate the critical path.",
+            "sources": [
+              "kb_lookup: CEC Opt-In Certification PRC \u00a7\u00a725545\u201325545.9"
+            ],
+            "evidenceId": "ev-law-32"
+          }
+        ]
+      },
+      {
+        "name": "Finance",
+        "score": 15.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "4 flags open",
+        "subAgents": [
+          "researcher:financials",
+          "cross-examiner"
+        ],
+        "factors": [
+          {
+            "id": "finance-flag-0",
+            "name": "KILL CRITERION UNRESOLVED: findings assert the July 4, 2026 BOC deadline 'has already pass",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "KILL CRITERION UNRESOLVED: findings assert the July 4, 2026 BOC deadline 'has already passed' \u2014 solar ITC/PTC = $0 for a July 2028 COD unless physical-work BOC was documented (no 5% safe harbor for >1.5 MW solar); no BOC evidence package exists in the record",
+            "sources": []
+          },
+          {
+            "id": "finance-flag-1",
+            "name": "No CAPEX or cost data to test against $1.43\u20131.56/Wac benchmarks",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No CAPEX or cost data to test against $1.43\u20131.56/Wac benchmarks",
+            "sources": []
+          },
+          {
+            "id": "finance-flag-2",
+            "name": "No PPA or revenue data; any financial model assuming the 30% ITC is unvalidated",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No PPA or revenue data; any financial model assuming the 30% ITC is unvalidated",
+            "sources": []
+          },
+          {
+            "id": "finance-flag-3",
+            "name": "No document dates to anchor the 'deadline passed' assertion \u2014 conclusion unverifiable agai",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No document dates to anchor the 'deadline passed' assertion \u2014 conclusion unverifiable against an empty fact set",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Materials",
+        "score": 25.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "3 flags open",
+        "subAgents": [
+          "researcher:supply_chain"
+        ],
+        "factors": [
+          {
+            "id": "materials-flag-0",
+            "name": "GSU/large-power-transformer lead time 128\u2013144 weeks \u2014 PO had to be placed by ~mid-2025 for",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "GSU/large-power-transformer lead time 128\u2013144 weeks \u2014 PO had to be placed by ~mid-2025 for a July 2028 COD; no procurement status or order evidence",
+            "sources": []
+          },
+          {
+            "id": "materials-flag-1",
+            "name": "Storage capacity (MWh) unstated \u2014 blocks both CEC Opt-In eligibility and BESS supply-chain",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Storage capacity (MWh) unstated \u2014 blocks both CEC Opt-In eligibility and BESS supply-chain sizing (FEOC-compliant cells, 26\u201352 wk integrator slots)",
+            "sources": []
+          },
+          {
+            "id": "materials-flag-2",
+            "name": "No equipment procurement status of any kind; tariff/Section 232 escalation exposure unasse",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No equipment procurement status of any kind; tariff/Section 232 escalation exposure unassessed",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Demand",
+        "score": 35.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "7 flags open",
+        "subAgents": [
+          "researcher:demand",
+          "researcher:interconnection"
+        ],
+        "factors": [
+          {
+            "id": "demand-flag-0",
+            "name": "No PPA or contracted-MW data; nothing project-specific to compare against executed agreeme",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No PPA or contracted-MW data; nothing project-specific to compare against executed agreements",
+            "sources": []
+          },
+          {
+            "id": "demand-flag-1",
+            "name": "CAISO TPD/deliverability priority goes to executed PPAs \u2014 'projects without PPAs nearly al",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "CAISO TPD/deliverability priority goes to executed PPAs \u2014 'projects without PPAs nearly always withdraw'",
+            "sources": []
+          },
+          {
+            "id": "demand-flag-2",
+            "name": "Macro demand tailwind real (SB 100/SB 1020 100% zero-carbon by 2045; CA storage effectivel",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Macro demand tailwind real (SB 100/SB 1020 100% zero-carbon by 2045; CA storage effectively mandatory economically) but unquantified for this project",
+            "sources": []
+          },
+          {
+            "id": "ev-demand-33",
+            "name": "CAISO queue position and cluster-study phase are undocumented/unverifiable \u2014 the single ga",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "As of the KB's 'today' (~Aug 2026), the assumed July 2028 COD is <24 months away, yet the project's queue position, cluster phase, and Phase II study results are not in the knowledge base and could not be retrieved (CAISO interconnection page returned HTTP 404; web searches fell back to KB content). KB explicitly flags 'Queue position/study unknown' and 'no COD claim <24 months without executed studies.' A July 2028 COD is only credible if Phase II completed ~mid-2026 with executed upgrade-cost figures in hand \u2014 none are evidenced.",
+            "sources": [
+              "kb_lookup: CAISO interconnection queue cluster study network upgrade cost",
+              "kb_lookup: interconnection request to commercial operation date benchmark years",
+              "https://www.caiso.com/generation-transmission/generation/generator-interconnection (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-demand-33"
+          },
+          {
+            "id": "ev-demand-34",
+            "name": "Assumed July 2028 COD is aggressive vs the ~5-year IR\u2192COD benchmark",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "A July 2028 COD implies an IR submitted ~mid-2023 (5-yr) to 2024 (4-yr, low end). If the project entered Cluster 15 (2024 intake), ~4 years to COD is feasible only at the low end of the 4\u20137+ year range and only with Phase II complete ~mid-2026 and zero material modifications. Any later cluster intake makes July 2028 impossible. Only ~20% of queued projects ever reach COD.",
+            "sources": [
+              "kb_lookup: interconnection request to commercial operation date benchmark years",
+              "https://www.caiso.com/library/bucket-6-commercial-operation-date-cod (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-demand-34"
+          },
+          {
+            "id": "ev-demand-35",
+            "name": "Network-upgrade costs are unestimated \u2014 cannot reconcile against any trigger or budget",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No Phase II network-upgrade cost figure exists for this project in the KB or via retrieval. Network-upgrade cost shock is the #1 dropout driver (~30% post-screen attrition). If the Ventura POI relies on planned transmission, the +6.1-year average delay distribution applies, which alone would push COD past 2028. The upgrade-cost number must come from an executed Phase II study before any COD claim is made.",
+            "sources": [
+              "kb_lookup: CAISO interconnection queue cluster study network upgrade cost",
+              "https://www.caiso.com/library/generator-interconnection-driven-network-upgrade-cost-recovery (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-demand-35"
+          },
+          {
+            "id": "ev-demand-36",
+            "name": "Deliverability (FCDS vs Energy-Only) and Deliverable vs Merchant zone unconfirmed",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Whether the Ventura POI is in a Deliverable zone with FCDS (enabling Resource Adequacy sales) or a Merchant zone (self-funded, non-reimbursable upgrades) is unverified. Under the Oct 2024 zonal reform, Merchant-zone upgrades are non-reimbursable, materially changing economics. TPD allocation priority goes to executed PPAs first \u2014 'projects without PPAs nearly always withdraw.' No executed PPA is evidenced.",
+            "sources": [
+              "kb_lookup: CAISO interconnection queue cluster study network upgrade cost",
+              "https://www.caiso.com/generation-transmission/generation/generator-interconnection (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-demand-36"
+          },
+          {
+            "id": "ev-demand-37",
+            "name": "Material-modification exposure from the solar+storage configuration",
+            "band": "watch",
+            "statusLabel": "Watch",
+            "evidence": "The 100 MW solar+storage design risks a material-modification finding if storage was added after the IR in a way that increases service MW \u2014 a listed trigger that 'blows up a queue position.' Any such modification resets study timing and would make the July 2028 COD untenable. A material-modification audit is required.",
+            "sources": [
+              "kb_lookup: CAISO interconnection queue cluster study network upgrade cost",
+              "https://www.caiso.com/library/generation-interconnection-cluster-4-phase-1-methodology (backfilled 2026-08-23, verified)"
+            ],
+            "evidenceId": "ev-demand-37"
+          }
+        ]
+      }
+    ]
+  },
+  "eyebrow": "Solar \u00b7 0 MW \u00b7 Ventura County, CA",
+  "runSummary": "0 documents analyzed \u00b7 16 open items",
+  "scoreBandLabel": "Risk \u00b7 22/100",
+  "scoreNote": "Tax-credit kill criterion unresolved: OBBBA BOC deadline (July 4, 2026) asserted passed with no BOC evidence package \u2014 solar ITC/PTC potentially $0; make BOC documentation a condition precedent",
+  "evidence": {
+    "ev-land-0": {
+      "id": "ev-land-0",
+      "factorName": "CEQA full EIR is a 12\u201324+ month critical path with high litigation exposure",
+      "kind": "single",
+      "summary": "A 100 MW solar+storage project on farmland in CA requires a full EIR: 12\u201324 months to certify, 18\u201330 months total entitlement, +1\u20133 years if litigated. Renewables are the most-frequently-challenged project type (~43% plaintiff win rate vs EIRs). Farmland impact is scored via the Agricultural LESA Model and is likely 'significant and unavoidable,' requiring a Statement of Overriding Considerations. This alone can push any COD target out by 2\u20133+ years.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: CEQA EIR benchmark",
+          "location": "permitting",
+          "highlight": "A 100 MW solar+storage project on farmland in CA requires a full EIR: 12\u201324 months to certify, 18\u201330 months total entitlement, +1\u20133 years if litigated. Renewables are the most-frequently-challenged project type (~43% plaintiff win rate vs EIRs). Farmland impact is scored via the Agricultural LESA Model and is likely 'significant and unavoidable,' requiring a Statement of Overriding Considerations. This alone can push any COD target out by 2\u20133+ years.",
+          "extractedLabel": "permitting",
+          "extractedValue": "CEQA EIR 12\u201324 months to certify; 18\u201330 months total entitlement; +1\u20133 years if litigated; ~43% plaintiff win rate"
+        },
+        {
+          "title": "kb_lookup: renewables most-challenged project type",
+          "location": "permitting",
+          "highlight": "A 100 MW solar+storage project on farmland in CA requires a full EIR: 12\u201324 months to certify, 18\u201330 months total entitlement, +1\u20133 years if litigated. Renewables are the most-frequently-challenged project type (~43% plaintiff win rate vs EIRs). Farmland impact is scored via the Agricultural LESA Model and is likely 'significant and unavoidable,' requiring a Statement of Overriding Considerations. This alone can push any COD target out by 2\u20133+ years.",
+          "extractedLabel": "permitting",
+          "extractedValue": "CEQA EIR 12\u201324 months to certify; 18\u201330 months total entitlement; +1\u20133 years if litigated; ~43% plaintiff win rate"
+        },
+        {
+          "title": "https://www.slc.ca.gov/ceqa/ (backfilled 2026-08-23, verified)",
+          "location": "permitting",
+          "highlight": "A 100 MW solar+storage project on farmland in CA requires a full EIR: 12\u201324 months to certify, 18\u201330 months total entitlement, +1\u20133 years if litigated. Renewables are the most-frequently-challenged project type (~43% plaintiff win rate vs EIRs). Farmland impact is scored via the Agricultural LESA Model and is likely 'significant and unavoidable,' requiring a Statement of Overriding Considerations. This alone can push any COD target out by 2\u20133+ years.",
+          "extractedLabel": "permitting",
+          "extractedValue": "CEQA EIR 12\u201324 months to certify; 18\u201330 months total entitlement; +1\u20133 years if litigated; ~43% plaintiff win rate"
+        }
+      ]
+    },
+    "ev-land-1": {
+      "id": "ev-land-1",
+      "factorName": "OBBBA ITC beginning-of-construction cliff \u2014 deadline already passed",
+      "kind": "single",
+      "summary": "Under OBBBA (July 2025) and IRS Notice 2025-42, a project with COD July 2028 receives $0 in solar ITC/PTC unless beginning-of-construction was documented by July 4, 2026 \u2014 a deadline that has already passed. No 5% safe harbor applies to >1.5 MW solar. Any permitting delay compounds this; the BOC evidence package is the single biggest go/no-go item. Storage ITC (\u00a748E) survives the solar/wind cliff.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: OBBBA tax credit cliff",
+          "location": "permitting",
+          "highlight": "Under OBBBA (July 2025) and IRS Notice 2025-42, a project with COD July 2028 receives $0 in solar ITC/PTC unless beginning-of-construction was documented by July 4, 2026 \u2014 a deadline that has already passed. No 5% safe harbor applies to >1.5 MW solar. Any permitting delay compounds this; the BOC evidence package is the single biggest go/no-go item. Storage ITC (\u00a748E) survives the solar/wind cliff.",
+          "extractedLabel": "permitting",
+          "extractedValue": "OBBBA: BOC documented by July 4, 2026 for COD July 2028; no 5% safe harbor for >1.5 MW solar"
+        },
+        {
+          "title": "kb_lookup: IRS Notice 2025-42",
+          "location": "permitting",
+          "highlight": "Under OBBBA (July 2025) and IRS Notice 2025-42, a project with COD July 2028 receives $0 in solar ITC/PTC unless beginning-of-construction was documented by July 4, 2026 \u2014 a deadline that has already passed. No 5% safe harbor applies to >1.5 MW solar. Any permitting delay compounds this; the BOC evidence package is the single biggest go/no-go item. Storage ITC (\u00a748E) survives the solar/wind cliff.",
+          "extractedLabel": "permitting",
+          "extractedValue": "OBBBA: BOC documented by July 4, 2026 for COD July 2028; no 5% safe harbor for >1.5 MW solar"
+        },
+        {
+          "title": "https://www.cesa.org/resource-library/resource/obbba-summary-diagram/ (backfilled 2026-08-23, verified)",
+          "location": "permitting",
+          "highlight": "Under OBBBA (July 2025) and IRS Notice 2025-42, a project with COD July 2028 receives $0 in solar ITC/PTC unless beginning-of-construction was documented by July 4, 2026 \u2014 a deadline that has already passed. No 5% safe harbor applies to >1.5 MW solar. Any permitting delay compounds this; the BOC evidence package is the single biggest go/no-go item. Storage ITC (\u00a748E) survives the solar/wind cliff.",
+          "extractedLabel": "permitting",
+          "extractedValue": "OBBBA: BOC documented by July 4, 2026 for COD July 2028; no 5% safe harbor for >1.5 MW solar"
+        }
+      ]
+    },
+    "ev-land-2": {
+      "id": "ev-land-2",
+      "factorName": "Williamson Act land is an incompatible use \u2014 cancellation cost and schedule risk",
+      "kind": "single",
+      "summary": "Commercial solar is an incompatible use on Williamson Act-contracted land. Exit paths: 9-year nonrenewal, or cancellation at 12.5% of unrestricted FMV (25% for Farmland Security Zone), or a solar-use easement at 6.25% (impaired farmland only). Ventura County has substantial agricultural/Williamson Act acreage; the parcel's contract status must be verified before entitlement. Cancellation adds cost and a discretionary county action that can be challenged.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: Williamson Act incompatible use and exit paths",
+          "location": "permitting",
+          "highlight": "Commercial solar is an incompatible use on Williamson Act-contracted land. Exit paths: 9-year nonrenewal, or cancellation at 12.5% of unrestricted FMV (25% for Farmland Security Zone), or a solar-use easement at 6.25% (impaired farmland only). Ventura County has substantial agricultural/Williamson Act acreage; the parcel's contract status must be verified before entitlement. Cancellation adds cost and a discretionary county action that can be challenged.",
+          "extractedLabel": "permitting",
+          "extractedValue": "Williamson Act cancellation at 12.5% of unrestricted FMV (25% FSA); solar-use easement 6.25% (impaired only)"
+        },
+        {
+          "title": "https://awm.venturacounty.gov/land-conservation-act-williamson-act/ (backfilled 2026-08-23, verified)",
+          "location": "permitting",
+          "highlight": "Commercial solar is an incompatible use on Williamson Act-contracted land. Exit paths: 9-year nonrenewal, or cancellation at 12.5% of unrestricted FMV (25% for Farmland Security Zone), or a solar-use easement at 6.25% (impaired farmland only). Ventura County has substantial agricultural/Williamson Act acreage; the parcel's contract status must be verified before entitlement. Cancellation adds cost and a discretionary county action that can be challenged.",
+          "extractedLabel": "permitting",
+          "extractedValue": "Williamson Act cancellation at 12.5% of unrestricted FMV (25% FSA); solar-use easement 6.25% (impaired only)"
+        }
+      ]
+    },
+    "ev-land-3": {
+      "id": "ev-land-3",
+      "factorName": "CEC Opt-In route eligibility and mandatory CBA/prevailing-wage conditions",
+      "kind": "single",
+      "summary": "The CEC Opt-In Certification (AB 205/AB 209) is the only path that preempts local zoning, but eligibility requires solar \u226550 MW AND storage \u2265200 MWh. The 100 MW solar qualifies on solar, but the storage must be \u2265200 MWh or the project is ineligible. The certificate requires a certified community benefits agreement plus prevailing wage and skilled-and-trained workforce. If storage <200 MWh, the project falls back to the full local entitlement + CEQA EIR path.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: CEC Opt-In Certification AB 205/AB 209 PRC \u00a7\u00a725545\u201325545.9",
+          "location": "permitting",
+          "highlight": "The CEC Opt-In Certification (AB 205/AB 209) is the only path that preempts local zoning, but eligibility requires solar \u226550 MW AND storage \u2265200 MWh. The 100 MW solar qualifies on solar, but the storage must be \u2265200 MWh or the project is ineligible. The certificate requires a certified community benefits agreement plus prevailing wage and skilled-and-trained workforce. If storage <200 MWh, the project falls back to the full local entitlement + CEQA EIR path.",
+          "extractedLabel": "permitting",
+          "extractedValue": "CEC Opt-In: solar \u226550 MW, storage \u2265200 MWh; 270-day decision; requires certified CBA + prevailing wage + skilled-and-trained workforce"
+        }
+      ]
+    },
+    "ev-land-4": {
+      "id": "ev-land-4",
+      "factorName": "CAISO interconnection schedule compounds the permitting timeline",
+      "kind": "single",
+      "summary": "Ventura is in CAISO/SCE territory. CAISO queue is >500 GW / ~1,000 projects; historically only ~20% of queued projects reach COD, and typical IR\u2192COD is ~5 years. Network-upgrade cost shock is the #1 dropout driver. Any COD target must be reconciled against both the CEQA EIR timeline and the interconnection cluster study schedule.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: CAISO queue and IR\u2192COD benchmark",
+          "location": "permitting",
+          "highlight": "Ventura is in CAISO/SCE territory. CAISO queue is >500 GW / ~1,000 projects; historically only ~20% of queued projects reach COD, and typical IR\u2192COD is ~5 years. Network-upgrade cost shock is the #1 dropout driver. Any COD target must be reconciled against both the CEQA EIR timeline and the interconnection cluster study schedule.",
+          "extractedLabel": "permitting",
+          "extractedValue": "CAISO IR\u2192COD ~5 years; only ~20% of queued projects reach COD"
+        },
+        {
+          "title": "https://www.caiso.com/generation-transmission/generation/generator-interconnection (backfilled 2026-08-23, verified)",
+          "location": "permitting",
+          "highlight": "Ventura is in CAISO/SCE territory. CAISO queue is >500 GW / ~1,000 projects; historically only ~20% of queued projects reach COD, and typical IR\u2192COD is ~5 years. Network-upgrade cost shock is the #1 dropout driver. Any COD target must be reconciled against both the CEQA EIR timeline and the interconnection cluster study schedule.",
+          "extractedLabel": "permitting",
+          "extractedValue": "CAISO IR\u2192COD ~5 years; only ~20% of queued projects reach COD"
+        }
+      ]
+    },
+    "ev-land-5": {
+      "id": "ev-land-5",
+      "factorName": "AB 52 tribal consultation must conclude before EIR certification (fatal defect)",
+      "kind": "single",
+      "summary": "AB 52 requires tribal consultation notice \u226414 days of complete application, and consultation must conclude before EIR certification \u2014 a fatal defect if not. Ventura County is within Chumash tribal territory; NAHC Sacred Lands File search is required. Missing this sequencing invalidates the EIR and restarts the entitlement clock.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: AB 52 tribal consultation timing",
+          "location": "permitting",
+          "highlight": "AB 52 requires tribal consultation notice \u226414 days of complete application, and consultation must conclude before EIR certification \u2014 a fatal defect if not. Ventura County is within Chumash tribal territory; NAHC Sacred Lands File search is required. Missing this sequencing invalidates the EIR and restarts the entitlement clock.",
+          "extractedLabel": "permitting",
+          "extractedValue": "AB 52: notice \u226414 days of complete application; consultation must conclude before EIR certification"
+        }
+      ]
+    },
+    "ev-land-6": {
+      "id": "ev-land-6",
+      "factorName": "BESS fire-marshal sign-off (NFPA 855 / UL 9540A) is a gating construction permit",
+      "kind": "single",
+      "summary": "The storage component requires fire-marshal sign-off under NFPA 855 / UL 9540A, plus county grading, building/electrical permits, and the Construction General Permit (Order 2022-0057-DWQ) with SWPPP by a QSD in SMARTS before any ground disturbance. These are sequential construction-phase permits that add schedule risk if not staged early.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: construction-phase permit stack",
+          "location": "permitting",
+          "highlight": "The storage component requires fire-marshal sign-off under NFPA 855 / UL 9540A, plus county grading, building/electrical permits, and the Construction General Permit (Order 2022-0057-DWQ) with SWPPP by a QSD in SMARTS before any ground disturbance. These are sequential construction-phase permits that add schedule risk if not staged early.",
+          "extractedLabel": "permitting",
+          "extractedValue": "Construction General Permit Order 2022-0057-DWQ; NFPA 855 / UL 9540A BESS sign-off"
+        },
+        {
+          "title": "https://www.engineeringfireprotection.com/post/bridging-ul-9540a-testing-and-nfpa-855-compliance (backfilled 2026-08-23, verified)",
+          "location": "permitting",
+          "highlight": "The storage component requires fire-marshal sign-off under NFPA 855 / UL 9540A, plus county grading, building/electrical permits, and the Construction General Permit (Order 2022-0057-DWQ) with SWPPP by a QSD in SMARTS before any ground disturbance. These are sequential construction-phase permits that add schedule risk if not staged early.",
+          "extractedLabel": "permitting",
+          "extractedValue": "Construction General Permit Order 2022-0057-DWQ; NFPA 855 / UL 9540A BESS sign-off"
+        }
+      ]
+    },
+    "ev-land-7": {
+      "id": "ev-land-7",
+      "factorName": "Transformer/GSU lead time of 128\u2013144 weeks constrains COD",
+      "kind": "single",
+      "summary": "The 2025\u201326 market norm for large power transformers/GSUs is 128\u2013144 weeks (~2.5\u20132.8 years). For any near-term COD, orders had to be placed by mid-2025. This is a procurement/permitting dependency that must be locked before entitlement completes.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: transformer lead time benchmark",
+          "location": "permitting",
+          "highlight": "The 2025\u201326 market norm for large power transformers/GSUs is 128\u2013144 weeks (~2.5\u20132.8 years). For any near-term COD, orders had to be placed by mid-2025. This is a procurement/permitting dependency that must be locked before entitlement completes.",
+          "extractedLabel": "permitting",
+          "extractedValue": "Large power transformer/GSU lead time 128\u2013144 weeks"
+        },
+        {
+          "title": "https://www.industrialsage.com/power-transformer-lead-times-us-grid-shortage/ (backfilled 2026-08-23, verified)",
+          "location": "permitting",
+          "highlight": "The 2025\u201326 market norm for large power transformers/GSUs is 128\u2013144 weeks (~2.5\u20132.8 years). For any near-term COD, orders had to be placed by mid-2025. This is a procurement/permitting dependency that must be locked before entitlement completes.",
+          "extractedLabel": "permitting",
+          "extractedValue": "Large power transformer/GSU lead time 128\u2013144 weeks"
+        }
+      ]
+    },
+    "ev-land-8": {
+      "id": "ev-land-8",
+      "factorName": "Ventura-specific zoning and ordinance status unverified \u2014 data gap",
+      "kind": "single",
+      "summary": "No live Ventura County data was retrievable: the Ventura County planning fetch was rejected and web searches returned only KB (Solano/Nevada) content. The KB's 'zoning kill switch' (solar prohibited in all ag districts) is Solano-specific and must NOT be assumed for Ventura. Confirm current Ventura County Code land-use tables, any solar/BESS ordinance, and the parcel's zoning/Williamson Act status directly before relying on any local-permit or CEC Opt-In path.",
+      "confidence": "Medium confidence",
+      "sources": [
+        {
+          "title": "web_fetch: ventura.org/rma/planning (rejected)",
+          "location": "permitting",
+          "highlight": "No live Ventura County data was retrievable: the Ventura County planning fetch was rejected and web searches returned only KB (Solano/Nevada) content. The KB's 'zoning kill switch' (solar prohibited in all ag districts) is Solano-specific and must NOT be assumed for Ventura. Confirm current Ventura County Code land-use tables, any solar/BESS ordinance, and the parcel's zoning/Williamson Act status directly before relying on any local-permit or CEC Opt-In path.",
+          "extractedLabel": "permitting",
+          "extractedValue": ""
+        },
+        {
+          "title": "web_search: Ventura County solar/BESS ordinance (returned KB only)",
+          "location": "permitting",
+          "highlight": "No live Ventura County data was retrievable: the Ventura County planning fetch was rejected and web searches returned only KB (Solano/Nevada) content. The KB's 'zoning kill switch' (solar prohibited in all ag districts) is Solano-specific and must NOT be assumed for Ventura. Confirm current Ventura County Code land-use tables, any solar/BESS ordinance, and the parcel's zoning/Williamson Act status directly before relying on any local-permit or CEC Opt-In path.",
+          "extractedLabel": "permitting",
+          "extractedValue": ""
+        },
+        {
+          "title": "https://citizenportal.ai/articles/6552998/california/ventura-county/Ventura-County/California/Ventura-County-planning-commission-approves-Phase-2-text-amendments-to-noncoastal-zoning-ordinance (backfilled 2026-08-23, verified)",
+          "location": "permitting",
+          "highlight": "No live Ventura County data was retrievable: the Ventura County planning fetch was rejected and web searches returned only KB (Solano/Nevada) content. The KB's 'zoning kill switch' (solar prohibited in all ag districts) is Solano-specific and must NOT be assumed for Ventura. Confirm current Ventura County Code land-use tables, any solar/BESS ordinance, and the parcel's zoning/Williamson Act status directly before relying on any local-permit or CEC Opt-In path.",
+          "extractedLabel": "permitting",
+          "extractedValue": ""
+        }
+      ]
+    },
+    "ev-land-9": {
+      "id": "ev-land-9",
+      "factorName": "No site-specific zoning verification possible \u2014 threshold data gap",
+      "kind": "single",
+      "summary": "Project has site_acres = null and zero scout-acquired data. Ventura County's actual solar ordinance (Ordinance No. 4100) and the parcel's zoning district could not be retrieved: ventura.org fetches were rejected, municode returned only a JS shell, qcode returned HTTP 403, and web_search fell back to a KB that is Solano County/Boulder City NV-centric. It is therefore UNCONFIRMED whether the parcel is even zoned to allow a 100 MW utility-scale solar+storage facility. This is a threshold/kill criterion, not a schedule risk \u2014 zoning district and use-permit path must be confirmed before any further diligence.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup (Ventura County solar zoning agricultural)",
+          "location": "zoning",
+          "highlight": "Project has site_acres = null and zero scout-acquired data. Ventura County's actual solar ordinance (Ordinance No. 4100) and the parcel's zoning district could not be retrieved: ventura.org fetches were rejected, municode returned only a JS shell, qcode returned HTTP 403, and web_search fell back to a KB that is Solano County/Boulder City NV-centric. It is therefore UNCONFIRMED whether the parcel is even zoned to allow a 100 MW utility-scale solar+storage facility. This is a threshold/kill criterion, not a schedule risk \u2014 zoning district and use-permit path must be confirmed before any further diligence.",
+          "extractedLabel": "zoning",
+          "extractedValue": "Zoning district and use-permit path must be verified before entitlement; a 100 MW facility requires a district that permits utility-scale energy uses (conditional use permit or zoning amendment)"
+        },
+        {
+          "title": "web_fetch ventura.org (rejected)",
+          "location": "zoning",
+          "highlight": "Project has site_acres = null and zero scout-acquired data. Ventura County's actual solar ordinance (Ordinance No. 4100) and the parcel's zoning district could not be retrieved: ventura.org fetches were rejected, municode returned only a JS shell, qcode returned HTTP 403, and web_search fell back to a KB that is Solano County/Boulder City NV-centric. It is therefore UNCONFIRMED whether the parcel is even zoned to allow a 100 MW utility-scale solar+storage facility. This is a threshold/kill criterion, not a schedule risk \u2014 zoning district and use-permit path must be confirmed before any further diligence.",
+          "extractedLabel": "zoning",
+          "extractedValue": "Zoning district and use-permit path must be verified before entitlement; a 100 MW facility requires a district that permits utility-scale energy uses (conditional use permit or zoning amendment)"
+        },
+        {
+          "title": "web_fetch municode (JS shell)",
+          "location": "zoning",
+          "highlight": "Project has site_acres = null and zero scout-acquired data. Ventura County's actual solar ordinance (Ordinance No. 4100) and the parcel's zoning district could not be retrieved: ventura.org fetches were rejected, municode returned only a JS shell, qcode returned HTTP 403, and web_search fell back to a KB that is Solano County/Boulder City NV-centric. It is therefore UNCONFIRMED whether the parcel is even zoned to allow a 100 MW utility-scale solar+storage facility. This is a threshold/kill criterion, not a schedule risk \u2014 zoning district and use-permit path must be confirmed before any further diligence.",
+          "extractedLabel": "zoning",
+          "extractedValue": "Zoning district and use-permit path must be verified before entitlement; a 100 MW facility requires a district that permits utility-scale energy uses (conditional use permit or zoning amendment)"
+        },
+        {
+          "title": "web_fetch qcode.us (HTTP 403)",
+          "location": "zoning",
+          "highlight": "Project has site_acres = null and zero scout-acquired data. Ventura County's actual solar ordinance (Ordinance No. 4100) and the parcel's zoning district could not be retrieved: ventura.org fetches were rejected, municode returned only a JS shell, qcode returned HTTP 403, and web_search fell back to a KB that is Solano County/Boulder City NV-centric. It is therefore UNCONFIRMED whether the parcel is even zoned to allow a 100 MW utility-scale solar+storage facility. This is a threshold/kill criterion, not a schedule risk \u2014 zoning district and use-permit path must be confirmed before any further diligence.",
+          "extractedLabel": "zoning",
+          "extractedValue": "Zoning district and use-permit path must be verified before entitlement; a 100 MW facility requires a district that permits utility-scale energy uses (conditional use permit or zoning amendment)"
+        },
+        {
+          "title": "https://www.cityofventura.ca.gov/CivicAlerts.aspx?AID=621 (backfilled 2026-08-23, verified)",
+          "location": "zoning",
+          "highlight": "Project has site_acres = null and zero scout-acquired data. Ventura County's actual solar ordinance (Ordinance No. 4100) and the parcel's zoning district could not be retrieved: ventura.org fetches were rejected, municode returned only a JS shell, qcode returned HTTP 403, and web_search fell back to a KB that is Solano County/Boulder City NV-centric. It is therefore UNCONFIRMED whether the parcel is even zoned to allow a 100 MW utility-scale solar+storage facility. This is a threshold/kill criterion, not a schedule risk \u2014 zoning district and use-permit path must be confirmed before any further diligence.",
+          "extractedLabel": "zoning",
+          "extractedValue": "Zoning district and use-permit path must be verified before entitlement; a 100 MW facility requires a district that permits utility-scale energy uses (conditional use permit or zoning amendment)"
+        }
+      ]
+    },
+    "ev-land-10": {
+      "id": "ev-land-10",
+      "factorName": "Full CEQA EIR required for farmland conversion \u2014 12\u201330+ month entitlement path",
+      "kind": "single",
+      "summary": "A 100 MW solar+storage facility on Ventura County farmland (a top-tier ag county) will require a full EIR: 12\u201324 months to certify, 18\u201330 months total entitlement, +1\u20133 years if litigated. Renewables are the most-frequently-challenged project type under CEQA (~43% plaintiff win rate vs EIRs). Ventura's ag-protectionist posture and FMMP Important Farmland classification raise the likelihood of a 'significant and unavoidable' farmland-impact finding requiring a Statement of Overriding Considerations.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup (California solar zoning agricultural land Williamson Act)",
+          "location": "zoning",
+          "highlight": "A 100 MW solar+storage facility on Ventura County farmland (a top-tier ag county) will require a full EIR: 12\u201324 months to certify, 18\u201330 months total entitlement, +1\u20133 years if litigated. Renewables are the most-frequently-challenged project type under CEQA (~43% plaintiff win rate vs EIRs). Ventura's ag-protectionist posture and FMMP Important Farmland classification raise the likelihood of a 'significant and unavoidable' farmland-impact finding requiring a Statement of Overriding Considerations.",
+          "extractedLabel": "zoning",
+          "extractedValue": "Full EIR: 12\u201324 months to certify; 18\u201330 months total entitlement; +1\u20133 years if litigated; renewables ~43% plaintiff win rate"
+        },
+        {
+          "title": "https://awm.venturacounty.gov/land-conservation-act-williamson-act/ (backfilled 2026-08-23, verified)",
+          "location": "zoning",
+          "highlight": "A 100 MW solar+storage facility on Ventura County farmland (a top-tier ag county) will require a full EIR: 12\u201324 months to certify, 18\u201330 months total entitlement, +1\u20133 years if litigated. Renewables are the most-frequently-challenged project type under CEQA (~43% plaintiff win rate vs EIRs). Ventura's ag-protectionist posture and FMMP Important Farmland classification raise the likelihood of a 'significant and unavoidable' farmland-impact finding requiring a Statement of Overriding Considerations.",
+          "extractedLabel": "zoning",
+          "extractedValue": "Full EIR: 12\u201324 months to certify; 18\u201330 months total entitlement; +1\u20133 years if litigated; renewables ~43% plaintiff win rate"
+        }
+      ]
+    },
+    "ev-land-11": {
+      "id": "ev-land-11",
+      "factorName": "Williamson Act incompatibility risk on contracted farmland",
+      "kind": "single",
+      "summary": "Ventura County has extensive Williamson Act contracted farmland. If the parcel is under contract, commercial solar is an incompatible use. Exit requires 9-yr nonrenewal, cancellation at 12.5% of unrestricted FMV (25% for Farmland Security Zone), or a solar-use easement at 6.25% (impaired farmland only). This adds material cost and schedule and can be a de facto kill criterion on prime farmland.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup (California solar zoning agricultural land Williamson Act)",
+          "location": "zoning",
+          "highlight": "Ventura County has extensive Williamson Act contracted farmland. If the parcel is under contract, commercial solar is an incompatible use. Exit requires 9-yr nonrenewal, cancellation at 12.5% of unrestricted FMV (25% for Farmland Security Zone), or a solar-use easement at 6.25% (impaired farmland only). This adds material cost and schedule and can be a de facto kill criterion on prime farmland.",
+          "extractedLabel": "zoning",
+          "extractedValue": "Williamson Act: solar incompatible; cancellation at 12.5% of unrestricted FMV (25% Farmland Security Zone); solar-use easement 6.25% (impaired farmland only)"
+        },
+        {
+          "title": "https://awm.venturacounty.gov/land-conservation-act-williamson-act/ (backfilled 2026-08-23, verified)",
+          "location": "zoning",
+          "highlight": "Ventura County has extensive Williamson Act contracted farmland. If the parcel is under contract, commercial solar is an incompatible use. Exit requires 9-yr nonrenewal, cancellation at 12.5% of unrestricted FMV (25% for Farmland Security Zone), or a solar-use easement at 6.25% (impaired farmland only). This adds material cost and schedule and can be a de facto kill criterion on prime farmland.",
+          "extractedLabel": "zoning",
+          "extractedValue": "Williamson Act: solar incompatible; cancellation at 12.5% of unrestricted FMV (25% Farmland Security Zone); solar-use easement 6.25% (impaired farmland only)"
+        }
+      ]
+    },
+    "ev-land-12": {
+      "id": "ev-land-12",
+      "factorName": "CEC Opt-In Certification is the viable path but carries conditions and county-opposition r",
+      "kind": "single",
+      "summary": "At 100 MW solar + storage, the project is eligible for CEC Opt-In Certification (solar \u226550 MW, storage \u2265200 MWh), which yields a 270-day state decision and a certificate in lieu of all local permits \u2014 the route that bypasses restrictive local zoning. However, it requires a certified community benefits agreement, prevailing wage, and skilled-and-trained workforce, and does NOT preempt Water Board, air-district, or federal permits. County opposition risk is documented (Corby BESS docket 24-OPT-05 as template).",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup (California solar zoning agricultural land Williamson Act)",
+          "location": "zoning",
+          "highlight": "At 100 MW solar + storage, the project is eligible for CEC Opt-In Certification (solar \u226550 MW, storage \u2265200 MWh), which yields a 270-day state decision and a certificate in lieu of all local permits \u2014 the route that bypasses restrictive local zoning. However, it requires a certified community benefits agreement, prevailing wage, and skilled-and-trained workforce, and does NOT preempt Water Board, air-district, or federal permits. County opposition risk is documented (Corby BESS docket 24-OPT-05 as template).",
+          "extractedLabel": "zoning",
+          "extractedValue": "CEC Opt-In: 270-day decision; in lieu of all local permits; requires community benefits agreement + prevailing wage + skilled-and-trained workforce"
+        },
+        {
+          "title": "https://www.coxcastle.com/publication-california-opens-new-permitting-pathway-for-renewable-energy-projects (backfilled 2026-08-23, verified)",
+          "location": "zoning",
+          "highlight": "At 100 MW solar + storage, the project is eligible for CEC Opt-In Certification (solar \u226550 MW, storage \u2265200 MWh), which yields a 270-day state decision and a certificate in lieu of all local permits \u2014 the route that bypasses restrictive local zoning. However, it requires a certified community benefits agreement, prevailing wage, and skilled-and-trained workforce, and does NOT preempt Water Board, air-district, or federal permits. County opposition risk is documented (Corby BESS docket 24-OPT-05 as template).",
+          "extractedLabel": "zoning",
+          "extractedValue": "CEC Opt-In: 270-day decision; in lieu of all local permits; requires community benefits agreement + prevailing wage + skilled-and-trained workforce"
+        }
+      ]
+    },
+    "ev-land-13": {
+      "id": "ev-land-13",
+      "factorName": "Ag-protectionist local politics and General Plan farmland-preservation conflict",
+      "kind": "single",
+      "summary": "Ventura County's General Plan strongly protects agricultural land, and the county is a top-tier producer of citrus, avocados, strawberries, and vegetables. A 100 MW facility on farmland will face local opposition and likely require a General Plan amendment and/or conditional use permit with material denial risk. Mitigation norms (ag conservation easements at 1:1, up to 2:1 on prime; decommissioning bond ~100% of removal cost) add cost. Site acres are null, so prime-farmland exposure cannot yet be quantified.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup (California solar zoning agricultural land Williamson Act)",
+          "location": "zoning",
+          "highlight": "Ventura County's General Plan strongly protects agricultural land, and the county is a top-tier producer of citrus, avocados, strawberries, and vegetables. A 100 MW facility on farmland will face local opposition and likely require a General Plan amendment and/or conditional use permit with material denial risk. Mitigation norms (ag conservation easements at 1:1, up to 2:1 on prime; decommissioning bond ~100% of removal cost) add cost. Site acres are null, so prime-farmland exposure cannot yet be quantified.",
+          "extractedLabel": "zoning",
+          "extractedValue": "Ag conservation easements at 1:1 (up to 2:1 on prime); decommissioning bond ~100% of removal cost; CA solar leases ~$935\u20131,600/ac/yr"
+        }
+      ]
+    },
+    "ev-land-14": {
+      "id": "ev-land-14",
+      "factorName": "Main transformer/GSU lead time is the hardest schedule gate and no PO evidence exists",
+      "kind": "single",
+      "summary": "Large power transformers/GSUs carry a 128\u2013144 week (~2.5\u20132.8 yr) lead time (Wood Mac 2025), with a ~30% national supply deficit, 80% imported, and prices up +60\u201395% since 2019 at ~$3\u20138M/unit. For a 100 MW solar+storage project needing 1\u20132 GSUs, the purchase order must be placed ~2.5\u20132.8 years before COD. The acquired data contains no transformer PO, no delivery confirmation, and no lead-time quote \u2014 so the project cannot demonstrate it can meet any near-term COD target.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: supply chain (Aug 2026) \u2014 transformers/GSUs 128\u2013144 wks, ~30% deficit, +60\u201395% prices, $3\u20138M/unit",
+          "location": "resource_supply_chain",
+          "highlight": "Large power transformers/GSUs carry a 128\u2013144 week (~2.5\u20132.8 yr) lead time (Wood Mac 2025), with a ~30% national supply deficit, 80% imported, and prices up +60\u201395% since 2019 at ~$3\u20138M/unit. For a 100 MW solar+storage project needing 1\u20132 GSUs, the purchase order must be placed ~2.5\u20132.8 years before COD. The acquired data contains no transformer PO, no delivery confirmation, and no lead-time quote \u2014 so the project cannot demonstrate it can meet any near-term COD target.",
+          "extractedLabel": "resource_supply_chain",
+          "extractedValue": "Transformer/GSU lead time 128\u2013144 weeks; PO must be placed ~2.5\u20132.8 yrs pre-COD; lead-time confirmation must be <90 days old"
+        },
+        {
+          "title": "https://eepower.com/tech-insights/transformer-supply-chain-woes-persist-as-energy-demand-grows/ (backfilled 2026-08-23, verified)",
+          "location": "resource_supply_chain",
+          "highlight": "Large power transformers/GSUs carry a 128\u2013144 week (~2.5\u20132.8 yr) lead time (Wood Mac 2025), with a ~30% national supply deficit, 80% imported, and prices up +60\u201395% since 2019 at ~$3\u20138M/unit. For a 100 MW solar+storage project needing 1\u20132 GSUs, the purchase order must be placed ~2.5\u20132.8 years before COD. The acquired data contains no transformer PO, no delivery confirmation, and no lead-time quote \u2014 so the project cannot demonstrate it can meet any near-term COD target.",
+          "extractedLabel": "resource_supply_chain",
+          "extractedValue": "Transformer/GSU lead time 128\u2013144 weeks; PO must be placed ~2.5\u20132.8 yrs pre-COD; lead-time confirmation must be <90 days old"
+        }
+      ]
+    },
+    "ev-land-15": {
+      "id": "ev-land-15",
+      "factorName": "PV module supply constrained by AD/CVD shutdown and US-made premium; no module MSA documen",
+      "kind": "single",
+      "summary": "SE Asia (Cambodia, Malaysia, Thailand, Vietnam) module supply is effectively shut by AD/CVD orders; India/Indonesia/Laos finals land Jul\u2013Oct 2026. Compliant imports run ~$0.34\u20130.40/W while US-made modules are ~$0.56/W (+60% premium) and supply-constrained. The project has no documented module MSA with FEOC/MACR attestation, UFLPA traceability, or tariff-reopener clause \u2014 leaving it exposed to tariff and availability risk for its ~100 MW of modules.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: supply chain (Aug 2026) \u2014 PV modules; AD/CVD finals India Jul 13 2026, Laos Sep 9 2026, ITC injury vote Oct 19 2026",
+          "location": "resource_supply_chain",
+          "highlight": "SE Asia (Cambodia, Malaysia, Thailand, Vietnam) module supply is effectively shut by AD/CVD orders; India/Indonesia/Laos finals land Jul\u2013Oct 2026. Compliant imports run ~$0.34\u20130.40/W while US-made modules are ~$0.56/W (+60% premium) and supply-constrained. The project has no documented module MSA with FEOC/MACR attestation, UFLPA traceability, or tariff-reopener clause \u2014 leaving it exposed to tariff and availability risk for its ~100 MW of modules.",
+          "extractedLabel": "resource_supply_chain",
+          "extractedValue": "Compliant imports $0.34\u20130.40/W; US-made $0.56/W; module MSA must carry FEOC/MACR attestation + UFLPA traceability + tariff reopener"
+        },
+        {
+          "title": "https://www.federalregister.gov/documents/2026/02/26/2026-03895/crystalline-silicon-photovoltaic-cells-whether-or-not-assembled-into-modules-from-india-preliminary (backfilled 2026-08-23, verified)",
+          "location": "resource_supply_chain",
+          "highlight": "SE Asia (Cambodia, Malaysia, Thailand, Vietnam) module supply is effectively shut by AD/CVD orders; India/Indonesia/Laos finals land Jul\u2013Oct 2026. Compliant imports run ~$0.34\u20130.40/W while US-made modules are ~$0.56/W (+60% premium) and supply-constrained. The project has no documented module MSA with FEOC/MACR attestation, UFLPA traceability, or tariff-reopener clause \u2014 leaving it exposed to tariff and availability risk for its ~100 MW of modules.",
+          "extractedLabel": "resource_supply_chain",
+          "extractedValue": "Compliant imports $0.34\u20130.40/W; US-made $0.56/W; module MSA must carry FEOC/MACR attestation + UFLPA traceability + tariff reopener"
+        }
+      ]
+    },
+    "ev-land-16": {
+      "id": "ev-land-16",
+      "factorName": "BESS FEOC compliance and integrator queue congestion unverified",
+      "kind": "single",
+      "summary": "US turnkey BESS runs $200\u2013350/kWh (vs ~$70/kWh global pack) with 26\u201352 week integrator slots, and FEOC rules (IRS Notice 2026-15) exclude CATL/BYD cells \u2014 pushing demand to a congested pool of compliant integrators. The 100 MW project's storage component (4-hr BESS is economically mandatory in CA) has no documented BESS slot reservation or FEOC-compliant cell supply confirmation in the acquired data.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: supply chain (Aug 2026) \u2014 BESS pack $70/kWh global vs US turnkey $200\u2013350/kWh; FEOC excludes CATL/BYD",
+          "location": "resource_supply_chain",
+          "highlight": "US turnkey BESS runs $200\u2013350/kWh (vs ~$70/kWh global pack) with 26\u201352 week integrator slots, and FEOC rules (IRS Notice 2026-15) exclude CATL/BYD cells \u2014 pushing demand to a congested pool of compliant integrators. The 100 MW project's storage component (4-hr BESS is economically mandatory in CA) has no documented BESS slot reservation or FEOC-compliant cell supply confirmation in the acquired data.",
+          "extractedLabel": "resource_supply_chain",
+          "extractedValue": "BESS US turnkey $200\u2013350/kWh; 26\u201352 wk integrator slot; FEOC-compliant cells required"
+        },
+        {
+          "title": "https://carina.energy/feoc-compliance-guide-bess/ (backfilled 2026-08-23, verified)",
+          "location": "resource_supply_chain",
+          "highlight": "US turnkey BESS runs $200\u2013350/kWh (vs ~$70/kWh global pack) with 26\u201352 week integrator slots, and FEOC rules (IRS Notice 2026-15) exclude CATL/BYD cells \u2014 pushing demand to a congested pool of compliant integrators. The 100 MW project's storage component (4-hr BESS is economically mandatory in CA) has no documented BESS slot reservation or FEOC-compliant cell supply confirmation in the acquired data.",
+          "extractedLabel": "resource_supply_chain",
+          "extractedValue": "BESS US turnkey $200\u2013350/kWh; 26\u201352 wk integrator slot; FEOC-compliant cells required"
+        }
+      ]
+    },
+    "ev-land-17": {
+      "id": "ev-land-17",
+      "factorName": "Section 232 steel/copper tariffs create unhedged escalation exposure",
+      "kind": "single",
+      "summary": "Section 232 tariffs at 50% on steel/aluminum (Jun 2025) and copper (Aug 2025), plus silver near ~$70/oz, raise racking, cabling, and module-BOM costs. With no escalation-indexed or hedged procurement contracts documented, the project's capex is exposed to tariff-driven cost overruns on a 100 MW build.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: supply chain (Aug 2026) \u2014 steel/copper Section 232 at 50%",
+          "location": "resource_supply_chain",
+          "highlight": "Section 232 tariffs at 50% on steel/aluminum (Jun 2025) and copper (Aug 2025), plus silver near ~$70/oz, raise racking, cabling, and module-BOM costs. With no escalation-indexed or hedged procurement contracts documented, the project's capex is exposed to tariff-driven cost overruns on a 100 MW build.",
+          "extractedLabel": "resource_supply_chain",
+          "extractedValue": "Section 232 at 50% (steel/aluminum Jun 2025, copper Aug 2025); silver ~$70/oz; escalation indexed or hedged"
+        },
+        {
+          "title": "https://www.whitehouse.gov/fact-sheets/2026/04/fact-sheet-president-donald-j-trump-strengthens-tariffs-on-steel-aluminum-and-copper-imports/ (backfilled 2026-08-23, verified)",
+          "location": "resource_supply_chain",
+          "highlight": "Section 232 tariffs at 50% on steel/aluminum (Jun 2025) and copper (Aug 2025), plus silver near ~$70/oz, raise racking, cabling, and module-BOM costs. With no escalation-indexed or hedged procurement contracts documented, the project's capex is exposed to tariff-driven cost overruns on a 100 MW build.",
+          "extractedLabel": "resource_supply_chain",
+          "extractedValue": "Section 232 at 50% (steel/aluminum Jun 2025, copper Aug 2025); silver ~$70/oz; escalation indexed or hedged"
+        }
+      ]
+    },
+    "ev-land-18": {
+      "id": "ev-land-18",
+      "factorName": "No supply-chain documentation in acquired data \u2014 evidence gap on all major equipment",
+      "kind": "single",
+      "summary": "The scout-acquired data for this project is empty (acquired: []). None of the red-flag checklist items can be confirmed: no transformer PO with \u2264Q4 2027 delivery, no module MSA with FEOC/MACR attestation, no DC BOM \u226555% supplier certs, no BESS slot, and no \u22656-month float between major-equipment delivery and COD. This is a material diligence gap for a 100 MW solar+storage build in Ventura County.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: supply chain red-flag checklist (Aug 2026)",
+          "location": "resource_supply_chain",
+          "highlight": "The scout-acquired data for this project is empty (acquired: []). None of the red-flag checklist items can be confirmed: no transformer PO with \u2264Q4 2027 delivery, no module MSA with FEOC/MACR attestation, no DC BOM \u226555% supplier certs, no BESS slot, and no \u22656-month float between major-equipment delivery and COD. This is a material diligence gap for a 100 MW solar+storage build in Ventura County.",
+          "extractedLabel": "resource_supply_chain",
+          "extractedValue": "Red-flag checklist: transformer PO \u2264Q4 2027 delivery; module MSA with FEOC/MACR + UFLPA; DC BOM \u226555%; BESS slot; \u22656 months equipment-to-COD float"
+        }
+      ]
+    },
+    "ev-land-19": {
+      "id": "ev-land-19",
+      "factorName": "Storage capacity in MWh is unspecified \u2014 CEC Opt-In eligibility cannot be confirmed",
+      "kind": "single",
+      "summary": "The project data records only capacity_mw = 100.0 for the combined solar+storage system and contains no MWh figure for the battery. The CEC Opt-In threshold (PRC \u00a7\u00a725545\u201325545.9) requires storage \u2265 200 MWh AND solar \u2265 50 MW. The solar leg is met (100 MW \u2265 50 MW), but the storage leg is unverifiable from the provided facts. This single unknown decides the entire permitting route: if storage \u2265 200 MWh, the project qualifies for the 270-day CEC Opt-In certification (in lieu of all local permits); if storage < 200 MWh, it falls to the 18\u201330-month local CEQA EIR route in Ventura County. The MWh figure must be obtained before any schedule or entitlement analysis is credible.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: CEC Opt-In Certification (AB 205/AB 209, PRC \u00a7\u00a725545\u201325545.9) \u2014 eligible = solar \u2265 50 MW, storage \u2265 200 MWh; CEC decides within 270 days; certificate in lieu of all local permits",
+          "location": "permitting",
+          "highlight": "The project data records only capacity_mw = 100.0 for the combined solar+storage system and contains no MWh figure for the battery. The CEC Opt-In threshold (PRC \u00a7\u00a725545\u201325545.9) requires storage \u2265 200 MWh AND solar \u2265 50 MW. The solar leg is met (100 MW \u2265 50 MW), but the storage leg is unverifiable from the provided facts. This single unknown decides the entire permitting route: if storage \u2265 200 MWh, the project qualifies for the 270-day CEC Opt-In certification (in lieu of all local permits); if storage < 200 MWh, it falls to the 18\u201330-month local CEQA EIR route in Ventura County. The MWh figure must be obtained before any schedule or entitlement analysis is credible.",
+          "extractedLabel": "permitting",
+          "extractedValue": "CEC Opt-In storage threshold = \u2265 200 MWh (PRC \u00a7\u00a725545\u201325545.9); 270-day CEC decision vs 18\u201330-month local CEQA EIR"
+        },
+        {
+          "title": "kb_lookup: CEQA full EIR 12\u201324 months to certify; 18\u201330 months total entitlement; +1\u20133 years if litigated",
+          "location": "permitting",
+          "highlight": "The project data records only capacity_mw = 100.0 for the combined solar+storage system and contains no MWh figure for the battery. The CEC Opt-In threshold (PRC \u00a7\u00a725545\u201325545.9) requires storage \u2265 200 MWh AND solar \u2265 50 MW. The solar leg is met (100 MW \u2265 50 MW), but the storage leg is unverifiable from the provided facts. This single unknown decides the entire permitting route: if storage \u2265 200 MWh, the project qualifies for the 270-day CEC Opt-In certification (in lieu of all local permits); if storage < 200 MWh, it falls to the 18\u201330-month local CEQA EIR route in Ventura County. The MWh figure must be obtained before any schedule or entitlement analysis is credible.",
+          "extractedLabel": "permitting",
+          "extractedValue": "CEC Opt-In storage threshold = \u2265 200 MWh (PRC \u00a7\u00a725545\u201325545.9); 270-day CEC decision vs 18\u201330-month local CEQA EIR"
+        },
+        {
+          "title": "web_search: no project-specific MWh figure found for 'FanoutCheck'",
+          "location": "permitting",
+          "highlight": "The project data records only capacity_mw = 100.0 for the combined solar+storage system and contains no MWh figure for the battery. The CEC Opt-In threshold (PRC \u00a7\u00a725545\u201325545.9) requires storage \u2265 200 MWh AND solar \u2265 50 MW. The solar leg is met (100 MW \u2265 50 MW), but the storage leg is unverifiable from the provided facts. This single unknown decides the entire permitting route: if storage \u2265 200 MWh, the project qualifies for the 270-day CEC Opt-In certification (in lieu of all local permits); if storage < 200 MWh, it falls to the 18\u201330-month local CEQA EIR route in Ventura County. The MWh figure must be obtained before any schedule or entitlement analysis is credible.",
+          "extractedLabel": "permitting",
+          "extractedValue": "CEC Opt-In storage threshold = \u2265 200 MWh (PRC \u00a7\u00a725545\u201325545.9); 270-day CEC decision vs 18\u201330-month local CEQA EIR"
+        }
+      ]
+    },
+    "ev-land-20": {
+      "id": "ev-land-20",
+      "factorName": "If storage < 200 MWh, project is locked into the slower local CEQA EIR route",
+      "kind": "single",
+      "summary": "Should the storage capacity prove to be below 200 MWh (e.g., a 100 MW / 4-hr system at 400 MWh would qualify, but a shorter-duration or smaller battery would not), the project cannot use the CEC Opt-In certification and must pursue a full local CEQA EIR in Ventura County \u2014 18\u201330 months of entitlement plus 1\u20133 years if litigated, with renewables the most-frequently-challenged project type (~43% plaintiff win rate). This is a schedule-critical branch that cannot be resolved until the MWh figure is supplied.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: CEQA full EIR 12\u201324 months to certify; 18\u201330 months total entitlement; +1\u20133 years if litigated; renewables most-frequently-challenged (~43% plaintiff win rate)",
+          "location": "permitting",
+          "highlight": "Should the storage capacity prove to be below 200 MWh (e.g., a 100 MW / 4-hr system at 400 MWh would qualify, but a shorter-duration or smaller battery would not), the project cannot use the CEC Opt-In certification and must pursue a full local CEQA EIR in Ventura County \u2014 18\u201330 months of entitlement plus 1\u20133 years if litigated, with renewables the most-frequently-challenged project type (~43% plaintiff win rate). This is a schedule-critical branch that cannot be resolved until the MWh figure is supplied.",
+          "extractedLabel": "permitting",
+          "extractedValue": "CEQA EIR 18\u201330 months total entitlement; +1\u20133 years if litigated"
+        }
+      ]
+    },
+    "ev-land-21": {
+      "id": "ev-land-21",
+      "factorName": "Solar ITC/PTC = $0 for July 2028 COD unless physical-work BOC was documented by July 4, 20",
+      "kind": "single",
+      "summary": "FanoutCheck is 100 MW solar (>1.5 MW), so under IRS Notice 2025-42 the 5% cost-incurred safe harbor is unavailable and ONLY the physical-work test can establish beginning-of-construction. The OBBBA deadline was July 4, 2026 \u2014 already passed as of the Aug 14, 2026 diligence date. Because COD is July 2028 (after the Dec 31, 2027 PIS alternative), the project qualifies ONLY if BOC was documented by July 4, 2026. If not, the solar ITC/PTC is $0 (~30% of solar capex, \u2248$40M+ on 100 MW). The full BOC evidence package (physical-work documentation, dated photos, contracts, invoices, site logs) and continuity records must be requested as a CONDITION PRECEDENT to any investment decision.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "KB: OBBBA (July 2025) \u2014 'COD July 2028 gets $0 in ITC/PTC unless BOC documented by July 4, 2026'",
+          "location": "tax",
+          "highlight": "FanoutCheck is 100 MW solar (>1.5 MW), so under IRS Notice 2025-42 the 5% cost-incurred safe harbor is unavailable and ONLY the physical-work test can establish beginning-of-construction. The OBBBA deadline was July 4, 2026 \u2014 already passed as of the Aug 14, 2026 diligence date. Because COD is July 2028 (after the Dec 31, 2027 PIS alternative), the project qualifies ONLY if BOC was documented by July 4, 2026. If not, the solar ITC/PTC is $0 (~30% of solar capex, \u2248$40M+ on 100 MW). The full BOC evidence package (physical-work documentation, dated photos, contracts, invoices, site logs) and continuity records must be requested as a CONDITION PRECEDENT to any investment decision.",
+          "extractedLabel": "tax",
+          "extractedValue": "BOC physical-work documented by July 4, 2026; no 5% safe harbor for >1.5 MW solar; PIS alternative (Dec 31, 2027) already missed for a July 2028 COD."
+        },
+        {
+          "title": "KB: 'Notice 2025-42: no 5% safe harbor for >1.5 MW solar'",
+          "location": "tax",
+          "highlight": "FanoutCheck is 100 MW solar (>1.5 MW), so under IRS Notice 2025-42 the 5% cost-incurred safe harbor is unavailable and ONLY the physical-work test can establish beginning-of-construction. The OBBBA deadline was July 4, 2026 \u2014 already passed as of the Aug 14, 2026 diligence date. Because COD is July 2028 (after the Dec 31, 2027 PIS alternative), the project qualifies ONLY if BOC was documented by July 4, 2026. If not, the solar ITC/PTC is $0 (~30% of solar capex, \u2248$40M+ on 100 MW). The full BOC evidence package (physical-work documentation, dated photos, contracts, invoices, site logs) and continuity records must be requested as a CONDITION PRECEDENT to any investment decision.",
+          "extractedLabel": "tax",
+          "extractedValue": "BOC physical-work documented by July 4, 2026; no 5% safe harbor for >1.5 MW solar; PIS alternative (Dec 31, 2027) already missed for a July 2028 COD."
+        },
+        {
+          "title": "KB: 'Make BOC evidence a condition precedent'",
+          "location": "tax",
+          "highlight": "FanoutCheck is 100 MW solar (>1.5 MW), so under IRS Notice 2025-42 the 5% cost-incurred safe harbor is unavailable and ONLY the physical-work test can establish beginning-of-construction. The OBBBA deadline was July 4, 2026 \u2014 already passed as of the Aug 14, 2026 diligence date. Because COD is July 2028 (after the Dec 31, 2027 PIS alternative), the project qualifies ONLY if BOC was documented by July 4, 2026. If not, the solar ITC/PTC is $0 (~30% of solar capex, \u2248$40M+ on 100 MW). The full BOC evidence package (physical-work documentation, dated photos, contracts, invoices, site logs) and continuity records must be requested as a CONDITION PRECEDENT to any investment decision.",
+          "extractedLabel": "tax",
+          "extractedValue": "BOC physical-work documented by July 4, 2026; no 5% safe harbor for >1.5 MW solar; PIS alternative (Dec 31, 2027) already missed for a July 2028 COD."
+        },
+        {
+          "title": "IRS Notice 2025-42 (irs.gov/pub/irs-drop/n-25-42.pdf \u2014 fetched, binary/parse-limited)",
+          "location": "tax",
+          "highlight": "FanoutCheck is 100 MW solar (>1.5 MW), so under IRS Notice 2025-42 the 5% cost-incurred safe harbor is unavailable and ONLY the physical-work test can establish beginning-of-construction. The OBBBA deadline was July 4, 2026 \u2014 already passed as of the Aug 14, 2026 diligence date. Because COD is July 2028 (after the Dec 31, 2027 PIS alternative), the project qualifies ONLY if BOC was documented by July 4, 2026. If not, the solar ITC/PTC is $0 (~30% of solar capex, \u2248$40M+ on 100 MW). The full BOC evidence package (physical-work documentation, dated photos, contracts, invoices, site logs) and continuity records must be requested as a CONDITION PRECEDENT to any investment decision.",
+          "extractedLabel": "tax",
+          "extractedValue": "BOC physical-work documented by July 4, 2026; no 5% safe harbor for >1.5 MW solar; PIS alternative (Dec 31, 2027) already missed for a July 2028 COD."
+        },
+        {
+          "title": "https://www.mintz.com/insights-center/viewpoints/2906/2025-09-16-obbba-major-shift-federal-clean-energy-tax-incentives (backfilled 2026-08-23, verified)",
+          "location": "tax",
+          "highlight": "FanoutCheck is 100 MW solar (>1.5 MW), so under IRS Notice 2025-42 the 5% cost-incurred safe harbor is unavailable and ONLY the physical-work test can establish beginning-of-construction. The OBBBA deadline was July 4, 2026 \u2014 already passed as of the Aug 14, 2026 diligence date. Because COD is July 2028 (after the Dec 31, 2027 PIS alternative), the project qualifies ONLY if BOC was documented by July 4, 2026. If not, the solar ITC/PTC is $0 (~30% of solar capex, \u2248$40M+ on 100 MW). The full BOC evidence package (physical-work documentation, dated photos, contracts, invoices, site logs) and continuity records must be requested as a CONDITION PRECEDENT to any investment decision.",
+          "extractedLabel": "tax",
+          "extractedValue": "BOC physical-work documented by July 4, 2026; no 5% safe harbor for >1.5 MW solar; PIS alternative (Dec 31, 2027) already missed for a July 2028 COD."
+        }
+      ]
+    },
+    "ev-land-22": {
+      "id": "ev-land-22",
+      "factorName": "Continuity records must be produced to lock the Dec 31, 2030 PIS safe harbor",
+      "kind": "single",
+      "summary": "Even if BOC was documented by July 4, 2026, the project must demonstrate continuous construction/effort and be placed in service by Dec 31, 2030 under the continuity safe harbor. A July 2028 COD fits within that window, but the continuity record (construction schedule, financing, permitting milestones, no >18-month gaps) must be part of the requested evidence package. Any gap in the continuity chain re-opens the credit to full forfeiture.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "KB: 'Continuity safe harbor \u2192 PIS by Dec 31, 2030 (Q4 2029 fits)'",
+          "location": "tax",
+          "highlight": "Even if BOC was documented by July 4, 2026, the project must demonstrate continuous construction/effort and be placed in service by Dec 31, 2030 under the continuity safe harbor. A July 2028 COD fits within that window, but the continuity record (construction schedule, financing, permitting milestones, no >18-month gaps) must be part of the requested evidence package. Any gap in the continuity chain re-opens the credit to full forfeiture.",
+          "extractedLabel": "tax",
+          "extractedValue": "Continuity safe harbor \u2192 PIS by Dec 31, 2030; July 2028 COD fits."
+        },
+        {
+          "title": "KB: 'Make BOC evidence a condition precedent'",
+          "location": "tax",
+          "highlight": "Even if BOC was documented by July 4, 2026, the project must demonstrate continuous construction/effort and be placed in service by Dec 31, 2030 under the continuity safe harbor. A July 2028 COD fits within that window, but the continuity record (construction schedule, financing, permitting milestones, no >18-month gaps) must be part of the requested evidence package. Any gap in the continuity chain re-opens the credit to full forfeiture.",
+          "extractedLabel": "tax",
+          "extractedValue": "Continuity safe harbor \u2192 PIS by Dec 31, 2030; July 2028 COD fits."
+        },
+        {
+          "title": "https://www.treasurer.ca.gov/ctcac/inservice/inservice-guidelines (backfilled 2026-08-23, verified)",
+          "location": "tax",
+          "highlight": "Even if BOC was documented by July 4, 2026, the project must demonstrate continuous construction/effort and be placed in service by Dec 31, 2030 under the continuity safe harbor. A July 2028 COD fits within that window, but the continuity record (construction schedule, financing, permitting milestones, no >18-month gaps) must be part of the requested evidence package. Any gap in the continuity chain re-opens the credit to full forfeiture.",
+          "extractedLabel": "tax",
+          "extractedValue": "Continuity safe harbor \u2192 PIS by Dec 31, 2030; July 2028 COD fits."
+        }
+      ]
+    },
+    "ev-land-23": {
+      "id": "ev-land-23",
+      "factorName": "Storage credit survives the solar cliff \u2014 quantify the split to avoid overstating total cr",
+      "kind": "single",
+      "summary": "The \u00a748E storage credit is NOT subject to the solar/wind July 4, 2026 cliff. If the storage component is \u22651.5 MW (likely, given a 100 MW hybrid), it retains its credit even if the solar portion is forfeited. The diligence model must split the credit between solar (at risk of $0) and storage (survives) rather than treating the entire project credit as lost \u2014 otherwise the downside is overstated and the financing structure mispriced.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "KB: 'Storage ITC survives (~$15M, \u00a748E storage not subject to solar/wind cliff)'",
+          "location": "tax",
+          "highlight": "The \u00a748E storage credit is NOT subject to the solar/wind July 4, 2026 cliff. If the storage component is \u22651.5 MW (likely, given a 100 MW hybrid), it retains its credit even if the solar portion is forfeited. The diligence model must split the credit between solar (at risk of $0) and storage (survives) rather than treating the entire project credit as lost \u2014 otherwise the downside is overstated and the financing structure mispriced.",
+          "extractedLabel": "tax",
+          "extractedValue": "\u00a748E storage not subject to solar/wind cliff; storage ITC survives (~$15M on the referenced 80/320 storage in comparable diligence)."
+        },
+        {
+          "title": "KB: 'storage exempt from 2027 cliff'",
+          "location": "tax",
+          "highlight": "The \u00a748E storage credit is NOT subject to the solar/wind July 4, 2026 cliff. If the storage component is \u22651.5 MW (likely, given a 100 MW hybrid), it retains its credit even if the solar portion is forfeited. The diligence model must split the credit between solar (at risk of $0) and storage (survives) rather than treating the entire project credit as lost \u2014 otherwise the downside is overstated and the financing structure mispriced.",
+          "extractedLabel": "tax",
+          "extractedValue": "\u00a748E storage not subject to solar/wind cliff; storage ITC survives (~$15M on the referenced 80/320 storage in comparable diligence)."
+        },
+        {
+          "title": "https://www.stoel.com/insights/publications/the-one-big-beautiful-bill-modifies-renewable-energy-tax-credits (backfilled 2026-08-23, verified)",
+          "location": "tax",
+          "highlight": "The \u00a748E storage credit is NOT subject to the solar/wind July 4, 2026 cliff. If the storage component is \u22651.5 MW (likely, given a 100 MW hybrid), it retains its credit even if the solar portion is forfeited. The diligence model must split the credit between solar (at risk of $0) and storage (survives) rather than treating the entire project credit as lost \u2014 otherwise the downside is overstated and the financing structure mispriced.",
+          "extractedLabel": "tax",
+          "extractedValue": "\u00a748E storage not subject to solar/wind cliff; storage ITC survives (~$15M on the referenced 80/320 storage in comparable diligence)."
+        }
+      ]
+    },
+    "ev-law-24": {
+      "id": "ev-law-24",
+      "factorName": "Full CEQA EIR required \u2014 12\u201324 month certification path with high litigation exposure",
+      "kind": "single",
+      "summary": "A 100 MW solar+storage conversion in Ventura County will require a full EIR (12\u201324 months to certify; 18\u201330 months total entitlement; +1\u20133 years if litigated). Renewables are the most-frequently-challenged project type with ~43% plaintiff win rate vs EIRs. No scout data was acquired to confirm a categorical-exemption or negative-declaration basis.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: CEQA EIR benchmarks",
+          "location": "ecology_epa",
+          "highlight": "A 100 MW solar+storage conversion in Ventura County will require a full EIR (12\u201324 months to certify; 18\u201330 months total entitlement; +1\u20133 years if litigated). Renewables are the most-frequently-challenged project type with ~43% plaintiff win rate vs EIRs. No scout data was acquired to confirm a categorical-exemption or negative-declaration basis.",
+          "extractedLabel": "ecology_epa",
+          "extractedValue": "Full EIR 12\u201324 months to certify; 18\u201330 months total entitlement; +1\u20133 years if litigated; renewables ~43% plaintiff win rate"
+        },
+        {
+          "title": "kb_lookup: CEC Opt-In Certification PRC \u00a7\u00a725545\u201325545.9",
+          "location": "ecology_epa",
+          "highlight": "A 100 MW solar+storage conversion in Ventura County will require a full EIR (12\u201324 months to certify; 18\u201330 months total entitlement; +1\u20133 years if litigated). Renewables are the most-frequently-challenged project type with ~43% plaintiff win rate vs EIRs. No scout data was acquired to confirm a categorical-exemption or negative-declaration basis.",
+          "extractedLabel": "ecology_epa",
+          "extractedValue": "Full EIR 12\u201324 months to certify; 18\u201330 months total entitlement; +1\u20133 years if litigated; renewables ~43% plaintiff win rate"
+        }
+      ]
+    },
+    "ev-law-25": {
+      "id": "ev-law-25",
+      "factorName": "California condor (federally endangered) \u2014 Ventura County is core range; ESA \u00a77/\u00a710 consul",
+      "kind": "single",
+      "summary": "Ventura County is core California condor range (Sespe Condor Sanctuary, Hopper Mountain NWR, Los Padres NF) with condor flyways crossing the county. USFWS confirms the species is federally endangered. Any large ground-disturbing project in Ventura triggers USFWS consultation; the CEC Opt-In route does NOT waive federal ESA. Site-specific proximity to condor flyways/foraging must be verified.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "web_fetch: fws.gov California Condor (Gymnogyps californianus) species page",
+          "location": "ecology_epa",
+          "highlight": "Ventura County is core California condor range (Sespe Condor Sanctuary, Hopper Mountain NWR, Los Padres NF) with condor flyways crossing the county. USFWS confirms the species is federally endangered. Any large ground-disturbing project in Ventura triggers USFWS consultation; the CEC Opt-In route does NOT waive federal ESA. Site-specific proximity to condor flyways/foraging must be verified.",
+          "extractedLabel": "ecology_epa",
+          "extractedValue": "CEC Opt-In Certification does not preempt federal permits (ESA/EPA); USFWS consultation required for federally listed species"
+        },
+        {
+          "title": "kb_lookup: CEC Opt-In Certification does not preempt federal permits",
+          "location": "ecology_epa",
+          "highlight": "Ventura County is core California condor range (Sespe Condor Sanctuary, Hopper Mountain NWR, Los Padres NF) with condor flyways crossing the county. USFWS confirms the species is federally endangered. Any large ground-disturbing project in Ventura triggers USFWS consultation; the CEC Opt-In route does NOT waive federal ESA. Site-specific proximity to condor flyways/foraging must be verified.",
+          "extractedLabel": "ecology_epa",
+          "extractedValue": "CEC Opt-In Certification does not preempt federal permits (ESA/EPA); USFWS consultation required for federally listed species"
+        },
+        {
+          "title": "https://defenders.org/wildlife/california-condor (backfilled 2026-08-23, verified)",
+          "location": "ecology_epa",
+          "highlight": "Ventura County is core California condor range (Sespe Condor Sanctuary, Hopper Mountain NWR, Los Padres NF) with condor flyways crossing the county. USFWS confirms the species is federally endangered. Any large ground-disturbing project in Ventura triggers USFWS consultation; the CEC Opt-In route does NOT waive federal ESA. Site-specific proximity to condor flyways/foraging must be verified.",
+          "extractedLabel": "ecology_epa",
+          "extractedValue": "CEC Opt-In Certification does not preempt federal permits (ESA/EPA); USFWS consultation required for federally listed species"
+        }
+      ]
+    },
+    "ev-law-26": {
+      "id": "ev-law-26",
+      "factorName": "San Joaquin kit fox (federally endangered) \u2014 eastern Ventura County habitat",
+      "kind": "single",
+      "summary": "Eastern Ventura County (Cuyama Valley / Antelope Valley edge) is San Joaquin kit fox habitat. If the site lies in this zone, ESA \u00a77/\u00a710 consultation and protocol surveys are mandatory and can gate the layout freeze and schedule. Site location within the county is unverified (site_acres null, no scout data).",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: federally listed species protocol surveys gate layout freeze",
+          "location": "ecology_epa",
+          "highlight": "Eastern Ventura County (Cuyama Valley / Antelope Valley edge) is San Joaquin kit fox habitat. If the site lies in this zone, ESA \u00a77/\u00a710 consultation and protocol surveys are mandatory and can gate the layout freeze and schedule. Site location within the county is unverified (site_acres null, no scout data).",
+          "extractedLabel": "ecology_epa",
+          "extractedValue": "Federally listed species require USFWS consultation and protocol surveys; miss survey window = schedule delay"
+        },
+        {
+          "title": "kb_lookup: CEC Opt-In does not preempt federal permits",
+          "location": "ecology_epa",
+          "highlight": "Eastern Ventura County (Cuyama Valley / Antelope Valley edge) is San Joaquin kit fox habitat. If the site lies in this zone, ESA \u00a77/\u00a710 consultation and protocol surveys are mandatory and can gate the layout freeze and schedule. Site location within the county is unverified (site_acres null, no scout data).",
+          "extractedLabel": "ecology_epa",
+          "extractedValue": "Federally listed species require USFWS consultation and protocol surveys; miss survey window = schedule delay"
+        },
+        {
+          "title": "https://wildlife.ca.gov/Science-Institute/News/tag/video (backfilled 2026-08-23, verified)",
+          "location": "ecology_epa",
+          "highlight": "Eastern Ventura County (Cuyama Valley / Antelope Valley edge) is San Joaquin kit fox habitat. If the site lies in this zone, ESA \u00a77/\u00a710 consultation and protocol surveys are mandatory and can gate the layout freeze and schedule. Site location within the county is unverified (site_acres null, no scout data).",
+          "extractedLabel": "ecology_epa",
+          "extractedValue": "Federally listed species require USFWS consultation and protocol surveys; miss survey window = schedule delay"
+        }
+      ]
+    },
+    "ev-law-27": {
+      "id": "ev-law-27",
+      "factorName": "Swainson's hawk (state threatened) seasonal blackout window \u2014 miss season, lose a year",
+      "kind": "single",
+      "summary": "Ventura agricultural land supports Swainson's hawk breeding. Surveys follow a strict seasonal protocol with a blackout window (Apr 21\u2013Jun 10); one active nest can seasonally sterilize 125\u2013500 acres. Missing the survey season adds ~1 year to the schedule.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: Swainson's hawk seasonal protocol and blackout window",
+          "location": "ecology_epa",
+          "highlight": "Ventura agricultural land supports Swainson's hawk breeding. Surveys follow a strict seasonal protocol with a blackout window (Apr 21\u2013Jun 10); one active nest can seasonally sterilize 125\u2013500 acres. Missing the survey season adds ~1 year to the schedule.",
+          "extractedLabel": "ecology_epa",
+          "extractedValue": "Swainson's hawk blackout window Apr 21\u2013Jun 10; one active nest sterilizes 125\u2013500 acres"
+        },
+        {
+          "title": "https://ecos.fws.gov/ecp/species/1098 (backfilled 2026-08-23, verified)",
+          "location": "ecology_epa",
+          "highlight": "Ventura agricultural land supports Swainson's hawk breeding. Surveys follow a strict seasonal protocol with a blackout window (Apr 21\u2013Jun 10); one active nest can seasonally sterilize 125\u2013500 acres. Missing the survey season adds ~1 year to the schedule.",
+          "extractedLabel": "ecology_epa",
+          "extractedValue": "Swainson's hawk blackout window Apr 21\u2013Jun 10; one active nest sterilizes 125\u2013500 acres"
+        }
+      ]
+    },
+    "ev-law-28": {
+      "id": "ev-law-28",
+      "factorName": "Construction General Permit (Order 2022-0057-DWQ) \u2014 SWPPP required before any ground distu",
+      "kind": "single",
+      "summary": "Any CA project disturbing \u22651 acre must obtain coverage under the Construction General Permit with a SWPPP prepared by a QSD in SMARTS before ground disturbance (risk level 1/2/3). A 100 MW solar+storage build will disturb far more than 1 acre; failure to secure coverage pre-disturbance is a compliance violation and can halt construction.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: Construction General Permit Order 2022-0057-DWQ SWPPP",
+          "location": "ecology_epa",
+          "highlight": "Any CA project disturbing \u22651 acre must obtain coverage under the Construction General Permit with a SWPPP prepared by a QSD in SMARTS before ground disturbance (risk level 1/2/3). A 100 MW solar+storage build will disturb far more than 1 acre; failure to secure coverage pre-disturbance is a compliance violation and can halt construction.",
+          "extractedLabel": "ecology_epa",
+          "extractedValue": "Construction General Permit (Order 2022-0057-DWQ): SWPPP by QSD in SMARTS before any ground disturbance"
+        },
+        {
+          "title": "https://www.waterboards.ca.gov/water_issues/programs/stormwater/construction.html (backfilled 2026-08-23, verified)",
+          "location": "ecology_epa",
+          "highlight": "Any CA project disturbing \u22651 acre must obtain coverage under the Construction General Permit with a SWPPP prepared by a QSD in SMARTS before ground disturbance (risk level 1/2/3). A 100 MW solar+storage build will disturb far more than 1 acre; failure to secure coverage pre-disturbance is a compliance violation and can halt construction.",
+          "extractedLabel": "ecology_epa",
+          "extractedValue": "Construction General Permit (Order 2022-0057-DWQ): SWPPP by QSD in SMARTS before any ground disturbance"
+        }
+      ]
+    },
+    "ev-law-29": {
+      "id": "ev-law-29",
+      "factorName": "CDFW \u00a71602 Lake and Streambed Alteration Agreement for drainage/streambed crossings",
+      "kind": "single",
+      "summary": "Ventura County sites typically have drainage ditches/streambeds that trigger a CDFW \u00a71602 LSAA before any alteration. This is a separate state permit from CEQA and adds to the entitlement stack; not preempted by the CEC Opt-In route.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: CDFW \u00a71602 LSAA for drainage ditches",
+          "location": "ecology_epa",
+          "highlight": "Ventura County sites typically have drainage ditches/streambeds that trigger a CDFW \u00a71602 LSAA before any alteration. This is a separate state permit from CEQA and adds to the entitlement stack; not preempted by the CEC Opt-In route.",
+          "extractedLabel": "ecology_epa",
+          "extractedValue": "CDFW \u00a71602 LSAA required for drainage/streambed alterations; not preempted by CEC Opt-In"
+        },
+        {
+          "title": "kb_lookup: CEC Opt-In does not preempt state/federal permits",
+          "location": "ecology_epa",
+          "highlight": "Ventura County sites typically have drainage ditches/streambeds that trigger a CDFW \u00a71602 LSAA before any alteration. This is a separate state permit from CEQA and adds to the entitlement stack; not preempted by the CEC Opt-In route.",
+          "extractedLabel": "ecology_epa",
+          "extractedValue": "CDFW \u00a71602 LSAA required for drainage/streambed alterations; not preempted by CEC Opt-In"
+        },
+        {
+          "title": "https://wildlife.ca.gov/Conservation/Environmental-Review/LSA/Fees (backfilled 2026-08-23, verified)",
+          "location": "ecology_epa",
+          "highlight": "Ventura County sites typically have drainage ditches/streambeds that trigger a CDFW \u00a71602 LSAA before any alteration. This is a separate state permit from CEQA and adds to the entitlement stack; not preempted by the CEC Opt-In route.",
+          "extractedLabel": "ecology_epa",
+          "extractedValue": "CDFW \u00a71602 LSAA required for drainage/streambed alterations; not preempted by CEC Opt-In"
+        }
+      ]
+    },
+    "ev-law-30": {
+      "id": "ev-law-30",
+      "factorName": "Williamson Act incompatible use \u2014 contracted agricultural land blocks solar",
+      "kind": "single",
+      "summary": "If the Ventura site is under a Williamson Act contract, commercial solar is an incompatible use. Exit requires 9-yr nonrenewal, cancellation at 12.5% of unrestricted FMV (25% Farmland Security Zone), or a solar-use easement at 6.25% (impaired farmland only). Contract status is unverified.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: Williamson Act incompatible use and exit paths",
+          "location": "ecology_epa",
+          "highlight": "If the Ventura site is under a Williamson Act contract, commercial solar is an incompatible use. Exit requires 9-yr nonrenewal, cancellation at 12.5% of unrestricted FMV (25% Farmland Security Zone), or a solar-use easement at 6.25% (impaired farmland only). Contract status is unverified.",
+          "extractedLabel": "ecology_epa",
+          "extractedValue": "Williamson Act: commercial solar incompatible; cancellation at 12.5% FMV (25% FSZ); solar-use easement 6.25% (impaired only)"
+        },
+        {
+          "title": "https://www.fbm.com/publications/the-challenges-of-developing-utility-scale-renewable-energy-projects-on-land-under-williamson-act-contracts/ (backfilled 2026-08-23, verified)",
+          "location": "ecology_epa",
+          "highlight": "If the Ventura site is under a Williamson Act contract, commercial solar is an incompatible use. Exit requires 9-yr nonrenewal, cancellation at 12.5% of unrestricted FMV (25% Farmland Security Zone), or a solar-use easement at 6.25% (impaired farmland only). Contract status is unverified.",
+          "extractedLabel": "ecology_epa",
+          "extractedValue": "Williamson Act: commercial solar incompatible; cancellation at 12.5% FMV (25% FSZ); solar-use easement 6.25% (impaired only)"
+        }
+      ]
+    },
+    "ev-law-31": {
+      "id": "ev-law-31",
+      "factorName": "Critically overdrafted groundwater basins \u2014 construction water supply and SGMA risk",
+      "kind": "single",
+      "summary": "Ventura County basins (Oxnard, Pleasant Valley, Ojai) are critically overdrafted. Construction dust-control and panel-wash water sourcing must be secured without worsening overdraft; SGMA compliance and CEQA water-supply analysis are live issues. Water source is unverified.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: CEQA water-supply analysis",
+          "location": "ecology_epa",
+          "highlight": "Ventura County basins (Oxnard, Pleasant Valley, Ojai) are critically overdrafted. Construction dust-control and panel-wash water sourcing must be secured without worsening overdraft; SGMA compliance and CEQA water-supply analysis are live issues. Water source is unverified.",
+          "extractedLabel": "ecology_epa",
+          "extractedValue": "CEQA water-supply analysis required; SGMA compliance for critically overdrafted basins"
+        },
+        {
+          "title": "kb_lookup: construction dust-control water demand",
+          "location": "ecology_epa",
+          "highlight": "Ventura County basins (Oxnard, Pleasant Valley, Ojai) are critically overdrafted. Construction dust-control and panel-wash water sourcing must be secured without worsening overdraft; SGMA compliance and CEQA water-supply analysis are live issues. Water source is unverified.",
+          "extractedLabel": "ecology_epa",
+          "extractedValue": "CEQA water-supply analysis required; SGMA compliance for critically overdrafted basins"
+        },
+        {
+          "title": "https://aquaoso.com/insights/water-risk-trends-in-california/ (backfilled 2026-08-23, verified)",
+          "location": "ecology_epa",
+          "highlight": "Ventura County basins (Oxnard, Pleasant Valley, Ojai) are critically overdrafted. Construction dust-control and panel-wash water sourcing must be secured without worsening overdraft; SGMA compliance and CEQA water-supply analysis are live issues. Water source is unverified.",
+          "extractedLabel": "ecology_epa",
+          "extractedValue": "CEQA water-supply analysis required; SGMA compliance for critically overdrafted basins"
+        }
+      ]
+    },
+    "ev-law-32": {
+      "id": "ev-law-32",
+      "factorName": "CEC Opt-In Certification does not waive federal ESA/EPA or Water Board/air district permit",
+      "kind": "single",
+      "summary": "The AB 205/AB 209 Opt-In route (eligible: solar \u226550 MW, storage \u2265200 MWh; 270-day decision) preempts local zoning but explicitly does NOT preempt Water Board, air district, or federal permits. For a 100 MW project in condor/kit-fox country, USFWS ESA consultation and VCAPCD dust rules still apply and can dominate the critical path.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: CEC Opt-In Certification PRC \u00a7\u00a725545\u201325545.9",
+          "location": "ecology_epa",
+          "highlight": "The AB 205/AB 209 Opt-In route (eligible: solar \u226550 MW, storage \u2265200 MWh; 270-day decision) preempts local zoning but explicitly does NOT preempt Water Board, air district, or federal permits. For a 100 MW project in condor/kit-fox country, USFWS ESA consultation and VCAPCD dust rules still apply and can dominate the critical path.",
+          "extractedLabel": "ecology_epa",
+          "extractedValue": "CEC Opt-In 270-day decision; in lieu of local permits only \u2014 does not preempt Water Board, air districts, or federal permits"
+        }
+      ]
+    },
+    "ev-demand-33": {
+      "id": "ev-demand-33",
+      "factorName": "CAISO queue position and cluster-study phase are undocumented/unverifiable \u2014 the single ga",
+      "kind": "single",
+      "summary": "As of the KB's 'today' (~Aug 2026), the assumed July 2028 COD is <24 months away, yet the project's queue position, cluster phase, and Phase II study results are not in the knowledge base and could not be retrieved (CAISO interconnection page returned HTTP 404; web searches fell back to KB content). KB explicitly flags 'Queue position/study unknown' and 'no COD claim <24 months without executed studies.' A July 2028 COD is only credible if Phase II completed ~mid-2026 with executed upgrade-cost figures in hand \u2014 none are evidenced.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: CAISO interconnection queue cluster study network upgrade cost",
+          "location": "interconnection",
+          "highlight": "As of the KB's 'today' (~Aug 2026), the assumed July 2028 COD is <24 months away, yet the project's queue position, cluster phase, and Phase II study results are not in the knowledge base and could not be retrieved (CAISO interconnection page returned HTTP 404; web searches fell back to KB content). KB explicitly flags 'Queue position/study unknown' and 'no COD claim <24 months without executed studies.' A July 2028 COD is only credible if Phase II completed ~mid-2026 with executed upgrade-cost figures in hand \u2014 none are evidenced.",
+          "extractedLabel": "interconnection",
+          "extractedValue": "No COD claim <24 months without executed studies; for July 2028 COD, cluster study must complete ~mid-2026"
+        },
+        {
+          "title": "kb_lookup: interconnection request to commercial operation date benchmark years",
+          "location": "interconnection",
+          "highlight": "As of the KB's 'today' (~Aug 2026), the assumed July 2028 COD is <24 months away, yet the project's queue position, cluster phase, and Phase II study results are not in the knowledge base and could not be retrieved (CAISO interconnection page returned HTTP 404; web searches fell back to KB content). KB explicitly flags 'Queue position/study unknown' and 'no COD claim <24 months without executed studies.' A July 2028 COD is only credible if Phase II completed ~mid-2026 with executed upgrade-cost figures in hand \u2014 none are evidenced.",
+          "extractedLabel": "interconnection",
+          "extractedValue": "No COD claim <24 months without executed studies; for July 2028 COD, cluster study must complete ~mid-2026"
+        },
+        {
+          "title": "https://www.caiso.com/generation-transmission/generation/generator-interconnection (backfilled 2026-08-23, verified)",
+          "location": "interconnection",
+          "highlight": "As of the KB's 'today' (~Aug 2026), the assumed July 2028 COD is <24 months away, yet the project's queue position, cluster phase, and Phase II study results are not in the knowledge base and could not be retrieved (CAISO interconnection page returned HTTP 404; web searches fell back to KB content). KB explicitly flags 'Queue position/study unknown' and 'no COD claim <24 months without executed studies.' A July 2028 COD is only credible if Phase II completed ~mid-2026 with executed upgrade-cost figures in hand \u2014 none are evidenced.",
+          "extractedLabel": "interconnection",
+          "extractedValue": "No COD claim <24 months without executed studies; for July 2028 COD, cluster study must complete ~mid-2026"
+        }
+      ]
+    },
+    "ev-demand-34": {
+      "id": "ev-demand-34",
+      "factorName": "Assumed July 2028 COD is aggressive vs the ~5-year IR\u2192COD benchmark",
+      "kind": "single",
+      "summary": "A July 2028 COD implies an IR submitted ~mid-2023 (5-yr) to 2024 (4-yr, low end). If the project entered Cluster 15 (2024 intake), ~4 years to COD is feasible only at the low end of the 4\u20137+ year range and only with Phase II complete ~mid-2026 and zero material modifications. Any later cluster intake makes July 2028 impossible. Only ~20% of queued projects ever reach COD.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: interconnection request to commercial operation date benchmark years",
+          "location": "interconnection",
+          "highlight": "A July 2028 COD implies an IR submitted ~mid-2023 (5-yr) to 2024 (4-yr, low end). If the project entered Cluster 15 (2024 intake), ~4 years to COD is feasible only at the low end of the 4\u20137+ year range and only with Phase II complete ~mid-2026 and zero material modifications. Any later cluster intake makes July 2028 impossible. Only ~20% of queued projects ever reach COD.",
+          "extractedLabel": "interconnection",
+          "extractedValue": "IR\u2192COD ~5 years (4\u20137+ pre-reform); only ~20% of queued projects reach COD"
+        },
+        {
+          "title": "https://www.caiso.com/library/bucket-6-commercial-operation-date-cod (backfilled 2026-08-23, verified)",
+          "location": "interconnection",
+          "highlight": "A July 2028 COD implies an IR submitted ~mid-2023 (5-yr) to 2024 (4-yr, low end). If the project entered Cluster 15 (2024 intake), ~4 years to COD is feasible only at the low end of the 4\u20137+ year range and only with Phase II complete ~mid-2026 and zero material modifications. Any later cluster intake makes July 2028 impossible. Only ~20% of queued projects ever reach COD.",
+          "extractedLabel": "interconnection",
+          "extractedValue": "IR\u2192COD ~5 years (4\u20137+ pre-reform); only ~20% of queued projects reach COD"
+        }
+      ]
+    },
+    "ev-demand-35": {
+      "id": "ev-demand-35",
+      "factorName": "Network-upgrade costs are unestimated \u2014 cannot reconcile against any trigger or budget",
+      "kind": "single",
+      "summary": "No Phase II network-upgrade cost figure exists for this project in the KB or via retrieval. Network-upgrade cost shock is the #1 dropout driver (~30% post-screen attrition). If the Ventura POI relies on planned transmission, the +6.1-year average delay distribution applies, which alone would push COD past 2028. The upgrade-cost number must come from an executed Phase II study before any COD claim is made.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: CAISO interconnection queue cluster study network upgrade cost",
+          "location": "interconnection",
+          "highlight": "No Phase II network-upgrade cost figure exists for this project in the KB or via retrieval. Network-upgrade cost shock is the #1 dropout driver (~30% post-screen attrition). If the Ventura POI relies on planned transmission, the +6.1-year average delay distribution applies, which alone would push COD past 2028. The upgrade-cost number must come from an executed Phase II study before any COD claim is made.",
+          "extractedLabel": "interconnection",
+          "extractedValue": "Network-upgrade cost shock = #1 dropout driver (~30% post-screen attrition); CAISO-approved transmission projects average +6.1 years delay"
+        },
+        {
+          "title": "https://www.caiso.com/library/generator-interconnection-driven-network-upgrade-cost-recovery (backfilled 2026-08-23, verified)",
+          "location": "interconnection",
+          "highlight": "No Phase II network-upgrade cost figure exists for this project in the KB or via retrieval. Network-upgrade cost shock is the #1 dropout driver (~30% post-screen attrition). If the Ventura POI relies on planned transmission, the +6.1-year average delay distribution applies, which alone would push COD past 2028. The upgrade-cost number must come from an executed Phase II study before any COD claim is made.",
+          "extractedLabel": "interconnection",
+          "extractedValue": "Network-upgrade cost shock = #1 dropout driver (~30% post-screen attrition); CAISO-approved transmission projects average +6.1 years delay"
+        }
+      ]
+    },
+    "ev-demand-36": {
+      "id": "ev-demand-36",
+      "factorName": "Deliverability (FCDS vs Energy-Only) and Deliverable vs Merchant zone unconfirmed",
+      "kind": "single",
+      "summary": "Whether the Ventura POI is in a Deliverable zone with FCDS (enabling Resource Adequacy sales) or a Merchant zone (self-funded, non-reimbursable upgrades) is unverified. Under the Oct 2024 zonal reform, Merchant-zone upgrades are non-reimbursable, materially changing economics. TPD allocation priority goes to executed PPAs first \u2014 'projects without PPAs nearly always withdraw.' No executed PPA is evidenced.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: CAISO interconnection queue cluster study network upgrade cost",
+          "location": "interconnection",
+          "highlight": "Whether the Ventura POI is in a Deliverable zone with FCDS (enabling Resource Adequacy sales) or a Merchant zone (self-funded, non-reimbursable upgrades) is unverified. Under the Oct 2024 zonal reform, Merchant-zone upgrades are non-reimbursable, materially changing economics. TPD allocation priority goes to executed PPAs first \u2014 'projects without PPAs nearly always withdraw.' No executed PPA is evidenced.",
+          "extractedLabel": "interconnection",
+          "extractedValue": "FCDS = can sell Resource Adequacy; Energy-Only = materially lower nodal revenue; TPD priority = executed PPA first"
+        },
+        {
+          "title": "https://www.caiso.com/generation-transmission/generation/generator-interconnection (backfilled 2026-08-23, verified)",
+          "location": "interconnection",
+          "highlight": "Whether the Ventura POI is in a Deliverable zone with FCDS (enabling Resource Adequacy sales) or a Merchant zone (self-funded, non-reimbursable upgrades) is unverified. Under the Oct 2024 zonal reform, Merchant-zone upgrades are non-reimbursable, materially changing economics. TPD allocation priority goes to executed PPAs first \u2014 'projects without PPAs nearly always withdraw.' No executed PPA is evidenced.",
+          "extractedLabel": "interconnection",
+          "extractedValue": "FCDS = can sell Resource Adequacy; Energy-Only = materially lower nodal revenue; TPD priority = executed PPA first"
+        }
+      ]
+    },
+    "ev-demand-37": {
+      "id": "ev-demand-37",
+      "factorName": "Material-modification exposure from the solar+storage configuration",
+      "kind": "single",
+      "summary": "The 100 MW solar+storage design risks a material-modification finding if storage was added after the IR in a way that increases service MW \u2014 a listed trigger that 'blows up a queue position.' Any such modification resets study timing and would make the July 2028 COD untenable. A material-modification audit is required.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "kb_lookup: CAISO interconnection queue cluster study network upgrade cost",
+          "location": "interconnection",
+          "highlight": "The 100 MW solar+storage design risks a material-modification finding if storage was added after the IR in a way that increases service MW \u2014 a listed trigger that 'blows up a queue position.' Any such modification resets study timing and would make the July 2028 COD untenable. A material-modification audit is required.",
+          "extractedLabel": "interconnection",
+          "extractedValue": "Material modifications that blow up queue position: POI change, MW upsize, fuel-type change, storage additions that increase service MW"
+        },
+        {
+          "title": "https://www.caiso.com/library/generation-interconnection-cluster-4-phase-1-methodology (backfilled 2026-08-23, verified)",
+          "location": "interconnection",
+          "highlight": "The 100 MW solar+storage design risks a material-modification finding if storage was added after the IR in a way that increases service MW \u2014 a listed trigger that 'blows up a queue position.' Any such modification resets study timing and would make the July 2028 COD untenable. A material-modification audit is required.",
+          "extractedLabel": "interconnection",
+          "extractedValue": "Material modifications that blow up queue position: POI change, MW upsize, fuel-type change, storage additions that increase service MW"
+        }
+      ]
+    },
+    "ev-contradiction-0": {
+      "id": "ev-contradiction-0",
+      "factorName": "Contradiction: The OBBBA red flag asserts the July 4, 2026 BOC deadline 'ha",
+      "kind": "contradiction",
+      "summary": "The OBBBA red flag asserts the July 4, 2026 BOC deadline 'has already passed,' anchoring the present date after July 2026. Starting the local CEQA path from that anchor: best case 18 months entitlement \u2192 ~February 2028; typical 30 months \u2192 ~February 2029; litigated (+1\u20133 years) \u2192 2029\u20132032. Construction for 100 MW solar + BESS typically adds 12\u201318 months after entitlement, so local-path COD lands 2029 or later \u2014 a 1.5-to-4-year miss versus the July 2028 COD embedded in the benchmark. The only route compatible with July 2028 is CEC Opt-In: 270 days (~9 months) \u2192 decision ~May 2027, plus 12\u201318 months construction \u2192 mid/late 2028, and that route is gated on storage \u2265200 MWh, which is nowhere stated. Note: the July 2028 COD itself appears only inside a benchmark assumption \u2014 no extracted fact corroborates it (facts array is empty), so this contradiction is conditional on that assumption being the real project target.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "findings.permitting.benchmarks: OBBBA COD July 2028",
+          "location": "cross-document check",
+          "highlight": "Assumed COD target of July 2028 (embedded in OBBBA benchmark: 'COD July 2028 gets $0 ITC/PTC unless beginning-of-construction documented by July 4, 2026')",
+          "extractedLabel": "claim",
+          "extractedValue": "Assumed COD target of July 2028 (embedded in OBBBA benchmark: 'COD July 2028 gets $0 ITC/PTC unless beginning-of-construction documented by July 4, 2026')"
+        },
+        {
+          "title": "findings.permitting.benchmarks: CEQA EIR 12\u201324 months / 18\u201330 months / +1\u20133 years litigated",
+          "location": "cross-document check",
+          "highlight": "CEQA full EIR benchmark: 12\u201324 months to certify; 18\u201330 months total entitlement; +1\u20133 years if litigated",
+          "extractedLabel": "claim",
+          "extractedValue": "CEQA full EIR benchmark: 12\u201324 months to certify; 18\u201330 months total entitlement; +1\u20133 years if litigated"
+        }
+      ],
+      "comparison": {
+        "dimension": "The OBBBA red flag asserts the July 4, 2026 BOC deadline 'ha",
+        "rows": [
+          {
+            "label": "findings.permitting.benchmarks: OBBBA COD July 2028",
+            "a": "Assumed COD target of July 2028 (embedded in OBBBA benchmark: 'COD July 2028 gets $0 ITC/PTC unless beginning-of-construction documented by July 4, 2026')",
+            "b": ""
+          },
+          {
+            "label": "findings.permitting.benchmarks: CEQA EIR 12\u201324 months / 18\u201330 months / +1\u20133 years litigated",
+            "a": "CEQA full EIR benchmark: 12\u201324 months to certify; 18\u201330 months total entitlement; +1\u20133 years if litigated",
+            "b": ""
+          },
+          {
+            "label": "Conflict",
+            "a": "",
+            "b": "contradictory"
+          }
+        ]
+      }
+    },
+    "ev-contradiction-1": {
+      "id": "ev-contradiction-1",
+      "factorName": "Contradiction: Ventura is in CAISO/SCE territory. If the project does not a",
+      "kind": "contradiction",
+      "summary": "Ventura is in CAISO/SCE territory. If the project does not already hold an executed interconnection agreement (status unknown \u2014 no extracted facts), then from the post-July-2026 anchor implied by the OBBBA flag, 5 years IR\u2192COD lands ~2031, roughly 3 years past the July 2028 target. July 2028 is only achievable if the project is already deep in the cluster-study process with network-upgrade costs known; nothing in the fact set establishes queue position. This compounds the CEQA contradiction: both the entitlement clock and the interconnection clock independently exceed the assumed COD.",
+      "confidence": "High confidence",
+      "sources": [
+        {
+          "title": "findings.permitting.benchmarks: OBBBA COD July 2028",
+          "location": "cross-document check",
+          "highlight": "Assumed COD target of July 2028",
+          "extractedLabel": "claim",
+          "extractedValue": "Assumed COD target of July 2028"
+        },
+        {
+          "title": "findings.permitting.benchmarks: CAISO IR\u2192COD ~5 years, ~20% reach COD",
+          "location": "cross-document check",
+          "highlight": "CAISO benchmark: IR\u2192COD ~5 years; only ~20% of queued projects reach COD",
+          "extractedLabel": "claim",
+          "extractedValue": "CAISO benchmark: IR\u2192COD ~5 years; only ~20% of queued projects reach COD"
+        }
+      ],
+      "comparison": {
+        "dimension": "Ventura is in CAISO/SCE territory. If the project does not a",
+        "rows": [
+          {
+            "label": "findings.permitting.benchmarks: OBBBA COD July 2028",
+            "a": "Assumed COD target of July 2028",
+            "b": ""
+          },
+          {
+            "label": "findings.permitting.benchmarks: CAISO IR\u2192COD ~5 years, ~20% reach COD",
+            "a": "CAISO benchmark: IR\u2192COD ~5 years; only ~20% of queued projects reach COD",
+            "b": ""
+          },
+          {
+            "label": "Conflict",
+            "a": "",
+            "b": "contradictory"
+          }
+        ]
+      }
+    },
+    "ev-contradiction-2": {
+      "id": "ev-contradiction-2",
+      "factorName": "Contradiction: The two flags rest on mutually exclusive routing assumptions",
+      "kind": "contradiction",
+      "summary": "The two flags rest on mutually exclusive routing assumptions, and the single datum that decides between them \u2014 storage capacity in MWh versus the \u2265200 MWh Opt-In threshold \u2014 is absent from every fact set (site_specifics state only '100 MW solar + storage'; facts array is empty). The solar leg qualifies (100 MW \u2265 50 MW), so eligibility pivots entirely on the unstated MWh. Until that number is produced, the critical-path schedule (and therefore the COD feasibility finding) cannot be resolved: the two paths differ by roughly 9\u201321+ months (270 days vs 18\u201330 months).",
+      "confidence": "Needs review",
+      "sources": [
+        {
+          "title": "findings.permitting.red_flags: CEQA full EIR critical path",
+          "location": "cross-document check",
+          "highlight": "Critical red flag assumes the full local CEQA EIR path (12\u201324+ months) is the project's permitting route",
+          "extractedLabel": "claim",
+          "extractedValue": "Critical red flag assumes the full local CEQA EIR path (12\u201324+ months) is the project's permitting route"
+        },
+        {
+          "title": "findings.permitting.red_flags: CEC Opt-In route eligibility",
+          "location": "cross-document check",
+          "highlight": "High red flag presents CEC Opt-In (270-day decision, in lieu of local permits) as the path that preempts local zoning",
+          "extractedLabel": "claim",
+          "extractedValue": "High red flag presents CEC Opt-In (270-day decision, in lieu of local permits) as the path that preempts local zoning"
+        }
+      ],
+      "comparison": {
+        "dimension": "The two flags rest on mutually exclusive routing assumptions",
+        "rows": [
+          {
+            "label": "findings.permitting.red_flags: CEQA full EIR critical path",
+            "a": "Critical red flag assumes the full local CEQA EIR path (12\u201324+ months) is the project's permitting route",
+            "b": ""
+          },
+          {
+            "label": "findings.permitting.red_flags: CEC Opt-In route eligibility",
+            "a": "High red flag presents CEC Opt-In (270-day decision, in lieu of local permits) as the path that preempts local zoning",
+            "b": ""
+          },
+          {
+            "label": "Conflict",
+            "a": "",
+            "b": "contradictory"
+          }
+        ]
+      }
+    },
+    "ev-contradiction-3": {
+      "id": "ev-contradiction-3",
+      "factorName": "Contradiction: The most consequential assertion in the findings \u2014 that the ",
+      "kind": "contradiction",
+      "summary": "The most consequential assertion in the findings \u2014 that the solar ITC is already dead because July 4, 2026 has passed \u2014 is a temporal claim with no date anchor in the extracted record. There are no document dates (no PPA, no IA, no application filings, no BOC documentation) to confirm either the current date or whether beginning-of-construction was in fact documented before the deadline. If a valid BOC package exists (physical-work test; the 5% safe harbor is unavailable for >1.5 MW solar), the 'deadline passed' framing is moot; if none exists, the project's solar ITC/PTC is $0 and any financial model assuming it is wrong. The flag's conclusion may be correct, but it is unverifiable against an empty fact set.",
+      "confidence": "Needs review",
+      "sources": [
+        {
+          "title": "findings.permitting.red_flags: OBBBA ITC beginning-of-construction cliff",
+          "location": "cross-document check",
+          "highlight": "OBBBA red flag: the July 4, 2026 beginning-of-construction deadline 'has already passed'",
+          "extractedLabel": "claim",
+          "extractedValue": "OBBBA red flag: the July 4, 2026 beginning-of-construction deadline 'has already passed'"
+        },
+        {
+          "title": "context.facts: []",
+          "location": "cross-document check",
+          "highlight": "No extracted fact establishes the current date, any document date, or the existence/absence of a BOC evidence package (facts array is empty)",
+          "extractedLabel": "claim",
+          "extractedValue": "No extracted fact establishes the current date, any document date, or the existence/absence of a BOC evidence package (facts array is empty)"
+        }
+      ],
+      "comparison": {
+        "dimension": "The most consequential assertion in the findings \u2014 that the ",
+        "rows": [
+          {
+            "label": "findings.permitting.red_flags: OBBBA ITC beginning-of-construction cliff",
+            "a": "OBBBA red flag: the July 4, 2026 beginning-of-construction deadline 'has already passed'",
+            "b": ""
+          },
+          {
+            "label": "context.facts: []",
+            "a": "No extracted fact establishes the current date, any document date, or the existence/absence of a BOC evidence package (facts array is empty)",
+            "b": ""
+          },
+          {
+            "label": "Conflict",
+            "a": "",
+            "b": "contradictory"
+          }
+        ]
+      }
+    }
+  },
+  "timeline": [
+    {
+      "id": "tl-0",
+      "label": "ITC deadline",
+      "date": "2027-12-31",
+      "kind": "deadline",
+      "band": "risk",
+      "datePrecision": "day",
+      "position": 50,
+      "description": "OBBBA \u00a748E(e)(4): solar/wind placed in service after Dec 31, 2027 loses the 30% ITC unless construction began by Jul 4, 2026 (4-yr continuity safe harbor then applies). Standalone storage exempt; full credit for BOC through 2033.",
+      "sourceUrl": "https://www.irs.gov/irb/2025-36_IRB",
+      "groundTruth": "OBBBA \u00a748E(e)(4): solar/wind placed in service after Dec 31, 2027 loses the 30% ITC unless construction began by Jul 4, 2026 (4-yr continuity safe harbor then applies). Standalone storage exempt; full credit for BOC through 2033."
+    }
+  ],
+  "documents": [],
+  "priorityActions": [
+    {
+      "id": "pa-1",
+      "rank": 1,
+      "title": "Storage capacity confirmed \u2265200 MWh to enable CEC Opt-In route.",
+      "detail": "Storage capacity confirmed \u2265200 MWh to enable CEC Opt-In route.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-land-19"
+    },
+    {
+      "id": "pa-2",
+      "rank": 2,
+      "title": "BOC evidence package verified to secure ITC/PTC.",
+      "detail": "BOC evidence package verified to secure ITC/PTC.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-land-1"
+    },
+    {
+      "id": "pa-3",
+      "rank": 3,
+      "title": "Interconnection agreement executed or at least queue position confirmed with credible time",
+      "detail": "Interconnection agreement executed or at least queue position confirmed with credible timeline to COD.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-demand-33"
+    },
+    {
+      "id": "pa-4",
+      "rank": 4,
+      "title": "Site control secured (title/lease/option) and acreage sufficient.",
+      "detail": "Site control secured (title/lease/option) and acreage sufficient.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-law-31"
+    },
+    {
+      "id": "pa-5",
+      "rank": 5,
+      "title": "Permitting route confirmed (CEC Opt-In or local CEQA) with schedule that meets COD target.",
+      "detail": "Permitting route confirmed (CEC Opt-In or local CEQA) with schedule that meets COD target.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-land-19"
+    },
+    {
+      "id": "pa-6",
+      "rank": 6,
+      "title": "PPA executed or at least term sheet with creditworthy offtaker.",
+      "detail": "PPA executed or at least term sheet with creditworthy offtaker.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-7",
+      "rank": 7,
+      "title": "Equipment procurement orders placed with confirmed lead times.",
+      "detail": "Equipment procurement orders placed with confirmed lead times.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-land-7"
+    },
+    {
+      "id": "pa-8",
+      "rank": 8,
+      "title": "Environmental permits initiated (SWPPP, CDFW 1602, etc.)",
+      "detail": "Environmental permits initiated (SWPPP, CDFW 1602, etc.)",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-land-6"
+    },
+    {
+      "id": "pa-9",
+      "rank": 9,
+      "title": "Williamson Act status resolved.",
+      "detail": "Williamson Act status resolved.",
+      "impact": "high",
+      "scoreDelta": 6,
+      "evidenceLink": "ev-land-2"
+    },
+    {
+      "id": "pa-10",
+      "rank": 10,
+      "title": "Provide the storage capacity in MWh and confirm whether it meets the \u2265200 MWh threshold fo",
+      "detail": "Provide the storage capacity in MWh and confirm whether it meets the \u2265200 MWh threshold for CEC Opt-In (PRC \u00a725545-25545.9).",
+      "impact": "medium",
+      "scoreDelta": 3,
+      "evidenceLink": "ev-land-19"
+    },
+    {
+      "id": "pa-11",
+      "rank": 11,
+      "title": "Provide the beginning-of-construction (BOC) evidence package and continuity records to ver",
+      "detail": "Provide the beginning-of-construction (BOC) evidence package and continuity records to verify ITC/PTC eligibility under the OBBBA (physical-work test; no 5% safe harbor for >1.5 MW solar).",
+      "impact": "medium",
+      "scoreDelta": 3,
+      "evidenceLink": "ev-land-21"
+    },
+    {
+      "id": "pa-12",
+      "rank": 12,
+      "title": "Provide the CAISO queue position, cluster study phase, and estimated network upgrade costs",
+      "detail": "Provide the CAISO queue position, cluster study phase, and estimated network upgrade costs.",
+      "impact": "medium",
+      "scoreDelta": 3,
+      "evidenceLink": "ev-contradiction-1"
+    }
+  ],
+  "projectedScoreAfterMitigation": 50.0,
+  "suggestedQuestions": [
+    {
+      "question": "What's the top item to clear next?",
+      "answer": {
+        "role": "assistant",
+        "text": "Tax-credit kill criterion unresolved: OBBBA BOC deadline (July 4, 2026) asserted passed with no BOC evidence package \u2014 solar ITC/PTC potentially $0; make BOC documentation a condition precedent"
+      }
+    },
+    {
+      "question": "Why is the activation score 22?",
+      "answer": {
+        "role": "assistant",
+        "text": "7 critical red flags and 4 cross-document contradictions. Weakest pillars: finance 15, land 20."
+      }
+    }
+  ],
+  "chatHistory": [
+    {
+      "role": "assistant",
+      "text": "I've completed diligence on FanoutCheck. Activation score 22/100 \u2014 decision: Hold. 7 critical flags, 4 cross-document contradictions, 16 open information requests. Ask me what to prioritize."
+    }
+  ],
+  "report": {
+    "badge": "RED FLAG REPORT",
+    "title": "FanoutCheck \u2014 due-diligence report",
+    "preparedBy": "Red Flag agent framework",
+    "summary": "Tax-credit kill criterion unresolved: OBBBA BOC deadline (July 4, 2026) asserted passed with no BOC evidence package \u2014 solar ITC/PTC potentially $0; make BOC documentation a condition precedent",
+    "findings": [
+      {
+        "title": "CEQA full EIR is a 12\u201324+ month critical path with high litigation exposure",
+        "text": "A 100 MW solar+storage project on farmland in CA requires a full EIR: 12\u201324 months to certify, 18\u201330 months total entitlement, +1\u20133 years if litigated. Renewables are the most-frequently-challenged project type (~43% plaintiff win rate vs EIRs). Farmland impact is scored via the Agricultural LESA Model and is likely 'significant and unavoidable,' requiring a Statement of Overriding Considerations. This alone can push any COD target out by 2\u20133+ years."
+      },
+      {
+        "title": "OBBBA ITC beginning-of-construction cliff \u2014 deadline already passed",
+        "text": "Under OBBBA (July 2025) and IRS Notice 2025-42, a project with COD July 2028 receives $0 in solar ITC/PTC unless beginning-of-construction was documented by July 4, 2026 \u2014 a deadline that has already passed. No 5% safe harbor applies to >1.5 MW solar. Any permitting delay compounds this; the BOC evidence package is the single biggest go/no-go item. Storage ITC (\u00a748E) survives the solar/wind cliff."
+      },
+      {
+        "title": "Williamson Act land is an incompatible use \u2014 cancellation cost and schedule risk",
+        "text": "Commercial solar is an incompatible use on Williamson Act-contracted land. Exit paths: 9-year nonrenewal, or cancellation at 12.5% of unrestricted FMV (25% for Farmland Security Zone), or a solar-use easement at 6.25% (impaired farmland only). Ventura County has substantial agricultural/Williamson Act acreage; the parcel's contract status must be verified before entitlement. Cancellation adds cost and a discretionary county action that can be challenged."
+      },
+      {
+        "title": "CEC Opt-In route eligibility and mandatory CBA/prevailing-wage conditions",
+        "text": "The CEC Opt-In Certification (AB 205/AB 209) is the only path that preempts local zoning, but eligibility requires solar \u226550 MW AND storage \u2265200 MWh. The 100 MW solar qualifies on solar, but the storage must be \u2265200 MWh or the project is ineligible. The certificate requires a certified community benefits agreement plus prevailing wage and skilled-and-trained workforce. If storage <200 MWh, the project falls back to the full local entitlement + CEQA EIR path."
+      },
+      {
+        "title": "CAISO interconnection schedule compounds the permitting timeline",
+        "text": "Ventura is in CAISO/SCE territory. CAISO queue is >500 GW / ~1,000 projects; historically only ~20% of queued projects reach COD, and typical IR\u2192COD is ~5 years. Network-upgrade cost shock is the #1 dropout driver. Any COD target must be reconciled against both the CEQA EIR timeline and the interconnection cluster study schedule."
+      }
+    ],
+    "recommendedActions": [
+      "Storage capacity confirmed \u2265200 MWh to enable CEC Opt-In route.",
+      "BOC evidence package verified to secure ITC/PTC.",
+      "Interconnection agreement executed or at least queue position confirmed with credible timeline to COD.",
+      "Site control secured (title/lease/option) and acreage sufficient.",
+      "Permitting route confirmed (CEC Opt-In or local CEQA) with schedule that meets COD target."
+    ],
+    "sourceBasis": "0 source documents + 0 acquired research packs"
+  },
+  "map": {
+    "parcelSize": "\u2014",
+    "toggles": [
+      {
+        "id": "zoning",
+        "label": "Zoning",
+        "on": true
+      },
+      {
+        "id": "protected-land",
+        "label": "Protected land",
+        "on": true
+      },
+      {
+        "id": "transmission",
+        "label": "Transmission",
+        "on": false
+      }
+    ],
+    "distances": [],
+    "zones": [],
+    "pin": {
+      "left": 50,
+      "top": 50,
+      "label": "Ventura County, CA"
+    }
+  },
+  "teamMembers": []
+}

@@ -215,18 +215,38 @@
   "timeline": [
     {
       "id": "tl-0",
-      "label": "California Energy Commission (CEC), AB 205 Opt-In Certification (Pub. Res. Code ",
-      "date": "2026-07-01",
+      "label": "California Department of Fish and Wildlife (CDFW), South Coast Region 5 \u2014 Open e",
+      "date": "2026-01-01",
       "kind": "milestone",
       "band": "risk",
+      "datePrecision": "year",
       "position": 0.0
     },
     {
       "id": "tl-1",
+      "label": "IRS and U.S. Treasury (via tax counsel) \u2014 Execute BOC strategy under Notice 2025",
+      "date": "2026-01-01",
+      "kind": "milestone",
+      "band": "risk",
+      "datePrecision": "year",
+      "position": 0.0
+    },
+    {
+      "id": "tl-2",
+      "label": "California Energy Commission (CEC), AB 205 Opt-In Certification (Pub. Res. Code ",
+      "date": "2026-07-01",
+      "kind": "milestone",
+      "band": "risk",
+      "datePrecision": "quarter",
+      "position": 24.8
+    },
+    {
+      "id": "tl-3",
       "label": "ITC deadline",
       "date": "2027-12-31",
       "kind": "deadline",
       "band": "risk",
+      "datePrecision": "day",
       "position": 100.0,
       "description": "OBBBA \u00a748E(e)(4): solar/wind placed in service after Dec 31, 2027 loses the 30% ITC unless construction began by Jul 4, 2026 (4-yr continuity safe harbor then applies). Standalone storage exempt; full credit for BOC through 2033.",
       "sourceUrl": "https://www.irs.gov/irb/2025-36_IRB",

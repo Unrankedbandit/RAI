@@ -18,25 +18,35 @@ const PACKS: Record<string, JurisdictionPack> = {
 /**
  * Verified county planning-page roots for counties without a curated pack —
  * the honest fallback landing page. Every URL fetched and returned HTTP 200
- * on 2026-08-23 (Kings County blocks curl's user-agent with a 403 but serves
- * the page to browsers — content verified via browser render).
+ * on 2026-08-23, re-checked 2026-08-25 (per-link records below). Kings County
+ * blocks scripted clients with a 403 (WAF bot-blocking) but serves the page
+ * to browsers — content verified via browser render.
  */
 const PLANNING_ROOTS: Record<string, PlanningRoot> = {
   "clark|nv": {
     url: "https://www.clarkcountynv.gov/government/departments/comprehensive_planning_department/",
     label: "Clark County Comprehensive Planning Department",
+    verifiedAt: "2026-08-25",
+    verifyStatus: "ok",
   },
   "kings|ca": {
     url: "https://www.countyofkingsca.gov/departments/community-development-agency",
     label: "Kings County Community Development Agency",
+    verifiedAt: "2026-08-25",
+    verifyStatus: "bot-blocked",
+    verifyNote: "403 to scripted fetch (WAF bot-blocking); loads in browsers",
   },
   "sacramento|ca": {
     url: "https://planning.saccounty.gov/",
     label: "Sacramento County Planning & Environmental Review",
+    verifiedAt: "2026-08-25",
+    verifyStatus: "ok",
   },
   "solano|ca": {
     url: "https://www.solanocounty.gov/government/resource-management/planning-services",
     label: "Solano County Resource Management — Planning Services",
+    verifiedAt: "2026-08-25",
+    verifyStatus: "ok",
   },
 };
 

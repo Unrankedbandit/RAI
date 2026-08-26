@@ -8,6 +8,7 @@ import { TimelineStrip } from "./TimelineStrip";
 import { AskRail } from "./AskRail";
 import { ShareModal } from "./ShareModal";
 import { OverviewTab } from "./OverviewTab";
+import { ReviewBar } from "./ReviewBar";
 import { FindingsTab } from "./FindingsTab";
 import { ReportsTab } from "./ReportsTab";
 import { DocumentsTab } from "./DocumentsTab";
@@ -76,6 +77,11 @@ function ProjectWorkspaceBody() {
             </div>
             <SubNav active={tab} onChange={changeTab} />
           </div>
+
+          {/* Human approve/reject for the agent report — persistent above the
+              tabs so the decision sits next to the findings on every tab;
+              renders nothing on mock data (review endpoint 404/unreachable). */}
+          <ReviewBar />
 
           {tab === "overview" && <OverviewTab />}
           {tab === "findings" && <FindingsTab />}

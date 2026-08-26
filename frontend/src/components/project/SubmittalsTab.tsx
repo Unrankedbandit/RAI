@@ -108,6 +108,14 @@ function ResourceRow({ resource }: { resource: JurisdictionResource }) {
       <span className="ml-2 rounded-full bg-surface-2 px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-faint">
         {resource.kind}
       </span>
+      {resource.verifyStatus && resource.verifyStatus !== "ok" && (
+        <span
+          className="ml-2 text-[10.5px] italic text-faint"
+          title={resource.verifyNote}
+        >
+          (link unverified{resource.verifyStatus === "bot-blocked" ? " — opens in browser" : ""})
+        </span>
+      )}
       <div className="mt-0.5 text-xs leading-[1.5] text-faint">
         {resource.whatFor}
       </div>
@@ -294,7 +302,7 @@ export function SubmittalsTab() {
         </div>
         <div className="text-[12.5px] leading-[1.5] text-faint">
           {pack
-            ? `The actual forms, checklists, and portals to file with ${county}${state ? `, ${state}` : ""} authorities — every link verified ${pack.verifiedAt}. Check items off as you file; state persists in this browser.`
+            ? `The actual forms, checklists, and portals to file with ${county}${state ? `, ${state}` : ""} authorities — links verified ${pack.verifiedAt} unless marked unverified. Check items off as you file; state persists in this browser.`
             : county
               ? `We have not verified the submittal documents for ${county} yet — start at the county planning page below. Checklist items from the report still track here.`
               : "County not identified in the report — no jurisdiction documents to pair."}

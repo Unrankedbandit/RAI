@@ -526,18 +526,56 @@
   "timeline": [
     {
       "id": "tl-0",
-      "label": "Clark County Department of Environment and Sustainability (MSHCP program) \u2014 Conf",
-      "date": "2025-10-01",
+      "label": "U.S. Fish and Wildlife Service, Nevada Fish and Wildlife Office (Reno) \u2014 Coordin",
+      "date": "2025-01-01",
       "kind": "milestone",
       "band": "risk",
+      "datePrecision": "year",
       "position": 0.0
     },
     {
       "id": "tl-1",
+      "label": "Clark County Department of Environment and Sustainability (MSHCP program) \u2014 Conf",
+      "date": "2025-10-01",
+      "kind": "milestone",
+      "band": "risk",
+      "datePrecision": "month",
+      "position": 25.0
+    },
+    {
+      "id": "tl-2",
+      "label": "Public Utilities Commission of Nevada (PUCN) \u2014 Obtain written confirmation of UE",
+      "date": "2026-01-01",
+      "kind": "milestone",
+      "band": "risk",
+      "datePrecision": "year",
+      "position": 33.4
+    },
+    {
+      "id": "tl-3",
+      "label": "Clark County Department of Building and Fire Prevention / Clark County Fire Depa",
+      "date": "2026-01-01",
+      "kind": "milestone",
+      "band": "risk",
+      "datePrecision": "year",
+      "position": 33.4
+    },
+    {
+      "id": "tl-4",
+      "label": "Nevada Department of Transportation (NDOT) \u2014 Obtain access/encroachment permits ",
+      "date": "2026-01-01",
+      "kind": "milestone",
+      "band": "risk",
+      "datePrecision": "year",
+      "position": 33.4
+    },
+    {
+      "id": "tl-5",
       "label": "ITC deadline",
       "date": "2027-12-31",
       "kind": "deadline",
       "band": "risk",
+      "datePrecision": "day",
       "position": 100.0,
       "description": "OBBBA \u00a748E(e)(4): solar/wind placed in service after Dec 31, 2027 loses the 30% ITC unless construction began by Jul 4, 2026 (4-yr continuity safe harbor then applies). Standalone storage exempt; full credit for BOC through 2033.",
       "sourceUrl": "https://www.irs.gov/irb/2025-36_IRB",

@@ -1,0 +1,426 @@
+{
+  "project": {
+    "id": "824697dcef97",
+    "name": "Parcel 09109004 \u2014 ? ac",
+    "location": "San Joaquin County, CA",
+    "capacityMW": 0,
+    "latitude": 0,
+    "longitude": 0,
+    "activationScore": 6.0,
+    "band": "risk",
+    "scoreReason": "Total evidentiary vacuum: no extracted facts, research findings, or acquired documents in any domain \u2014 cross-examination could not be performed on a single claim, and even project identity (acreage, stage) is unconfirmed.",
+    "status": "at-risk",
+    "pillars": [
+      {
+        "name": "Land",
+        "score": 5.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "4 flags open",
+        "subAgents": [
+          "extractor:land-docs",
+          "scout:zoning",
+          "researcher:land_use"
+        ],
+        "factors": [
+          {
+            "id": "land-flag-0",
+            "name": "site_acres is null \u2014 parcel size and project identity unconfirmed",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "site_acres is null \u2014 parcel size and project identity unconfirmed",
+            "sources": []
+          },
+          {
+            "id": "land-flag-1",
+            "name": "No site control, title, or lease evidence provided",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No site control, title, or lease evidence provided",
+            "sources": []
+          },
+          {
+            "id": "land-flag-2",
+            "name": "No FMMP farmland classification, Williamson Act status, or acreage/MW density to test plau",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No FMMP farmland classification, Williamson Act status, or acreage/MW density to test plausibility",
+            "sources": []
+          },
+          {
+            "id": "land-flag-3",
+            "name": "Weighted contribution: 5 \u00d7 0.20 = 1.00",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Weighted contribution: 5 \u00d7 0.20 = 1.00",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Law",
+        "score": 5.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "4 flags open",
+        "subAgents": [
+          "researcher:state_law",
+          "researcher:federal_law",
+          "researcher:ecology_epa"
+        ],
+        "factors": [
+          {
+            "id": "law-flag-0",
+            "name": "Zoning designation for San Joaquin County parcel unverified \u2014 prohibition cannot be ruled ",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Zoning designation for San Joaquin County parcel unverified \u2014 prohibition cannot be ruled out (unresolved kill-criterion class)",
+            "sources": []
+          },
+          {
+            "id": "law-flag-1",
+            "name": "Tax-credit eligibility undocumented: no beginning-of-construction evidence; under OBBBA th",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Tax-credit eligibility undocumented: no beginning-of-construction evidence; under OBBBA the ITC/PTC position cannot be established (unresolved kill criterion)",
+            "sources": []
+          },
+          {
+            "id": "law-flag-2",
+            "name": "No permitting, CEQA, state/federal law, ecology, or community facts extracted",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No permitting, CEQA, state/federal law, ecology, or community facts extracted",
+            "sources": []
+          },
+          {
+            "id": "law-flag-3",
+            "name": "Weighted contribution: 5 \u00d7 0.20 = 1.00",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Weighted contribution: 5 \u00d7 0.20 = 1.00",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Finance",
+        "score": 3.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "4 flags open",
+        "subAgents": [
+          "researcher:financials",
+          "cross-examiner"
+        ],
+        "factors": [
+          {
+            "id": "finance-flag-0",
+            "name": "No CAPEX figure \u2014 cannot test against $1.43\u20131.56/Wac installed benchmark (LBNL/NREL)",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No CAPEX figure \u2014 cannot test against $1.43\u20131.56/Wac installed benchmark (LBNL/NREL)",
+            "sources": []
+          },
+          {
+            "id": "finance-flag-1",
+            "name": "No offtake/revenue contracts, interconnection status, or financing terms \u2014 all unknown",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No offtake/revenue contracts, interconnection status, or financing terms \u2014 all unknown",
+            "sources": []
+          },
+          {
+            "id": "finance-flag-2",
+            "name": "No schedule to test against tax-credit deadlines or procurement milestones",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No schedule to test against tax-credit deadlines or procurement milestones",
+            "sources": []
+          },
+          {
+            "id": "finance-flag-3",
+            "name": "Weighted contribution: 3 \u00d7 0.25 = 0.75",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Weighted contribution: 3 \u00d7 0.25 = 0.75",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Materials",
+        "score": 5.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "4 flags open",
+        "subAgents": [
+          "researcher:supply_chain"
+        ],
+        "factors": [
+          {
+            "id": "materials-flag-0",
+            "name": "No equipment procurement or lead-time facts; large transformer/GSU market norm is 128\u2013144 ",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No equipment procurement or lead-time facts; large transformer/GSU market norm is 128\u2013144 weeks \u2014 unaddressed",
+            "sources": []
+          },
+          {
+            "id": "materials-flag-1",
+            "name": "BESS scope (MWh, duration) undefined; no supply agreements",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "BESS scope (MWh, duration) undefined; no supply agreements",
+            "sources": []
+          },
+          {
+            "id": "materials-flag-2",
+            "name": "CAPEX vs. commodity indices not assessable",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "CAPEX vs. commodity indices not assessable",
+            "sources": []
+          },
+          {
+            "id": "materials-flag-3",
+            "name": "Weighted contribution: 5 \u00d7 0.20 = 1.00",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Weighted contribution: 5 \u00d7 0.20 = 1.00",
+            "sources": []
+          }
+        ]
+      },
+      {
+        "name": "Demand",
+        "score": 15.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "4 flags open",
+        "subAgents": [
+          "researcher:demand",
+          "researcher:interconnection"
+        ],
+        "factors": [
+          {
+            "id": "demand-flag-0",
+            "name": "No offtake, interconnection queue position, or contracted capacity evidence",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "No offtake, interconnection queue position, or contracted capacity evidence",
+            "sources": []
+          },
+          {
+            "id": "demand-flag-1",
+            "name": "Macro tailwind exists (SB 100/SB 1020; solar+storage is the only CPUC-procurement-eligible",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Macro tailwind exists (SB 100/SB 1020; solar+storage is the only CPUC-procurement-eligible config, 4-hr storage \u2248 90\u201395% NQC) \u2014 supports a nonzero score",
+            "sources": []
+          },
+          {
+            "id": "demand-flag-2",
+            "name": "But CAISO curtailment (~11.5% of solar potential, early 2025) and merchant battery revenue",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "But CAISO curtailment (~11.5% of solar potential, early 2025) and merchant battery revenue compression ($115\u2192$52/kW-yr, 2022\u21922025) are unpriced with no revenue data",
+            "sources": []
+          },
+          {
+            "id": "demand-flag-3",
+            "name": "Weighted contribution: 15 \u00d7 0.15 = 2.25",
+            "band": "risk",
+            "statusLabel": "Flagged",
+            "evidence": "Weighted contribution: 15 \u00d7 0.15 = 2.25",
+            "sources": []
+          }
+        ]
+      }
+    ]
+  },
+  "eyebrow": "Solar \u00b7 0 MW \u00b7 San Joaquin County, CA",
+  "runSummary": "0 documents analyzed \u00b7 8 open items",
+  "scoreBandLabel": "Risk \u00b7 6/100",
+  "scoreNote": "Total evidentiary vacuum: no extracted facts, research findings, or acquired documents in any domain \u2014 cross-examination could not be performed on a single claim, and even project identity (acreage, stage) is unconfirmed.",
+  "evidence": {},
+  "timeline": [
+    {
+      "id": "tl-0",
+      "label": "ITC deadline",
+      "date": "2027-12-31",
+      "kind": "deadline",
+      "band": "risk",
+      "datePrecision": "day",
+      "position": 50,
+      "description": "OBBBA \u00a748E(e)(4): solar/wind placed in service after Dec 31, 2027 loses the 30% ITC unless construction began by Jul 4, 2026 (4-yr continuity safe harbor then applies). Standalone storage exempt; full credit for BOC through 2033.",
+      "sourceUrl": "https://www.irs.gov/irb/2025-36_IRB",
+      "groundTruth": "OBBBA \u00a748E(e)(4): solar/wind placed in service after Dec 31, 2027 loses the 30% ITC unless construction began by Jul 4, 2026 (4-yr continuity safe harbor then applies). Standalone storage exempt; full credit for BOC through 2033."
+    }
+  ],
+  "documents": [],
+  "priorityActions": [
+    {
+      "id": "pa-1",
+      "rank": 1,
+      "title": "Site control confirmed with clean title and no encumbrances; acreage matches project footp",
+      "detail": "Site control confirmed with clean title and no encumbrances; acreage matches project footprint.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-2",
+      "rank": 2,
+      "title": "Zoning verified as compatible with solar+storage; no prohibition or Williamson Act incompa",
+      "detail": "Zoning verified as compatible with solar+storage; no prohibition or Williamson Act incompatibility.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-3",
+      "rank": 3,
+      "title": "Tax credit eligibility established with beginning-of-construction evidence under OBBBA.",
+      "detail": "Tax credit eligibility established with beginning-of-construction evidence under OBBBA.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-4",
+      "rank": 4,
+      "title": "Interconnection agreement executed or valid queue position with reasonable upgrade costs a",
+      "detail": "Interconnection agreement executed or valid queue position with reasonable upgrade costs and timeline.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-5",
+      "rank": 5,
+      "title": "Offtake agreement executed or credible merchant strategy with revenue projections and risk",
+      "detail": "Offtake agreement executed or credible merchant strategy with revenue projections and risk analysis.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-6",
+      "rank": 6,
+      "title": "CAPEX within benchmark range ($1.43\u20131.56/Wac) and equipment procurement secured with lead ",
+      "detail": "CAPEX within benchmark range ($1.43\u20131.56/Wac) and equipment procurement secured with lead times.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-7",
+      "rank": 7,
+      "title": "Environmental permits obtained or on track (CEQA, CWA, ESA).",
+      "detail": "Environmental permits obtained or on track (CEQA, CWA, ESA).",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-8",
+      "rank": 8,
+      "title": "CEQA compliance achieved (negative declaration or EIR certified).",
+      "detail": "CEQA compliance achieved (negative declaration or EIR certified).",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-9",
+      "rank": 9,
+      "title": "Financing term sheet secured with acceptable debt/equity and tax equity terms.",
+      "detail": "Financing term sheet secured with acceptable debt/equity and tax equity terms.",
+      "impact": "high",
+      "scoreDelta": 6
+    },
+    {
+      "id": "pa-10",
+      "rank": 10,
+      "title": "Provide site control evidence for Parcel 09109004: deed, lease, option, or purchase agreem",
+      "detail": "Provide site control evidence for Parcel 09109004: deed, lease, option, or purchase agreement, including legal description, acreage, and all encumbrances.",
+      "impact": "medium",
+      "scoreDelta": 3
+    },
+    {
+      "id": "pa-11",
+      "rank": 11,
+      "title": "Provide current zoning designation and land use entitlement status from San Joaquin County",
+      "detail": "Provide current zoning designation and land use entitlement status from San Joaquin County, including any conditional use permit requirements for solar+storage.",
+      "impact": "medium",
+      "scoreDelta": 3
+    },
+    {
+      "id": "pa-12",
+      "rank": 12,
+      "title": "Provide Williamson Act status and Farmland Mapping and Monitoring Program (FMMP) classific",
+      "detail": "Provide Williamson Act status and Farmland Mapping and Monitoring Program (FMMP) classification for the parcel.",
+      "impact": "medium",
+      "scoreDelta": 3
+    }
+  ],
+  "projectedScoreAfterMitigation": 34.0,
+  "suggestedQuestions": [
+    {
+      "question": "What's the top item to clear next?",
+      "answer": {
+        "role": "assistant",
+        "text": "Total evidentiary vacuum: no extracted facts, research findings, or acquired documents in any domain \u2014 cross-examination could not be performed on a single claim, and even project identity (acreage, stage) is unconfirmed."
+      }
+    },
+    {
+      "question": "Why is the activation score 6?",
+      "answer": {
+        "role": "assistant",
+        "text": "0 critical red flags and 0 cross-document contradictions. Weakest pillars: finance 3, land 5."
+      }
+    }
+  ],
+  "chatHistory": [
+    {
+      "role": "assistant",
+      "text": "I've completed diligence on Parcel 09109004 \u2014 ? ac. Activation score 6/100 \u2014 decision: Hold. 0 critical flags, 0 cross-document contradictions, 8 open information requests. Ask me what to prioritize."
+    }
+  ],
+  "report": {
+    "badge": "RED FLAG REPORT",
+    "title": "Parcel 09109004 \u2014 ? ac \u2014 due-diligence report",
+    "preparedBy": "Red Flag agent framework",
+    "summary": "Total evidentiary vacuum: no extracted facts, research findings, or acquired documents in any domain \u2014 cross-examination could not be performed on a single claim, and even project identity (acreage, stage) is unconfirmed.",
+    "findings": [],
+    "recommendedActions": [
+      "Site control confirmed with clean title and no encumbrances; acreage matches project footprint.",
+      "Zoning verified as compatible with solar+storage; no prohibition or Williamson Act incompatibility.",
+      "Tax credit eligibility established with beginning-of-construction evidence under OBBBA.",
+      "Interconnection agreement executed or valid queue position with reasonable upgrade costs and timeline.",
+      "Offtake agreement executed or credible merchant strategy with revenue projections and risk analysis."
+    ],
+    "sourceBasis": "0 source documents + 0 acquired research packs"
+  },
+  "map": {
+    "parcelSize": "\u2014",
+    "toggles": [
+      {
+        "id": "zoning",
+        "label": "Zoning",
+        "on": true
+      },
+      {
+        "id": "protected-land",
+        "label": "Protected land",
+        "on": true
+      },
+      {
+        "id": "transmission",
+        "label": "Transmission",
+        "on": false
+      }
+    ],
+    "distances": [],
+    "zones": [],
+    "pin": {
+      "left": 50,
+      "top": 50,
+      "label": "San Joaquin County, CA"
+    }
+  },
+  "teamMembers": []
+}

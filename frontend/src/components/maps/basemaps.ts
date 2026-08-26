@@ -33,7 +33,14 @@ const SATELLITE_STYLE: StyleSpecification = {
       attribution: "Esri, Maxar, Earthstar Geographics",
     },
   },
-  layers: [{ id: "satellite", type: "raster", source: "satellite" }],
+  layers: [
+    // Background UNDER the raster: the style has no background layer, so a
+    // tile still in flight (or a 404 past Esri's coverage) used to show the
+    // app shell straight through — the "white boxes" reported 2026-08-25.
+    // Color = measured mean tone of CA farmland tiles at z14–17.
+    { id: "background", type: "background", paint: { "background-color": "#6a7057" } },
+    { id: "satellite", type: "raster", source: "satellite" },
+  ],
 };
 
 export const BASEMAP_STYLES: Record<BasemapId, string | StyleSpecification> = {

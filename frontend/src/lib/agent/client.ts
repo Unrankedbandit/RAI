@@ -204,8 +204,19 @@ export async function submitReview(
   return (await response.json()) as ReviewRecord;
 }
 
-export function listProjects(): Promise<PortfolioRow[]> {
-  return request<PortfolioRow[]>("/api/projects");
+/** GET /api/projects response envelope (since the re-validate-on-read
+ *  hardening): rows plus the filenames skipped for failing schema
+ *  validation. Pre-hardening backends answered a bare array. */
+export interface PortfolioListResponse {
+  projects: PortfolioRow[];
+  /** Store filenames skipped because they fail Report schema validation. */
+  skipped_invalid: string[];
+}
+
+export async function listProjects(): Promise<PortfolioRow[]> {
+  const res = await request<PortfolioRow[] | PortfolioListResponse>("/api/projects");
+  // Tolerate the legacy bare array so a stale backend never breaks the board.
+  return Array.isArray(res) ? res : res.projects;
 }
 
 /* ---------- Grid proximity (GRID V1 contract §2) ---------- */
@@ -228,6 +239,10 @@ export interface GridAccess {
   bucket: GridBucket;
   label: string;
   closest?: GridPoint | null;
+  /** Why this access point was picked over the alternative (GRID V1 §2c) —
+   *  e.g. "shorter gen-tie than the line tap". Optional: backends without
+   *  it simply don't render the rail's "Why this connection" line. */
+  reason?: string | null;
 }
 
 /** Required physical hookup for the parcel (GRID V1 §2b). `substation` =
@@ -296,6 +311,41 @@ export interface GridSiting {
   water: boolean;
 }
 
+/** One selectable connection option for a parcel (GRID V1 §2c): the
+ *  substation gen-tie and the transmission line tap analyzed side by side,
+ *  each carrying the full payload the rail's hookup block and the map's
+ *  connector/corridor need (tap point, hookup copy, corridor path) so
+ *  switching options is a pure client-side swap with no refetch. Exactly
+ *  one option has `chosen: true` — the backend's recommendation, mirrored
+ *  in the top-level access/hookup/path keys. The whole `options` array is
+ *  absent on older backends; everything that reads it must no-op without
+ *  it (no switcher, the chosen connection renders as today). */
+export interface GridConnectionOption {
+  id: "substation" | "line-tap";
+  kind: "substation" | "transmission";
+  method: "substation" | "line-tap";
+  /** Connector-brief label, e.g. "4.9 mi to nearest substation (Dixon)". */
+  label: string;
+  distance_m: number;
+  distance_mi: number;
+  bucket: GridBucket;
+  gentie_mi: number;
+  /** Where the parcel→grid connector terminates for this option. */
+  tap_point: GridPoint;
+  /** Hookup summary line (GRID V1 §2b, per option). */
+  summary: string;
+  /** Hookup detail line (GRID V1 §2b, per option). */
+  detail: string;
+  /** Why this option was picked (chosen) / why not (the alternative). */
+  reason: string;
+  verdict: { code: GridVerdictCode; summary: string } | null;
+  /** Full corridor payload (§5b) for this option, incl. the render-ready
+   *  FeatureCollection; null when corridor screening wasn't run for it. */
+  path: GridPath | null;
+  /** Exactly one option is true — the backend-chosen connection. */
+  chosen: boolean;
+}
+
 export interface GridNearest {
   transmission: { closest?: GridPoint | null } | null;
   substation: { closest?: GridPoint | null } | null;
@@ -307,6 +357,10 @@ export interface GridNearest {
   /** Off-limits siting flag (§7b) — absent on backends without the layers;
    *  the rail's siting lines silently skip when missing. */
   siting?: GridSiting | null;
+  /** Switchable connection options (§2c) — absent on backends that predate
+   *  it; the rail's options switcher and the map override silently skip,
+   *  leaving the chosen access/hookup/path rendering exactly as before. */
+  options?: GridConnectionOption[] | null;
   disclaimer: string;
 }
 

@@ -620,6 +620,92 @@ def _path(st: dict, pt, access_pt, access: dict) -> dict:
     }
 
 
+def _option(access: dict, hookup: dict, path: dict | None,
+            chosen: bool) -> dict:
+    """One connection-point comparison option — the frozen §6b shape the
+    frontend builds against (exact keys; both candidates fully worked up so
+    the user can compare/switch per parcel). `id` mirrors the hookup method
+    ("substation" | "line-tap"); verdict is trimmed to code+summary — the
+    full corridor screen rides `path`. `reason` is filled by _reason once
+    both options exist (the comparison needs both corridors)."""
+    verdict = (path or {}).get("verdict") or {}
+    return {
+        "id": hookup["method"],
+        "kind": access["kind"],
+        "method": hookup["method"],
+        "label": access["label"],
+        "distance_m": access["distance_m"],
+        "distance_mi": access["distance_mi"],
+        "bucket": access["bucket"],
+        "gentie_mi": hookup["gentie_mi"],
+        "tap_point": hookup["tap_point"],
+        "summary": hookup["summary"],
+        "detail": hookup["detail"],
+        "reason": "",
+        "verdict": ({"code": verdict.get("code"),
+                     "summary": verdict.get("summary")} if path else None),
+        "path": path,
+        "chosen": chosen,
+    }
+
+
+def _reason(chosen: dict, alt: dict | None,
+            tied: bool) -> tuple[str, str | None]:
+    """Why the pick won — and why the other option didn't (§6b copy rules).
+    Screening-aid tone: distances/buckets are map facts; the switchyard-vs-
+    gen-tie tradeoff is stated as the usual case, never as costed fact.
+    Corridor-aware honesty (the point of shipping both options): when the
+    picked corridor screens municipal_path/protected_conflict/
+    constrained_urban and the alternative screens strictly better on
+    _VERDICT_RANK, BOTH reasons say so — a clear corridor a mile farther
+    away can beat a short one through town."""
+    if alt is None:
+        return ("Only mapped grid access within screening range — nothing "
+                "else to compare."), None
+    s = chosen if chosen["kind"] == "substation" else alt
+    t = alt if chosen["kind"] == "substation" else chosen
+    # Distances are formatted from distance_m so the reason matches the
+    # option's `label` exactly (distance_mi is the 2-dp rounded twin).
+    s_bit = (f"substation at {_mi(s['distance_m']):.1f} mi ({s['bucket']})")
+    t_bit = (f"transmission line at {_mi(t['distance_m']):.1f} mi "
+             f"({t['bucket']})")
+    if chosen["kind"] == "substation":
+        reason = (f"Picked the {s_bit} over a tap on the {t_bit}. "
+                  "Interconnecting at an existing substation bus avoids "
+                  "building a new tap switchyard (substation-scale "
+                  "construction) — the longer gen-tie is usually cheaper "
+                  "than the switchyard.")
+        if tied:
+            reason += (" Both sit in the same screening band — the "
+                       "substation bus is preferred.")
+        alt_reason = (f"Not picked: the {t_bit} loses to the {s_bit}. A "
+                      "line tap needs a new tap switchyard on top of the "
+                      "gen-tie — the existing substation bus avoids that.")
+    else:
+        reason = (f"Picked a tap on the {t_bit} over the {s_bit}: the "
+                  "line is in a closer screening band, so at screening "
+                  "level the shorter gen-tie outweighs the new-switchyard "
+                  "work a tap requires.")
+        alt_reason = (f"Not picked: the {s_bit} is in a farther screening "
+                      f"band than the {t_bit} — the extra gen-tie miles "
+                      "outweigh avoiding a new switchyard at screening "
+                      "level.")
+    chosen_code = (chosen.get("verdict") or {}).get("code")
+    alt_code = (alt.get("verdict") or {}).get("code")
+    if (chosen_code in ("municipal_path", "protected_conflict",
+                        "constrained_urban")
+            and alt_code is not None
+            and (_VERDICT_RANK.get(alt_code, len(_VERDICT_RANK))
+                 < _VERDICT_RANK.get(chosen_code, len(_VERDICT_RANK)))):
+        reason += (f" Note: this corridor screens {chosen_code} while the "
+                   f"{alt['id']} option screens {alt_code} — compare both "
+                   "below.")
+        alt_reason += (f" Note: the chosen {chosen['id']} corridor screens "
+                       f"{chosen_code} while this option screens {alt_code} "
+                       "— compare both below.")
+    return reason, alt_reason
+
+
 def _siting(blockers: dict, pt) -> dict | None:
     """Off-limits siting flag (contract §7b): point-in-polygon of the query
     point against the already-loaded protected/water trees. Absent when
@@ -695,12 +781,55 @@ def _analyze(lat: float, lng: float) -> dict:
                   "distance_mi": round(dist / MILE_M, 2), "bucket": bucket,
                   "label": _label(kind, dist, props)}
 
+    hookup = _hookup(access, transmission, substation)
     resp = {"transmission": transmission, "substation": substation,
             "access": access,
-            "hookup": _hookup(access, transmission, substation),
+            "hookup": hookup,
             "disclaimer": DISCLAIMER}
     if access_pt is not None:  # contract §5b: corridor needs both endpoints
         resp["path"] = _path(st, pt, access_pt, access)
+
+    # --- Comparison options (contract §6b) --------------------------------
+    # BOTH candidate access points fully worked up, so the frontend can let
+    # the user compare/switch connection points per parcel. The CHOSEN side
+    # reuses the hookup/path computed above (no double work); the
+    # alternative costs one extra _hookup + _path. /api/grid/scan calls
+    # _analyze up to 3× per parcel, so a scan now also pays for up to 3
+    # alternative corridors — acceptable at screening scale, and c0 reuses
+    # c0_analysis rather than recomputing.
+    options: list[dict] = []
+    if access_pt is not None:
+        chosen_opt = _option(access, hookup, resp.get("path"), chosen=True)
+        alt_opt = None
+        if hit_t is not None and hit_s is not None:
+            if access["kind"] == "substation":
+                alt_kind, (alt_dist, alt_props, alt_pt) = "transmission", hit_t
+            else:
+                alt_kind, (alt_dist, alt_props, alt_pt) = "substation", hit_s
+            # Same shape dict as the chosen access — the pick itself is
+            # untouched; this is purely the road not taken, worked up.
+            alt_access = {"kind": alt_kind, "distance_m": round(alt_dist, 1),
+                          "distance_mi": round(alt_dist / MILE_M, 2),
+                          "bucket": _bucket(alt_dist, alt_kind),
+                          "label": _label(alt_kind, alt_dist, alt_props)}
+            alt_opt = _option(alt_access,
+                              _hookup(alt_access, transmission, substation),
+                              _path(st, pt, alt_pt, alt_access),
+                              chosen=False)
+        tied = alt_opt is not None and access["bucket"] == alt_opt["bucket"]
+        chosen_reason, alt_reason = _reason(chosen_opt, alt_opt, tied)
+        chosen_opt["reason"] = chosen_reason
+        access["reason"] = chosen_reason
+        options.append(chosen_opt)
+        if alt_opt is not None:
+            alt_opt["reason"] = alt_reason
+            options.append(alt_opt)
+    else:
+        # Missing data is never faked: nothing mapped, nothing to compare.
+        access["reason"] = ("No mapped transmission line or substation "
+                            "within screening range (200 km) — no "
+                            "connection point to compare.")
+    resp["options"] = options
     # Contract §7b: siting flag rides _analyze, so every scan candidate (§6a)
     # inherits it automatically.
     siting = _siting(st["blockers"], pt)
@@ -816,6 +945,8 @@ async def grid_scan(request: Request):
     candidates = []
     for cid, ckind, pt in kept:
         clng, clat = _TO_4326.transform(pt.x, pt.y)
+        # c0 reuses c0_analysis — its options/alternative corridor are not
+        # computed twice (§6b note on _analyze).
         analysis = c0_analysis if cid == "c0" else _analyze(clat, clng)
         candidates.append({"id": cid, "kind": ckind,
                            "point": {"lat": round(clat, 6),

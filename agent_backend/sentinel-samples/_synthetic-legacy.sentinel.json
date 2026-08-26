@@ -1,0 +1,176 @@
+{
+  "project": {
+    "id": "legacy",
+    "name": "Synthetic Legacy Probe 25 MW",
+    "location": "Test County, NV",
+    "capacityMW": 0,
+    "latitude": 0,
+    "longitude": 0,
+    "activationScore": 35.0,
+    "band": "risk",
+    "scoreReason": "",
+    "status": "needs-review",
+    "pillars": [
+      {
+        "name": "Land",
+        "score": 0.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "0 in watch",
+        "subAgents": [
+          "extractor:land-docs",
+          "scout:zoning",
+          "researcher:land_use"
+        ],
+        "factors": []
+      },
+      {
+        "name": "Law",
+        "score": 0.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "0 in watch",
+        "subAgents": [
+          "researcher:state_law",
+          "researcher:federal_law",
+          "researcher:ecology_epa"
+        ],
+        "factors": []
+      },
+      {
+        "name": "Finance",
+        "score": 0.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "0 in watch",
+        "subAgents": [
+          "researcher:financials",
+          "cross-examiner"
+        ],
+        "factors": []
+      },
+      {
+        "name": "Materials",
+        "score": 0.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "0 in watch",
+        "subAgents": [
+          "researcher:supply_chain"
+        ],
+        "factors": []
+      },
+      {
+        "name": "Demand",
+        "score": 0.0,
+        "band": "risk",
+        "unlocked": false,
+        "statusText": "0 in watch",
+        "subAgents": [
+          "researcher:demand",
+          "researcher:interconnection"
+        ],
+        "factors": []
+      }
+    ]
+  },
+  "eyebrow": "Solar \u00b7 0 MW \u00b7 Test County, NV",
+  "runSummary": "0 documents analyzed \u00b7 1 open items",
+  "scoreBandLabel": "Risk \u00b7 35/100",
+  "scoreNote": "",
+  "evidence": {},
+  "timeline": [
+    {
+      "id": "tl-0",
+      "label": "CDFW \u2014 Protocol surveys",
+      "date": "2027-09-01",
+      "kind": "milestone",
+      "band": "risk",
+      "datePrecision": "month",
+      "position": 0.0
+    },
+    {
+      "id": "tl-1",
+      "label": "ITC deadline",
+      "date": "2027-12-31",
+      "kind": "deadline",
+      "band": "risk",
+      "datePrecision": "day",
+      "position": 99.2,
+      "description": "OBBBA \u00a748E(e)(4): solar/wind placed in service after Dec 31, 2027 loses the 30% ITC unless construction began by Jul 4, 2026 (4-yr continuity safe harbor then applies). Standalone storage exempt; full credit for BOC through 2033.",
+      "sourceUrl": "https://www.irs.gov/irb/2025-36_IRB",
+      "groundTruth": "OBBBA \u00a748E(e)(4): solar/wind placed in service after Dec 31, 2027 loses the 30% ITC unless construction began by Jul 4, 2026 (4-yr continuity safe harbor then applies). Standalone storage exempt; full credit for BOC through 2033."
+    },
+    {
+      "id": "tl-2",
+      "label": "County \u2014 CUP application",
+      "date": "2028-01-01",
+      "kind": "milestone",
+      "band": "risk",
+      "datePrecision": "quarter",
+      "position": 100.0
+    }
+  ],
+  "documents": [],
+  "priorityActions": [],
+  "projectedScoreAfterMitigation": 63.0,
+  "suggestedQuestions": [
+    {
+      "question": "What's the top item to clear next?",
+      "answer": {
+        "role": "assistant",
+        "text": "Clear the 0 critical red flags, starting with the lowest-scoring pillar."
+      }
+    },
+    {
+      "question": "Why is the activation score 35?",
+      "answer": {
+        "role": "assistant",
+        "text": "0 critical red flags and 0 cross-document contradictions. Weakest pillars: ."
+      }
+    }
+  ],
+  "chatHistory": [
+    {
+      "role": "assistant",
+      "text": "I've completed diligence on Synthetic Legacy Probe 25 MW. Activation score 35/100 \u2014 decision: Do not proceed. 0 critical flags, 0 cross-document contradictions, 1 open information requests. Ask me what to prioritize."
+    }
+  ],
+  "report": {
+    "badge": "RED FLAG REPORT",
+    "title": "Synthetic Legacy Probe 25 MW \u2014 due-diligence report",
+    "preparedBy": "Red Flag agent framework",
+    "summary": "",
+    "findings": [],
+    "recommendedActions": [],
+    "sourceBasis": "0 source documents + 0 acquired research packs"
+  },
+  "map": {
+    "parcelSize": "\u2014",
+    "toggles": [
+      {
+        "id": "zoning",
+        "label": "Zoning",
+        "on": true
+      },
+      {
+        "id": "protected-land",
+        "label": "Protected land",
+        "on": true
+      },
+      {
+        "id": "transmission",
+        "label": "Transmission",
+        "on": false
+      }
+    ],
+    "distances": [],
+    "zones": [],
+    "pin": {
+      "left": 50,
+      "top": 50,
+      "label": "Test County, NV"
+    }
+  },
+  "teamMembers": []
+}

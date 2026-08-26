@@ -38,6 +38,91 @@ PIPELINE_MODE = os.getenv("PIPELINE_MODE", "fast")
 # as a hang. main.py additionally caps the whole job with PIPELINE_TIMEOUT.
 AGENT_TIMEOUT = int(os.getenv("AGENT_TIMEOUT", "300"))
 
+# Canonical pillar weights — these MUST match the rubric in the SCORER prompt
+# (agents/roles.py: "land .20, law .20, finance .25, materials .20,
+# demand .15"). The scorer's readiness is ADVISORY: code recomputes the
+# authoritative rollup from the dimension scores here (spec:
+# specs/2026-08-14-diligence-output-schema-design.md — "agents judge, code
+# computes"; a readiness that disagrees with its own dimensions is the one
+# error the scorer cannot make). Defined ONCE here, referenced nowhere else.
+PILLAR_WEIGHTS: dict[str, float] = {
+    "land": 0.20,
+    "law": 0.20,
+    "finance": 0.25,
+    "materials": 0.20,
+    "demand": 0.15,
+}
+
+# Substring stems for mapping scorer-emitted dimension names (which vary:
+# "Land", "land/site control", "Financials", ...) onto the canonical pillars,
+# case-insensitively. First matching pillar wins.
+_PILLAR_STEMS: dict[str, tuple[str, ...]] = {
+    "land": ("land", "site"),
+    "law": ("law", "legal"),
+    "finance": ("financ",),
+    "materials": ("material",),
+    "demand": ("demand",),
+}
+
+
+def _pillar_for(name: str) -> str | None:
+    n = (name or "").strip().lower()
+    for pillar, stems in _PILLAR_STEMS.items():
+        if any(s in n for s in stems):
+            return pillar
+    return None
+
+
+def apply_readiness_rollup(score: Score, trace: Trace | None = None) -> Score:
+    """Code-computed readiness rollup: overwrite the scorer's advisory
+    readiness with Σ(weight × dimension_score) over the five canonical
+    pillars (weights sum to 1, scores are 0-100, so the result is 0-100).
+
+    Dimension names are mapped case-insensitively; dimensions that don't map
+    to a canonical pillar are EXCLUDED from the rollup (logged, never
+    invented). Empty dimensions (the degrade path) keep the existing
+    0/Hold "treat this report as incomplete" behavior untouched.
+    """
+    if not score.dimensions:
+        return score  # degrade path: readiness stays 0, decision stays Hold
+    computed = 0.0
+    seen_pillars: set[str] = set()
+    for d in score.dimensions:
+        pillar = _pillar_for(d.name)
+        if pillar is None:
+            if trace is not None:
+                trace.warn(
+                    "scorer.dimension_unmapped",
+                    f"dimension {d.name!r} does not map to a canonical pillar — "
+                    "excluded from readiness rollup",
+                    dimension=d.name, dim_score=d.score,
+                )
+            continue
+        if pillar in seen_pillars:
+            # A second dimension mapping to the same pillar must not
+            # double-count the weight (review 2026-08-25: "Land" + "Site
+            # Control" rolled 120.0 and blew the 0-100 schema bound).
+            if trace is not None:
+                trace.warn(
+                    "scorer.dimension_duplicate_pillar",
+                    f"dimension {d.name!r} repeats pillar {pillar!r} — first "
+                    "score wins",
+                    dimension=d.name, dim_score=d.score, pillar=pillar,
+                )
+            continue
+        seen_pillars.add(pillar)
+        computed += PILLAR_WEIGHTS[pillar] * d.score
+    computed = round(min(100.0, max(0.0, computed)), 2)
+    if trace is not None and abs(score.readiness - computed) > 1.0:
+        trace.warn(
+            "scorer.readiness_corrected",
+            f"scorer readiness {score.readiness} disagrees with dimension "
+            f"rollup {computed} — using the computed value",
+            llm_readiness=score.readiness, computed_readiness=computed,
+        )
+    score.readiness = computed
+    return score
+
 
 async def _degrade(coro, fallback, on_status: StatusFn, label: str):
     """Run an agent with a hard wall-clock cap, but on failure continue with an
@@ -373,6 +458,9 @@ async def run_pipeline(
         ),
         on_status, "Scorer",
     )
+    # The scorer's readiness is advisory — code computes the authoritative
+    # rollup from the dimension scores (agents judge, code computes).
+    score = apply_readiness_rollup(score, trace)
 
     trace.event("phase", "drafting RFIs and agency actions", phase="liaison")
     # 5. Liaison artifacts. The liaison now carries the sourced evidence too

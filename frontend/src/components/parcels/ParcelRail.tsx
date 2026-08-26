@@ -13,7 +13,7 @@ type GridHookupMethod = NonNullable<GridHookup["method"]>;
 
 import { ViabilityPreview } from "@/components/parcels/ViabilityPreview";
 import { clsx } from "@/lib/clsx";
-import type { ParcelResult } from "@/lib/parcels/counties";
+import { DWR_MOSAIC_SOURCE, type ParcelResult } from "@/lib/parcels/counties";
 import {
   removeRecent,
   toSavedParcel,
@@ -58,6 +58,11 @@ export function ParcelRail(props: {
    *  Candidate N (recommended)" for a scanned candidate, "Origin: custom…"
    *  after a manual drag, null = the default centroid (renders nothing). */
   originLabel?: string | null;
+  /** The connection option (GRID V1 §2c) currently being described; null =
+   *  the backend-chosen option. Absent (with onSelectOption) on parents that
+   *  don't offer switching — the options block simply doesn't render. */
+  activeOptionId?: string | null;
+  onSelectOption?: (id: string) => void;
   onCloseSelected: () => void;
   onResearch: (p: ParcelResult) => void;
   onFlyTo: (lng: number, lat: number) => void;
@@ -67,6 +72,8 @@ export function ParcelRail(props: {
     panelStatus,
     gridAccess,
     originLabel,
+    activeOptionId,
+    onSelectOption,
     onCloseSelected,
     onResearch,
     onFlyTo,
@@ -132,6 +139,8 @@ export function ParcelRail(props: {
             reportId={reportId}
               gridAccess={gridAccess}
               originLabel={originLabel}
+              activeOptionId={activeOptionId}
+              onSelectOption={onSelectOption}
               justWatched={justWatched}
               onWatch={handleWatch}
               onResearch={onResearch}
@@ -208,6 +217,8 @@ function SelectedParcel({
   reportId,
   gridAccess,
   originLabel,
+  activeOptionId,
+  onSelectOption,
 }: {
   parcel: ParcelResult;
   justWatched: boolean;
@@ -216,6 +227,8 @@ function SelectedParcel({
   reportId?: string | null;
   gridAccess?: GridNearest | null;
   originLabel?: string | null;
+  activeOptionId?: string | null;
+  onSelectOption?: (id: string) => void;
 }) {
   const title = parcel.address ?? parcel.apn ?? "Unnamed parcel";
   // Connection-path feasibility (GRID V1 §5) — null on backends without the
@@ -242,12 +255,38 @@ function SelectedParcel({
           : []),
       ]
     : [];
+  // Why this access point was picked (GRID V1 §2c): the reason on access
+  // when present, else the chosen option's reason. Null on backends without
+  // either — the "Why this connection" line simply doesn't render.
+  const accessReason =
+    gridAccess?.access?.reason ??
+    gridAccess?.options?.find((o) => o.chosen)?.reason ??
+    null;
+  // Switchable connection options (§2c) — needs both the list and a parent
+  // that handles selection; a single-option list has nothing to switch to.
+  const options =
+    onSelectOption && gridAccess?.options && gridAccess.options.length > 1
+      ? gridAccess.options
+      : null;
   return (
     <div>
       <div className="text-sm font-semibold text-ink">{title}</div>
       {parcel.address && parcel.apn && (
         <div className="mono mt-0.5 text-[12.5px] text-faint">{parcel.apn}</div>
       )}
+      {/* Boundary provenance (audit 2026-08-25): the orange selection comes
+          from the county/DWR lookup while the gray overlay lines are
+          Regrid's fabric — different datasets and vintages, so the two may
+          not coincide. Naming the source turns a "broken highlight" into an
+          explained data difference. */}
+      <div
+        className="mt-1 text-xs text-faint"
+        title="Source of the selected parcel's linework. The gray overlay lines are Regrid's nationwide fabric (different dataset/vintage), so the selected shape may not coincide with them exactly."
+      >
+        Boundary: {parcel.source}
+        {parcel.source === DWR_MOSAIC_SOURCE &&
+          " — may differ from the Regrid overlay"}
+      </div>
 
       <div className="mt-3 grid grid-cols-2 gap-2">
         {typeof parcel.acres === "number" && (
@@ -316,11 +355,87 @@ function SelectedParcel({
           <div className="mt-1 text-xs leading-relaxed text-faint">
             {gridAccess.hookup.detail}
           </div>
+          {accessReason && (
+            <div className="mt-1 text-xs leading-relaxed text-faint">
+              <span className="font-medium text-muted">
+                Why this connection:
+              </span>{" "}
+              {accessReason}
+            </div>
+          )}
           {gridAccess.hookup.alternative && (
             <div className="mt-1 text-xs leading-relaxed text-faint">
               {gridAccess.hookup.alternative}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Connection options (GRID V1 §2c): switch between the substation
+          gen-tie and the transmission line tap. The active row (the user's
+          pick, else the backend-chosen option) gets the brand border; a
+          click hands the id up so the map connector, corridor, and these
+          blocks all re-derive from that option. */}
+      {options && (
+        <div className="mt-2 rounded-[5px] bg-surface-2 px-2.5 py-2">
+          <span className="text-xs text-faint">Connection options</span>
+          <ul className="mt-1.5 space-y-1.5">
+            {options.map((option) => {
+              const isActive = activeOptionId
+                ? option.id === activeOptionId
+                : option.chosen;
+              return (
+                <li key={option.id}>
+                  <button
+                    type="button"
+                    onClick={() => onSelectOption?.(option.id)}
+                    aria-pressed={isActive}
+                    className={clsx(
+                      "block w-full rounded-[5px] border bg-canvas px-2.5 py-2 text-left transition-colors",
+                      isActive
+                        ? "border-brand"
+                        : "border-hairline hover:bg-surface-2",
+                    )}
+                  >
+                    <span className="flex flex-wrap items-center gap-1.5">
+                      <span
+                        className={clsx(
+                          "flex-none rounded-full px-1.5 py-px text-[10px] font-medium",
+                          METHOD_CHIP[option.method].cls,
+                        )}
+                      >
+                        {METHOD_CHIP[option.method].label}
+                      </span>
+                      {option.verdict && (
+                        <span
+                          className={clsx(
+                            "flex-none rounded-full px-1.5 py-px text-[10px] font-medium",
+                            VERDICT_CHIP[option.verdict.code].cls,
+                          )}
+                        >
+                          {VERDICT_CHIP[option.verdict.code].label}
+                        </span>
+                      )}
+                      {option.chosen && (
+                        <span className="flex-none rounded-full bg-canvas px-1.5 py-px text-[10px] font-medium text-faint ring-1 ring-hairline">
+                          recommended
+                        </span>
+                      )}
+                    </span>
+                    <span className="mt-1 block truncate text-[12.5px] font-medium text-ink">
+                      {option.summary || option.label}
+                    </span>
+                    <span
+                      className="mt-0.5 block line-clamp-2 text-xs leading-relaxed text-faint"
+                      title={option.reason}
+                    >
+                      {option.reason}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
         </div>
       )}
 

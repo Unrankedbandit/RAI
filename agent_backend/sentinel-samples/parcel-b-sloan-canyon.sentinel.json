@@ -366,6 +366,7 @@
       "date": "2026-10-01",
       "kind": "milestone",
       "band": "risk",
+      "datePrecision": "quarter",
       "position": 0.0
     },
     {
@@ -374,6 +375,7 @@
       "date": "2027-12-31",
       "kind": "deadline",
       "band": "risk",
+      "datePrecision": "day",
       "position": 100.0,
       "description": "OBBBA \u00a748E(e)(4): solar/wind placed in service after Dec 31, 2027 loses the 30% ITC unless construction began by Jul 4, 2026 (4-yr continuity safe harbor then applies). Standalone storage exempt; full credit for BOC through 2033.",
       "sourceUrl": "https://www.irs.gov/irb/2025-36_IRB",

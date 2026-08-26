@@ -9,6 +9,7 @@ import { getReport } from "@/lib/agent/client";
 import type { AgentReport } from "@/lib/agent/report";
 import { bandColorVar, bandPillClass, bandLabel } from "@/lib/band";
 import { clsx } from "@/lib/clsx";
+import { eventDateLabel } from "@/lib/timeline";
 import { SourceLink, UnverifiedTag } from "@/components/ui/SourceLink";
 import type { TimelineEvent } from "@/lib/types";
 
@@ -179,7 +180,9 @@ function PhaseHeader({ phase }: { phase: TimelineEvent }) {
         {phase.label}
       </h1>
       <div className="mt-1 text-[12.5px] text-muted">
-        {phase.dateDisplay ?? phase.date}
+        {/* precision-aware: a vague source date never renders as an exact
+            day ("Q3 2027", not "Jul 1, 2027") */}
+        {eventDateLabel(phase)}
       </div>
       {phase.groundTruth && (
         <p className="mt-2 text-[12px] leading-[1.55] text-muted">
@@ -245,7 +248,7 @@ function SubTimeline({
                 }}
               />
               <span className="w-32 flex-none text-[12px] text-faint">
-                {e.dateDisplay ?? e.date}
+                {eventDateLabel(e)}
               </span>
               <span
                 className={clsx(

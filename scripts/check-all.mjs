@@ -13,6 +13,7 @@
  *   4. [node]   TS adapter parity with Python adapter (lockstep check)
  *   5. [git]    advisory: warns if you touched contract/schema surfaces
  *   6. [git]    advisory: warns if your changed files overlap other local branches
+ *   7. [node]   advisory: re-probes curated jurisdiction links (network; never fails)
  *
  * Python steps SKIP (with instructions) if python/pydantic is unavailable —
  * CI enforces them server-side regardless. Everything else is zero-dependency.
@@ -34,8 +35,8 @@ const step = (msg) => console.log(`\n▸ ${msg}`);
 
 function run(cmd, args, opts = {}) {
   try {
-    execFileSync(cmd, args, { cwd: ROOT, stdio: "pipe", ...opts });
-    return { ok: true };
+    const out = execFileSync(cmd, args, { cwd: ROOT, stdio: "pipe", ...opts });
+    return { ok: true, out: String(out) };
   } catch (e) {
     return { ok: false, out: String(e.stdout ?? "") + String(e.stderr ?? "") };
   }
@@ -94,6 +95,25 @@ r3.ok ? ok("all ProjectDetail outputs conform") : fail("schema violation:\n" + r
 step("TS adapter parity with Python adapter");
 const r4 = run(process.execPath, ["scripts/test-adapter-parity.mjs"]);
 r4.ok ? ok("adapters in lockstep") : fail("adapter drift:\n" + r4.out);
+
+step("Jurisdiction link liveness (advisory, network — never fails the gate)");
+if (QUICK) {
+  skip("--quick mode: skipped");
+} else {
+  const rl = run(process.execPath, ["scripts/check-jurisdiction-links.mjs"], { timeout: 300_000 });
+  if (!rl.ok) {
+    console.log("  ⚠️  link checker could not complete (offline?) — advisory only, gate unaffected");
+  } else {
+    const m = rl.out.match(/LINK CHECK: (\d+) problems?(?:, (\d+) recovered)?/);
+    if (!m) {
+      console.log("  ⚠️  link checker produced no summary — advisory only, gate unaffected");
+    } else if (m[1] === "0") {
+      ok(`jurisdiction links: ${m[0].replace("LINK CHECK: ", "")}`);
+    } else {
+      console.log(`  ⚠️  ${m[0]} — run node scripts/check-jurisdiction-links.mjs for the table (advisory, gate unaffected)`);
+    }
+  }
+}
 
 // ---------- git advisories ----------
 step("Contract-surface check (advisory)");
