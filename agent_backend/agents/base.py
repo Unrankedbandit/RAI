@@ -73,12 +73,19 @@ MAX_TOKENS = int(os.getenv("AGENT_MAX_TOKENS", "16000"))
 # wants a much larger MAX_TOKENS to go with it.
 EFFORT = os.getenv("AGENT_EFFORT", "high")
 
-# Initial-context budget per agent. The old 9k hard cap silently discarded
-# ~88% of a CrossExaminer run's input (77k chars of extracted facts, cut
-# mid-JSON) — the main-tier models take 128k+ token contexts, so budget
-# ~100k chars and shed WHOLE list items (never a mid-JSON slice) when a
-# payload is genuinely oversized.
-MAX_CONTEXT_CHARS = int(os.getenv("AGENT_CONTEXT_CHARS", "100000"))
+# Initial-context budget: ZERO truncation by default (2026-08-26) — the old
+# 9k hard cap silently discarded ~88% of a CrossExaminer run's input, and even
+# the 100k cap that replaced it still bit 102k-char deep-mode payloads. The
+# bridge models take 128k+ token contexts; observed payloads top out near
+# ~105k chars (~27k tokens), well inside. Set AGENT_CONTEXT_CHARS to
+# re-enable a budget; when it fires, _fit_context sheds WHOLE list items,
+# never a mid-JSON slice.
+MAX_CONTEXT_CHARS = int(os.getenv("AGENT_CONTEXT_CHARS", "0"))
+
+# Same policy for tool results: pass through whole by default. Set
+# AGENT_TOOL_CHARS to re-enable a cap (openai path keeps head+tail with an
+# omission marker; anthropic path hard-cuts).
+MAX_TOOL_CHARS = int(os.getenv("AGENT_TOOL_CHARS", "0"))
 
 ToolFn = Callable[..., Any]
 
@@ -112,7 +119,7 @@ def _fit_context(context: dict[str, Any], cap: int = MAX_CONTEXT_CHARS) -> tuple
     """
     ctx = json.dumps(context, default=str)
     original = len(ctx)
-    if original <= cap:
+    if not cap or original <= cap:  # cap=0: never truncate (the default)
         return ctx, original, 0
     shrunk = {k: (list(v) if isinstance(v, list) else v) for k, v in context.items()}
     omitted = 0
@@ -361,12 +368,14 @@ class Agent:
                 except Exception as e:  # tool failures are observations, not crashes
                     output = f"tool error: {e}"
                 rendered = str(output)
-                if len(rendered) > 16000:
+                if MAX_TOOL_CHARS and len(rendered) > MAX_TOOL_CHARS:
                     # Head+tail preservation (2026-08-23): sources front-load
                     # summaries and end with conclusions/contact tables — a
-                    # hard 8k head-cut could drop a red flag mid-document.
+                    # hard head-cut could drop a red flag mid-document.
                     # The omission marker keeps the agent honest about it.
-                    keep_head, keep_tail = 14000, 2000
+                    # Inert unless AGENT_TOOL_CHARS is set (default: no cap).
+                    keep_tail = min(2000, MAX_TOOL_CHARS // 8)
+                    keep_head = MAX_TOOL_CHARS - keep_tail
                     omitted = len(rendered) - (keep_head + keep_tail)
                     self.trace.warn(
                         "tool.truncated",
@@ -495,17 +504,19 @@ class Agent:
 
                         rendered = str(output)
                         ts["resultChars"] = len(rendered)
-                        if len(rendered) > 8000:
+                        # Default: pass through whole (MAX_TOOL_CHARS=0).
+                        if MAX_TOOL_CHARS and len(rendered) > MAX_TOOL_CHARS:
                             ts["truncated"] = True
                             self.trace.warn(
                                 "tool.truncated",
-                                f"{call.name} returned {len(rendered)} chars, truncated to 8000",
+                                f"{call.name} returned {len(rendered)} chars, truncated to {MAX_TOOL_CHARS}",
                             )
+                            rendered = rendered[:MAX_TOOL_CHARS]
 
                     results.append({
                         "type": "tool_result",
                         "tool_use_id": call.id,
-                        "content": rendered[:8000],
+                        "content": rendered,
                         "is_error": is_error,
                     })
 
