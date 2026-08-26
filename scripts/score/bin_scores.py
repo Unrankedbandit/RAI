@@ -73,12 +73,17 @@ def main() -> int:
     cells: dict[tuple[int, int], list[float]] = {}
     t0 = time.time()
     rows = 0
+    bad = 0
     for path in files:
         with path.open(encoding="utf-8") as fh:
             for line in fh:
                 if not line.strip():
                     continue
-                f = json.loads(line)
+                try:
+                    f = json.loads(line)
+                except json.JSONDecodeError:
+                    bad += 1  # torn tail from a killed writer — skip, keep going
+                    continue
                 anchor = bbox_center(f.get("geometry") or {})
                 if anchor is None:
                     continue
@@ -115,7 +120,9 @@ def main() -> int:
             }
             out.write(json.dumps(feature, separators=(",", ":")) + "\n")
     print(f"done: {rows:,} parcels -> {len(cells):,} cells -> {out_path} "
-          f"({time.time() - t0:.1f}s)", flush=True)
+          f"({time.time() - t0:.1f}s)"
+          + (f" — WARNING: {bad} unparseable lines skipped" if bad else ""),
+          flush=True)
     return 0
 
 
