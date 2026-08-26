@@ -11,6 +11,14 @@ import { clsx } from "@/lib/clsx";
 
 const URLISH = /^https?:\/\//i;
 
+/** Extract a URL from anywhere in a source string (not just the start). */
+const EMBEDDED_URL = /(https?:\/\/[^\s\)\]\>"']+)/i;
+
+function extractUrl(s: string): string | null {
+  const m = s.match(EMBEDDED_URL);
+  return m ? m[1] : null;
+}
+
 /**
  * Citation linker (2026-08-23): the pipeline cites statutes by NAME ("Public
  * Resources Code §25545", "PUC §399.11", "42 USC §4321") — real sources, but
@@ -43,7 +51,7 @@ export function citationToUrl(s: string): string | null {
 }
 
 export function isExternalUrl(s: string): boolean {
-  return URLISH.test(s.trim());
+  return URLISH.test(s.trim()) || extractUrl(s) !== null;
 }
 
 /** True when at least one entry is an external URL. */
@@ -119,13 +127,18 @@ export function SourceAttribution({
   tone?: "light" | "dark";
   className?: string;
 }) {
-  const external = sources.filter(isExternalUrl);
-  const internal = sources.filter((s) => !isExternalUrl(s) && !citationToUrl(s));
-  const cited = sources.filter((s) => !isExternalUrl(s) && citationToUrl(s));
+  // Extract URLs from anywhere in the source string (leading or embedded).
+  const withUrl = sources
+    .map((s) => ({ text: s, url: extractUrl(s) }))
+    .filter((x) => x.url);
+  const withoutUrl = sources.filter((s) => !extractUrl(s));
+  const cited = withoutUrl.filter((s) => citationToUrl(s));
+  const internal = withoutUrl.filter((s) => !citationToUrl(s));
   return (
     <span className={clsx("inline-flex flex-wrap items-center gap-x-2 gap-y-1", className)}>
-      {external.map((url) => (
-        <SourceLink key={url} url={url} tone={tone} />
+      {withUrl.map(({ text, url }) => (
+        <SourceLink key={url} url={url as string} tone={tone}
+          label={text.length > 42 ? text.slice(0, 42) + "…" : text} />
       ))}
       {cited.map((s) => (
         <SourceLink key={s} url={citationToUrl(s) as string} label={s.length > 42 ? s.slice(0, 42) + "…" : s} tone={tone} />
@@ -135,7 +148,7 @@ export function SourceAttribution({
           {internal.join(" · ")}
         </span>
       )}
-      {external.length === 0 && cited.length === 0 && <UnverifiedTag tone={tone} />}
+      {withUrl.length === 0 && cited.length === 0 && <UnverifiedTag tone={tone} />}
     </span>
   );
 }

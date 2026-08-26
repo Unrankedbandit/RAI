@@ -20,6 +20,8 @@ import httpx
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 
+from . import db
+
 router = APIRouter()
 
 # Same store layout as main.py — duplicated here (not imported) because main
@@ -149,10 +151,18 @@ async def generate_memo(job_id: str):
     """Write (or overwrite) the memo for a finished report. 502 — never a
     template — when the writer can't produce a real HTML document."""
     _check_job_id(job_id)
-    path = STORE / f"{job_id}.json"
-    if not path.exists():
+    # Load report — DB when configured, file fallback for tests/dev.
+    report_json = None
+    if db.is_enabled():
+        db_report = await db.get_report(job_id)
+        if db_report is not None:
+            report_json = json.dumps(db_report, indent=2)
+    else:
+        path = STORE / f"{job_id}.json"
+        if path.exists():
+            report_json = path.read_text(encoding="utf-8")
+    if report_json is None:
         raise HTTPException(status_code=404, detail=f"unknown report {job_id}")
-    report_json = path.read_text(encoding="utf-8")
 
     if not LLM_API_KEY:
         raise HTTPException(

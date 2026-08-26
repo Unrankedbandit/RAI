@@ -22,6 +22,7 @@ import type {
   TimelineEvent,
 } from "../types";
 import type { PortfolioRow } from "./client";
+import type { CitedSource } from "./report";
 // slugify inlined (was ./liveStore) — adapter must stay free of local TS
 // imports: Node's ESM parity job needs an extension, Next forbids it.
 function slugify(name: string): string {
@@ -296,17 +297,27 @@ export function toSentinel(report: AgentReport, meta: SentinelMeta): ProjectDeta
       });
     }
 
-    for (const rf of report.red_flags) {
+    for (const [rfIdx, rf] of report.red_flags.entries()) {
       if (pillarFor(rf.component) !== name) continue;
       const [b, label] = sevBand(rf.severity);
       const evId = `ev-${name.toLowerCase()}-${Object.keys(evidence).length}`;
+      // Merge verified cited-source URLs from the DB (cited_sources table)
+      // into the factor's source list — the frontend's SourceAttribution
+      // renders any source string starting with http(s) as a link.
+      const cited = (report._cited_sources ?? []).filter(
+        (s: CitedSource) => s.finding_type === "red_flag" && s.finding_index === rfIdx
+      );
+      const citedUrls = cited
+        .filter((s: CitedSource) => s.verified && s.source_url)
+        .map((s: CitedSource) => s.source_url as string);
+      const mergedSources = [...new Set([...citedUrls, ...rf.sources])];
       factors.push({
         id: evId,
         name: rf.title.slice(0, 90),
         band: b,
         statusLabel: label,
         evidence: rf.evidence,
-        sources: rf.sources,
+        sources: mergedSources,
         evidenceId: evId,
       });
       const srcNames = rf.sources.length ? rf.sources : [rf.component];
@@ -387,7 +398,10 @@ export function toSentinel(report: AgentReport, meta: SentinelMeta): ProjectDeta
     groundTruth?: string;
     band?: RiskBand;
   }[] = [];
-  for (const t of report.action_pack.timeline ?? []) {
+  for (const [tIdx, t] of (report.action_pack.timeline ?? []).entries()) {
+    // datePrecision teeth (validation floor) + tIdx for the cited_sources
+    // fill below (PR #47) — precision rides the parse, the backfill keys on
+    // the entry's position.
     const parsed: [string, DatePrecision] | undefined =
       /^\d{4}-\d{2}-\d{2}$/.test(t.date || "") ? [t.date, "day"] : isoFrom(t.date);
     if (parsed) {
@@ -404,6 +418,14 @@ export function toSentinel(report: AgentReport, meta: SentinelMeta): ProjectDeta
       if (t.detail) entry.description = t.detail;
       if (t.source_url) entry.sourceUrl = t.source_url;
       if (t.ground_truth) entry.groundTruth = t.ground_truth;
+      // Fill sourceUrl from cited_sources when the agent didn't set one
+      // but the DB found a URL in the entry's source/ground_truth text.
+      if (!entry.sourceUrl) {
+        const cited = (report._cited_sources ?? []).find(
+          (s: CitedSource) => s.finding_type === "timeline" && s.finding_index === tIdx && s.verified && s.source_url
+        );
+        if (cited) entry.sourceUrl = cited.source_url as string;
+      }
       rawTimeline.push(entry);
     }
   }

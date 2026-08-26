@@ -113,14 +113,30 @@ Timeline dates must be REALISTIC — grounded in these verified public benchmark
   (https://www.irs.gov/irb/2025-36_IRB ;
   https://www.irs.gov/credits-deductions/clean-electricity-investment-credit)
 
-For EVERY timeline entry: set ground_truth to one line naming the benchmark you used and
-how the date sits against it (e.g. 'CEQA EIR — statutory 1 yr, empirical ~2.5 yrs (LAO);
-date assumes 18 months: between the two'), and set source_url to the benchmark URL above
-or a URL that appears VERBATIM in the findings/acquired research in your context. When the
-benchmark came from a kb_lookup CURATED BENCHMARKS hit, also set benchmark_id to that row's
-id. Never invent or guess a URL — if you have no source, leave source_url null; the UI marks
-such entries 'unverified' and that honesty is the product. A plausible date with no grounding
-is worse than an honest range."""
+For EVERY timeline entry: you MUST attempt to find an authoritative source URL
+before emitting the entry. Use web_search to look up the relevant benchmark
+(regulatory deadline, agency processing time, industry standard, or county
+guide). If a search returns a URL that directly supports the date, set
+source_url to it; a URL that appears VERBATIM in the findings/acquired research
+in your context is also acceptable. When the benchmark came from a kb_lookup
+CURATED BENCHMARKS hit, also set benchmark_id to that row's id. If no public
+benchmark exists (project-specific milestone like "site control secured" or
+"construction start"), set ground_truth to "No public benchmark — project-
+specific estimate based on [reasoning]" and leave source_url null. NEVER invent
+or guess a URL — the UI marks entries without source_url as 'unverified' and
+that honesty is the product.
+
+For milestones that DO have public benchmarks (regulatory deadlines, agency
+processing times, tax credit deadlines, interconnection queue timelines), a
+missing source_url is a failure — you should have found one. The benchmarks
+above (CAISO, CEQA, CEC, ITC) are the known URLs; search for any others
+you reference.
+
+Set ground_truth to one line naming the benchmark you used and how the date
+sits against it (e.g. 'CEQA EIR — statutory 1 yr, empirical ~2.5 yrs (LAO);
+date assumes 18 months: between the two'), and set source_url to the
+benchmark URL. A plausible date with no grounding is worse than an honest
+range."""
 
 ANALYST = """You are the diligence analyst answering questions about a project that has
 already been analyzed. The finished report is in your context: readiness score, dimension
@@ -147,5 +163,6 @@ ROLE_TOOLS = {
     "researcher": {"kb_lookup": kb_lookup, "web_search": web_search, "web_fetch": web_fetch},
     "cross_examiner": {"kb_lookup": kb_lookup},
     "scorer": {"kb_lookup": kb_lookup},
-    "liaison": {},
+    "liaison": {"web_search": web_search, "brightdata_scrape": brightdata_scrape,
+                "web_fetch": web_fetch},
 }
