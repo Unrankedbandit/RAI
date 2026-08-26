@@ -1,10 +1,10 @@
 """Tool layer available to agents.
 
-Live web access goes through Bright Data (see the Web Unlocker section below):
-`brightdata_scrape` fetches known URLs past bot detection, `web_search`
-handles source discovery. Document parsing — `pdf_extract` and `xlsx_extract`
-— runs pypdf and openpyxl in this process, on the host: a deliberate trade
-for speed on trusted dossiers.
+Live web access uses Tavily for search and Bright Data for scraping:
+`tavily_search` discovers sources via the Tavily Search API (purpose-built for
+AI agents — returns titles, URLs, and content snippets). `brightdata_scrape`
+fetches known URLs past bot detection/CAPTCHAs. `web_fetch` reads a specific
+page with plain httpx. `kb_lookup` is the offline knowledge-base fallback.
 """
 from __future__ import annotations
 
@@ -51,24 +51,73 @@ def kb_lookup(query: str, max_hits: int = 5) -> str:
     return "\n\n---\n\n".join(p for _, p in hits[:max_hits]) or "no knowledge-base matches"
 
 
-def web_search(query: str) -> str:
-    """Search the web for current, location-specific regulatory/market data.
+# --- Tavily Search API --------------------------------------------------------
+# POST https://api.tavily.com/search — Bearer token, returns JSON with results
+# (title, url, content, score). Purpose-built for AI agents: no bot detection,
+# no CAPTCHA, structured JSON. Needs TAVILY_API_KEY; without it falls back to
+# kb_lookup.
 
-    Bright Data unlocks a Google results page and returns it as markdown —
-    titles, URLs, snippets. Without BRIGHTDATA_API_TOKEN it falls back to the
-    offline knowledge base, so a run never dies on a missing key."""
-    if not os.getenv("BRIGHTDATA_API_TOKEN", ""):
+TAVILY_ENDPOINT = "https://api.tavily.com/search"
+
+
+def tavily_search(query: str, max_results: int = 5) -> str:
+    """Search the web via Tavily — returns titles, URLs, and content snippets
+    as structured JSON formatted for agent consumption.
+
+    Tavily is purpose-built for AI agents: no bot detection, no CAPTCHA,
+    structured results with relevance scores. Without TAVILY_API_KEY it falls
+    back to the offline knowledge base, so a run never dies on a missing key.
+    """
+    api_key = os.getenv("TAVILY_API_KEY", "")
+    if not api_key:
         return kb_lookup(query)  # demo-resilient fallback: answer from KB
-    from urllib.parse import quote_plus
+    from .obs import current_trace
+    t = current_trace()
+    import httpx
     try:
-        content = _bd_unlock(
-            f"https://www.google.com/search?q={quote_plus(query)}",
-            render=False,
-            timeout=float(os.getenv("BRIGHTDATA_TIMEOUT_S", "60")),
-        )
-    except Exception:
+        with t.span("tavily.search", f"search: {query[:60]}", query=query) as sp:
+            r = httpx.post(
+                TAVILY_ENDPOINT,
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "query": query,
+                    "max_results": max_results,
+                    "search_depth": "basic",
+                    "include_answer": False,
+                    "include_raw_content": False,
+                },
+                timeout=float(os.getenv("TAVILY_TIMEOUT_S", "30")),
+            )
+            r.raise_for_status()
+            data = r.json()
+            results = data.get("results", [])
+            sp["results"] = len(results)
+    except Exception as exc:
+        t.warn("tavily.failed", f"search failed — {type(exc).__name__}: {exc}",
+               query=query)
         return kb_lookup(query)
-    return content[:8000] if content.strip() else kb_lookup(query)
+
+    if not results:
+        return kb_lookup(query)
+
+    # Format results as markdown for the agent
+    lines = []
+    for i, r in enumerate(results, 1):
+        title = r.get("title", "")
+        url = r.get("url", "")
+        content = r.get("content", "")
+        lines.append(f"### {i}. {title}\n**URL:** {url}\n{content}\n")
+    return "\n".join(lines)[:8000]
+
+
+def web_search(query: str) -> str:
+    """DEPRECATED — use tavily_search. Kept for backward compat with agent
+    prompts that still reference web_search; delegates to tavily_search when
+    TAVILY_API_KEY is set, else falls back to kb_lookup."""
+    return tavily_search(query)
 
 
 def web_fetch(url: str) -> str:
@@ -138,13 +187,13 @@ def brightdata_scrape(url: str, expect: str = "") -> str:
     markers the caller says the page must contain (figures, statute names);
     when they vanish the tool assumes the site's HTML changed and self-repairs
     by re-fetching with JS rendering. Needs BRIGHTDATA_API_TOKEN; without it
-    returns empty so the agent falls back to web_search/kb_lookup."""
+    returns empty so the agent falls back to tavily_search/kb_lookup."""
     from .obs import current_trace
     t = current_trace()
     if not os.getenv("BRIGHTDATA_API_TOKEN", ""):
         t.event("scraper.skipped",
                 "BRIGHTDATA_API_TOKEN not set — returning empty; agent falls back "
-                "to web_search/kb_lookup", url=url)
+                "to tavily_search/kb_lookup", url=url)
         return ""
     timeout = float(os.getenv("BRIGHTDATA_TIMEOUT_S", "60"))
     markers = [m.strip() for m in expect.split(",") if m.strip()]
@@ -195,6 +244,7 @@ def brightdata_scrape(url: str, expect: str = "") -> str:
 pdf_extract.schema = {"type": "object", "properties": {"filename": {"type": "string", "description": "Dossier filename in the project docs directory, e.g. 01_Land_and_Site_Due_Diligence.pdf"}}, "required": ["filename"]}
 xlsx_extract.schema = {"type": "object", "properties": {"filename": {"type": "string", "description": "Spreadsheet filename in the project docs directory, e.g. 01_Project_Red_Flag_Risk_Register.xlsx"}}, "required": ["filename"]}
 kb_lookup.schema = {"type": "object", "properties": {"query": {"type": "string", "description": "Keywords to search the due-diligence knowledge base for, e.g. transformer lead time or zoning prohibition"}, "max_hits": {"type": "integer", "description": "Max passages to return (default 5)"}}, "required": ["query"]}
-web_search.schema = {"type": "object", "properties": {"query": {"type": "string", "description": "Web search query for current or location-specific regulatory and market data"}}, "required": ["query"]}
+tavily_search.schema = {"type": "object", "properties": {"query": {"type": "string", "description": "Web search query for current or location-specific regulatory and market data"}, "max_results": {"type": "integer", "description": "Max results to return (default 5)"}}, "required": ["query"]}
+web_search.schema = tavily_search.schema  # backward compat alias
 web_fetch.schema = {"type": "object", "properties": {"url": {"type": "string", "description": "Full https URL of the source page to read"}}, "required": ["url"]}
 brightdata_scrape.schema = {"type": "object", "properties": {"url": {"type": "string", "description": "Full https URL of the page to scrape through Bright Data Web Unlocker"}, "expect": {"type": "string", "description": "Comma-separated markers the page must contain (figures, statute/program names). When they vanish, the tool assumes the site's HTML changed and self-repairs with a JS-rendered fetch."}}, "required": ["url"]}

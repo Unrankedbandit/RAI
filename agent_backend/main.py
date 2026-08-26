@@ -449,7 +449,8 @@ async def health():
     result = {
         "ok": llm_configured,
         "llm": llm_info,
-        "webSearch": {"configured": bool(os.getenv("BRIGHTDATA_API_TOKEN"))},
+        "webSearch": {"configured": bool(os.getenv("TAVILY_API_KEY")), "provider": "tavily"},
+        "scraper": {"configured": bool(os.getenv("BRIGHTDATA_API_TOKEN"))},
         "port": {"configured": _port.enabled, "apiBase": _port.api_base if _port.enabled else None},
         "docs": {"dir": os.getenv("DOC_DIR"), "knowledgeBase": os.getenv("KB_DIR")},
         "database": {"configured": db.is_enabled(),
