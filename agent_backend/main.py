@@ -354,6 +354,9 @@ async def analyze(req: AnalyzeRequest, request: Request,
                     pipeline_mode=mode, user_email=x_hax_user,
                     client_ip=client_ip, user_id=user_id,
                 )
+                # Extract all cited sources into the cited_sources table for
+                # the frontend's verified/unverified badges.
+                await db.save_cited_sources(job_id, report.model_dump())
                 trace.event("job.persisted", f"report saved to database (job {job_id})")
             else:
                 path = STORE / f"{job_id}.json"
@@ -526,6 +529,34 @@ async def get_report(job_id: str):
             detail=f"no report for job {job_id} — the run may have failed; check /api/jobs/{job_id}/trace",
         )
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+@app.get("/api/reports/{report_id}/sources")
+async def get_report_sources(report_id: str):
+    """Cited sources for a finished report — every URL/reference extracted from
+    red_flags, contradictions, acquired_data, and timeline entries. The
+    frontend uses this to show verified (has URL) vs unverified (no URL)
+    badges on findings."""
+    if db.is_enabled():
+        if not await db.report_exists(report_id):
+            raise HTTPException(status_code=404, detail=f"unknown report {report_id}")
+        sources = await db.get_cited_sources(report_id)
+        if sources is None:
+            return []
+        return sources
+    # File fallback: extract sources from the JSON on the fly.
+    path = STORE / f"{report_id}.json"
+    if not path.exists():
+        raise HTTPException(status_code=404, detail=f"unknown report {report_id}")
+    report = json.loads(path.read_text(encoding="utf-8"))
+    # Build a minimal response matching the DB shape.
+    sources = []
+    for idx, flag in enumerate(report.get("red_flags", [])):
+        for src in flag.get("sources", []):
+            sources.append({"finding_type": "red_flag", "finding_index": idx,
+                            "source_text": src, "source_url": None,
+                            "source_label": src[:80], "verified": False})
+    return sources
 
 
 @app.get("/api/reports/{report_id}/review")
