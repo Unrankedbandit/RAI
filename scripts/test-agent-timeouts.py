@@ -165,7 +165,7 @@ try:
         deadline = time.monotonic() + 20
         answer = None
         while time.monotonic() < deadline:
-            answer = main.ANSWERS.get(ask_id)
+            answer = main._ANSWERS_CACHE.get(ask_id)
             if answer is not None:
                 break
             time.sleep(0.2)

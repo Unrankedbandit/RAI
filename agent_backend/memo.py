@@ -151,11 +151,12 @@ async def generate_memo(job_id: str):
     """Write (or overwrite) the memo for a finished report. 502 — never a
     template — when the writer can't produce a real HTML document."""
     _check_job_id(job_id)
-    # Try DB first, then file.
+    # Load report — DB when configured, file fallback for tests/dev.
     report_json = None
-    db_report = await db.get_report(job_id)
-    if db_report is not None:
-        report_json = json.dumps(db_report, indent=2)
+    if db.is_enabled():
+        db_report = await db.get_report(job_id)
+        if db_report is not None:
+            report_json = json.dumps(db_report, indent=2)
     else:
         path = STORE / f"{job_id}.json"
         if path.exists():

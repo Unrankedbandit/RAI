@@ -5,14 +5,11 @@ auth check on GET /api/share/{token} (the user explicitly wants
 link-accessible shares; this overrides the auth default for THESE endpoints
 only). Claiming is the only write path: an authenticated viewer (gate header
 X-Hax-User) gets their own COPY of the report under a fresh id, tagged with
-their login, so it appears in their portfolio — the original file is never
+their login, so it appears in their portfolio — the original is never
 modified.
 
-Registry lives in shares.json next to the reports store:
-    { "<token>": {"jobId": str, "createdAt": iso,
-                  "claims": {"<user>": "<newReportId>"}} }
-Claims are idempotent per (token, user): a repeat claim returns the same
-copy id instead of duplicating the report.
+When DATABASE_URL is set, shares live in the PostgreSQL shares table. When
+unset, the legacy shares.json file is used (tests/dev only).
 """
 from __future__ import annotations
 
@@ -29,8 +26,7 @@ from . import db
 
 router = APIRouter()
 
-# Same store main.py uses — duplicated rather than imported to avoid a
-# circular import (main includes this router).
+# File-based store — ONLY used when DATABASE_URL is unset (tests/dev).
 STORE = Path(__file__).resolve().parent / "reports"
 SHARES = Path(__file__).resolve().parent / "shares.json"
 
@@ -49,8 +45,6 @@ def _load_registry() -> dict:
     try:
         return json.loads(SHARES.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
-        # A corrupt registry must not take the share endpoints down — treat
-        # it as empty (existing tokens 404 rather than 500).
         return {}
 
 
@@ -62,23 +56,37 @@ def _report_path(job_id: str) -> Path:
     return STORE / f"{job_id}.json"
 
 
+async def _report_exists(job_id: str) -> bool:
+    """Check report existence — DB when configured, file fallback otherwise."""
+    if db.is_enabled():
+        return await db.report_exists(job_id) or False
+    return _report_path(job_id).exists()
+
+
+async def _get_report_json(job_id: str) -> dict | None:
+    """Fetch report JSON — DB when configured, file fallback otherwise."""
+    if db.is_enabled():
+        return await db.get_report(job_id)
+    path = _report_path(job_id)
+    if path.exists():
+        return json.loads(path.read_text(encoding="utf-8"))
+    return None
+
+
 @router.post("/api/reports/{job_id}/share")
 async def create_share(job_id: str):
     """Mint (or reuse) a public share token for a finished report."""
     _check_safe(job_id)
-    if not _report_path(job_id).exists():
-        # Also check DB when configured — the report may not have a file.
-        exists = await db.report_exists(job_id)
-        if not exists:
-            raise HTTPException(404, f"no report {job_id}")
-    # Try DB first (source of truth when configured).
-    db_entry = await db.create_share(secrets.token_urlsafe(8), job_id)
-    if db_entry is not None:
-        return {"token": db_entry["token"], "url": f"/share/{db_entry['token']}"}
-    # File-based fallback.
+    if not await _report_exists(job_id):
+        raise HTTPException(404, f"no report {job_id}")
+
+    if db.is_enabled():
+        db_entry = await db.create_share(secrets.token_urlsafe(8), job_id)
+        if db_entry is not None:
+            return {"token": db_entry["token"], "url": f"/share/{db_entry['token']}"}
+
+    # File-based fallback (tests/dev).
     registry = _load_registry()
-    # Idempotent per job: an existing token for this report wins (first
-    # match), so re-clicking Share never proliferates links.
     for token, entry in registry.items():
         if entry.get("jobId") == job_id:
             return {"token": token, "url": f"/share/{token}"}
@@ -96,18 +104,17 @@ async def create_share(job_id: str):
 async def get_shared_report(token: str):
     """PUBLIC: the shared report JSON. No auth — the link IS the capability."""
     _check_safe(token)
-    # Try DB first.
-    db_entry = await db.get_share(token)
-    if db_entry is not None:
-        # Fetch report from DB or file.
-        report = await db.get_report(db_entry["jobId"])
-        if report is not None:
-            return report
-        path = _report_path(db_entry["jobId"])
-        if path.exists():
-            return json.loads(path.read_text(encoding="utf-8"))
-        raise HTTPException(404, "shared report no longer exists")
-    # File-based fallback.
+
+    if db.is_enabled():
+        db_entry = await db.get_share(token)
+        if db_entry is not None:
+            report = await db.get_report(db_entry["jobId"])
+            if report is not None:
+                return report
+            raise HTTPException(404, "shared report no longer exists")
+        raise HTTPException(404, "unknown share token")
+
+    # File-based fallback (tests/dev).
     entry = _load_registry().get(token)
     if entry is None:
         raise HTTPException(404, "unknown share token")
@@ -125,46 +132,38 @@ async def claim_share(token: str, request: Request,
     Requires the gate's X-Hax-User header (unauthenticated public viewers
     get 401 — the share page treats that as "view only"). Idempotent per
     (token, user): a repeat claim returns the existing copy id. Never
-    overwrites the original report file.
+    overwrites the original report.
     """
     _check_safe(token)
     sso_user = (x_hax_user or "").strip()
     client_ip = db.extract_client_ip(request)
-    # User identity: SSO name when present, else fall back to IP so a
-    # claim is still attributable when the gate header is absent.
     user = sso_user or client_ip
     if not user:
         raise HTTPException(
             401, "no authenticated user (X-Hax-User) and no client IP — "
                   "open through the gate")
 
-    # Try DB first.
-    db_entry = await db.get_share(token)
-    if db_entry is not None:
+    if db.is_enabled():
+        db_entry = await db.get_share(token)
+        if db_entry is None:
+            raise HTTPException(404, "unknown share token")
         claims = db_entry.get("claims", {})
         if user in claims:
             return {"ok": True, "reportId": claims[user], "user": user}
-        # Fetch the source report.
         report = await db.get_report(db_entry["jobId"])
         if report is None:
-            path = _report_path(db_entry["jobId"])
-            if not path.exists():
-                raise HTTPException(404, "shared report no longer exists")
-            report = json.loads(path.read_text(encoding="utf-8"))
+            raise HTTPException(404, "shared report no longer exists")
         report["user"] = user
         new_id = uuid.uuid4().hex[:12]
-        while await db.report_exists(new_id) or _report_path(new_id).exists():
+        while await db.report_exists(new_id):
             new_id = uuid.uuid4().hex[:12]
-        # Dual-write the claimed copy.
         await db.save_report(new_id, report, name=report.get("project", ""),
                              location=report.get("location", ""),
                              user_email=user)
-        _report_path(new_id).write_text(
-            json.dumps(report, indent=2), encoding="utf-8")
         await db.claim_share(token, user, new_id)
         return {"ok": True, "reportId": new_id, "user": user}
 
-    # File-based fallback.
+    # File-based fallback (tests/dev).
     registry = _load_registry()
     entry = registry.get(token)
     if entry is None:
@@ -179,9 +178,6 @@ async def claim_share(token: str, request: Request,
     report = json.loads(src.read_text(encoding="utf-8"))
     report["user"] = user
 
-    # Fresh id for the copy; collision-checked against the store (a plain
-    # <id>.json in STORE is picked up by the /api/projects portfolio listing
-    # automatically).
     new_id = uuid.uuid4().hex[:12]
     while _report_path(new_id).exists():
         new_id = uuid.uuid4().hex[:12]
