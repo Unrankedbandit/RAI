@@ -516,6 +516,11 @@ async def get_report(job_id: str):
     if db.is_enabled():
         report = await db.get_report(job_id)
         if report is not None:
+            # Embed cited sources in the report response so the frontend gets
+            # them in one fetch — no separate /sources call needed.
+            sources = await db.get_cited_sources(job_id)
+            if sources:
+                report["_cited_sources"] = sources
             return report
         raise HTTPException(
             status_code=404,
