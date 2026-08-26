@@ -28,10 +28,11 @@ gh auth status >/dev/null 2>&1 || { echo "ERROR: gh not authenticated (gh auth l
 step "download latest runner (linux-x64)"
 mkdir -p "$RUNNER_DIR"
 cd "$RUNNER_DIR"
-# Via gh (box-authenticated): avoids anonymous API rate limits and the
-# jq|head SIGPIPE race under `set -o pipefail`.
+# Via gh (box-authenticated): avoids anonymous API rate limits. Asset names
+# carry the version (actions-runner-linux-x64-2.336.0.tar.gz), so match the
+# versioned pattern, not a literal "linux-x64.tar.gz".
 asset_url="$(gh api repos/actions/runner/releases/latest \
-  --jq '[.assets[] | select(.name | test("linux-x64.tar.gz")) | .browser_download_url][0]')"
+  --jq '[.assets[] | select(.name | test("linux-x64-[0-9.]+\\.tar\\.gz$")) | .browser_download_url][0]')"
 [ -n "$asset_url" ] || { echo "ERROR: could not resolve runner download URL"; exit 1; }
 curl -fsSL "$asset_url" -o runner.tar.gz
 tar xzf runner.tar.gz
