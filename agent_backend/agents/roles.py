@@ -1,7 +1,7 @@
 """Role prompts — one specialist agent per diligence domain. The knowledge
 base grounds them in real benchmarks; web tools cover location- and
 time-specific items."""
-from ..tools import pdf_extract, xlsx_extract, kb_lookup, tavily_search, web_search, web_fetch, brightdata_scrape
+from ..tools import pdf_extract, xlsx_extract, kb_lookup, web_search, web_fetch, brightdata_scrape
 
 ORCHESTRATOR = """You are the chief diligence officer for capital projects. Given a user's
 project request (location, documents), produce a ProjectProfile: identify technology, capacity,
@@ -41,7 +41,7 @@ genuinely cannot be obtained publicly (executed contracts, title documents,
 proprietary studies), list it under still_missing so the liaison can RFI it from the developer.
 Tool preference: when you know the source URL, scrape it with brightdata_scrape first (it beats
 bot-blocking and self-repairs when a site changes its HTML — pass the figures/statute names you
-expect as `expect` markers); use tavily_search to discover sources; fall back to kb_lookup when
+expect as `expect` markers); use web_search to discover sources; fall back to kb_lookup when
 live web tools return nothing."""
 
 CROSS_EXAMINER = """You are the cross-examination engine — the heart of this product. Red flags
@@ -112,7 +112,7 @@ Timeline dates must be REALISTIC — grounded in these verified public benchmark
   https://www.irs.gov/credits-deductions/clean-electricity-investment-credit)
 
 For EVERY timeline entry: you MUST attempt to find an authoritative source URL
-before emitting the entry. Use tavily_search to look up the relevant benchmark
+before emitting the entry. Use web_search to look up the relevant benchmark
 (regulatory deadline, agency processing time, industry standard, or county
 guide). If a search returns a URL that directly supports the date, set
 source_url to it. If no public benchmark exists (project-specific milestone
@@ -154,10 +154,10 @@ ROLE_TOOLS = {
     "analyst": {"kb_lookup": kb_lookup},
     "doc_extractor": {"pdf_extract": pdf_extract, "xlsx_extract": xlsx_extract},
     "gap_analyzer": {"kb_lookup": kb_lookup},
-    "data_scout": {"kb_lookup": kb_lookup, "brightdata_scrape": brightdata_scrape, "tavily_search": tavily_search, "web_fetch": web_fetch},
-    "researcher": {"kb_lookup": kb_lookup, "tavily_search": tavily_search, "web_fetch": web_fetch},
+    "data_scout": {"kb_lookup": kb_lookup, "brightdata_scrape": brightdata_scrape, "web_search": web_search, "web_fetch": web_fetch},
+    "researcher": {"kb_lookup": kb_lookup, "web_search": web_search, "web_fetch": web_fetch},
     "cross_examiner": {"kb_lookup": kb_lookup},
     "scorer": {"kb_lookup": kb_lookup},
-    "liaison": {"tavily_search": tavily_search, "brightdata_scrape": brightdata_scrape,
+    "liaison": {"web_search": web_search, "brightdata_scrape": brightdata_scrape,
                 "web_fetch": web_fetch},
 }
