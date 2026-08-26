@@ -172,14 +172,22 @@ def to_sentinel(report: Report, project_id: str, lat: float = 0, lon: float = 0,
                 "evidence": text, "sources": [],
             })
 
-        for rf in report.red_flags:
+        for rf_idx, rf in enumerate(report.red_flags):
             if _pillar_for(rf.component) != name:
                 continue
             b, label = _sev_band(rf.severity)
             ev_id = f"ev-{name.lower()}-{len(evidence)}"
+            # Merge verified cited-source URLs from the DB (cited_sources
+            # table) into the factor's source list.
+            cited = [s for s in (getattr(report, "_cited_sources", None) or [])
+                     if s.get("finding_type") == "red_flag"
+                     and s.get("finding_index") == rf_idx]
+            cited_urls = [s["source_url"] for s in cited
+                          if s.get("verified") and s.get("source_url")]
+            merged_sources = list(dict.fromkeys(cited_urls + rf.sources))
             factors.append({
                 "id": ev_id, "name": rf.title[:90], "band": b, "statusLabel": label,
-                "evidence": rf.evidence, "sources": rf.sources, "evidenceId": ev_id,
+                "evidence": rf.evidence, "sources": merged_sources, "evidenceId": ev_id,
             })
             evidence[ev_id] = {
                 "id": ev_id, "factorName": rf.title[:90], "kind": "single",
@@ -221,7 +229,7 @@ def to_sentinel(report: Report, project_id: str, lat: float = 0, lon: float = 0,
     # elements: shortLabel, dateDisplay, description, per-event band); the
     # agency-action deadline parse is the fallback for pre-contract reports.
     raw_timeline = []
-    for t in report.action_pack.timeline:
+    for t_idx, t in enumerate(report.action_pack.timeline):
         iso = t.date if re.fullmatch(r"\d{4}-\d{2}-\d{2}", t.date or "") else _iso_from(t.date)
         if iso:
             entry = {
@@ -235,6 +243,18 @@ def to_sentinel(report: Report, project_id: str, lat: float = 0, lon: float = 0,
                 entry["sourceUrl"] = t.source_url
             if t.ground_truth:
                 entry["groundTruth"] = t.ground_truth
+            # Fill sourceUrl from cited_sources when the agent didn't set one
+            # but the DB found a URL in the entry's source/ground_truth text.
+            if not entry.get("sourceUrl"):
+                cited = next(
+                    (s for s in (getattr(report, "_cited_sources", None) or [])
+                     if s.get("finding_type") == "timeline"
+                     and s.get("finding_index") == t_idx
+                     and s.get("verified") and s.get("source_url")),
+                    None,
+                )
+                if cited:
+                    entry["sourceUrl"] = cited["source_url"]
             raw_timeline.append(entry)
     if not raw_timeline:
         for a in report.action_pack.agency_actions:
