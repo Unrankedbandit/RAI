@@ -8,6 +8,8 @@ ExecStart=__DEPLOY_PATH__/.venv/bin/python -m uvicorn agent_backend.main:app --h
 Restart=on-failure
 RestartSec=3
 Environment=PYTHONUNBUFFERED=1
+Environment=APP_ENV=prod
+Environment=REDIS_URL=redis://localhost:6379/0
 
 [Install]
 WantedBy=default.target

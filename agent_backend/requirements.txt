@@ -15,3 +15,7 @@ opentelemetry-instrumentation-httpx
 # Grid proximity service (agent_backend/grid.py)
 shapely
 pyproj
+# Phase 2 persistence — PostgreSQL + Redis (no-op when DATABASE_URL /
+# REDIS_URL unset; existing file/in-memory behavior is the fallback)
+asyncpg
+redis

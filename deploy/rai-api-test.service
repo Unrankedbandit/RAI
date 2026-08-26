@@ -1,0 +1,15 @@
+[Unit]
+Description=RAI agent backend — TEST (uvicorn, FastAPI)
+After=network.target
+
+[Service]
+WorkingDirectory=__DEPLOY_PATH__
+ExecStart=__DEPLOY_PATH__/.venv/bin/python -m uvicorn agent_backend.main:app --host 127.0.0.1 --port 8100
+Restart=on-failure
+RestartSec=3
+Environment=PYTHONUNBUFFERED=1
+Environment=APP_ENV=test
+Environment=REDIS_URL=redis://localhost:6379/1
+
+[Install]
+WantedBy=default.target

@@ -21,6 +21,8 @@
 #   FORCE       1 = reset tracked local edits    (default: refuse)
 #   API_PORT    backend health port              (default: 8010)
 #   WEB_PORT    frontend health port             (default: 8860)
+#   APP_ENV     database environment: local|test|prod (default: prod)
+#               DATABASE_URL in agent_backend/.env (if set) always wins.
 set -euo pipefail
 
 REF="${REF:-main}"
@@ -28,6 +30,7 @@ DEPLOY_PATH="${DEPLOY_PATH:-$HOME/sites/RAI}"
 FORCE="${FORCE:-0}"
 API_PORT="${API_PORT:-8010}"
 WEB_PORT="${WEB_PORT:-8860}"
+export APP_ENV="${APP_ENV:-prod}"
 
 step() { printf '\n=== %s ===\n' "$*"; }
 
@@ -60,6 +63,7 @@ REMOTE="$(git rev-parse HEAD)"
 echo "deploying $(git rev-parse --short "$REMOTE") — $(git log -1 --pretty=%s "$REMOTE")"
 CHANGED="$(git diff --name-only "$LOCAL" "$REMOTE" 2>/dev/null || true)"
 
+
 step "backend deps"
 # .venv here is a symlink into the dev clone's venv — shared interpreter, same
 # requirements. Only pay the pip cost when the manifest actually changed.
@@ -71,6 +75,7 @@ else
 fi
 [ -f agent_backend/.env ] || echo "WARNING: agent_backend/.env missing — /api/health will report llm.configured=false"
 
+
 step "frontend build"
 # Build exactly like the proven path (rai_deploy.sh): no NEXT_PUBLIC_* override
 # — the frontend's baked-in default API URL is what the live site already uses.
@@ -79,11 +84,13 @@ npm ci --silent
 npm run build
 cd ..
 
+
 step "restart services"
 # User units with linger on; both restart so the served code always matches
 # HEAD. Restarting the backend cancels any in-flight public run — runs are
 # short and demo-grade (same policy as the old webhook deployer).
 systemctl --user restart rai-api-live.service rai-site.service
+
 
 step "health wait"
 wait_up() { # url name timeout_s
@@ -114,6 +121,7 @@ grid_ready
 # of next start can eat most of its 90s TimeoutStopSec before the new instance
 # boots) — give it 120s before declaring failure.
 wait_up "http://127.0.0.1:$WEB_PORT/" "frontend" 120
+
 
 step "done"
 echo "Deployed $REF ($(git rev-parse --short HEAD)) to the live stack."
