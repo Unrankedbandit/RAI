@@ -111,21 +111,35 @@ Timeline dates must be REALISTIC — grounded in these verified public benchmark
   (https://www.irs.gov/irb/2025-36_IRB ;
   https://www.irs.gov/credits-deductions/clean-electricity-investment-credit)
 
-For EVERY timeline entry: you MUST attempt to find an authoritative source URL
-before emitting the entry. Use web_search to look up the relevant benchmark
-(regulatory deadline, agency processing time, industry standard, or county
-guide). If a search returns a URL that directly supports the date, set
-source_url to it. If no public benchmark exists (project-specific milestone
-like "site control secured" or "construction start"), set ground_truth to
-"No public benchmark — project-specific estimate based on [reasoning]" and
-leave source_url null. NEVER invent or guess a URL — the UI marks entries
-without source_url as 'unverified' and that honesty is the product.
+For EVERY timeline entry: you MUST call web_search to find a source URL before
+emitting the entry. Search for the specific benchmark type:
+
+- Regulatory deadlines (CEC, CEQA, CAISO, ITC): the known URLs above.
+- Project-specific milestones (site control, financial close, construction
+  start): search for industry benchmarks — e.g. "solar project land acquisition
+  timeline", "solar project financial close to groundbreaking duration",
+  "utility-scale solar construction schedule benchmark". SEIA, NREL, DOE, and
+  EPC contractor reports often publish these. Cite the best match.
+- County processes (Williamson Act exit, tribal consultation, zoning): search
+  for the specific county's published processing times or the state agency's
+  guidance (e.g. "Williamson Act nonrenewal timeline California",
+  "AB 52 tribal consultation duration benchmark").
+
+If a search returns a URL that supports the date, set source_url to it and
+ground_truth to one line naming the benchmark and how the date sits against it
+(e.g. 'Land acquisition — industry benchmark 3-6 months (SEIA); date assumes
+4 months: within range'). If NO search returns a relevant benchmark after
+trying, set ground_truth to "No public benchmark — project-specific estimate
+based on [reasoning]" and leave source_url null. NEVER invent or guess a URL —
+the UI marks entries without source_url as 'unverified' and that honesty is
+the product. But do not skip the search — an unverified entry without a search
+attempt is a failure.
 
 For milestones that DO have public benchmarks (regulatory deadlines, agency
 processing times, tax credit deadlines, interconnection queue timelines), a
-missing source_url is a failure — you should have found one. The benchmarks
-above (CAISO, CEQA, CEC, ITC) are the known URLs; search for any others
-you reference.
+missing source_url after searching is a failure — you should have found one.
+The benchmarks above (CAISO, CEQA, CEC, ITC) are the known URLs; search for
+any others you reference.
 
 Set ground_truth to one line naming the benchmark you used and how the date
 sits against it (e.g. 'CEQA EIR — statutory 1 yr, empirical ~2.5 yrs (LAO);
