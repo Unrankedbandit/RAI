@@ -85,23 +85,10 @@ app.include_router(memo.router)
 app.include_router(share.router)
 app.include_router(grid.router)
 
+# File-based report store — used ONLY when DATABASE_URL is unset (tests/dev).
+# When DB is configured, reports/reviews/shares/answers live in PostgreSQL.
 STORE = Path(__file__).resolve().parent / "reports"
 STORE.mkdir(exist_ok=True)
-# Ids listed in reports/archived.txt are hidden from the portfolio listing
-# (/api/projects) but remain fetchable by id (/api/reports/{id}) — clearing
-# the board never breaks an already-shared permalink.
-ARCHIVE_LIST = STORE / "archived.txt"
-
-
-def _archived_ids() -> set[str]:
-    try:
-        return {
-            line.strip()
-            for line in ARCHIVE_LIST.read_text(encoding="utf-8").splitlines()
-            if line.strip() and not line.startswith("#")
-        }
-    except FileNotFoundError:
-        return set()
 
 JOB_QUEUES: dict[str, asyncio.Queue] = {}
 JOB_TRACES: dict[str, Trace] = {}
@@ -141,9 +128,9 @@ JOB_LOGS: dict[str, list] = {}
 # full cap, and before this watchdog the SSE stream simply went quiet forever.
 # Bounded here so a job ALWAYS ends in a terminal __DONE__/__ERROR__ frame.
 PIPELINE_TIMEOUT = int(os.getenv("PIPELINE_TIMEOUT", "2700"))  # 45 min
-# Finished chat answers, keyed by the ask's own job id. In memory because an
-# answer is only meaningful while the asking tab is open.
-ANSWERS: dict[str, ChatAnswer] = {}
+# In-memory chat answer cache — ONLY used when DB is not configured (tests/dev).
+# When DB is enabled, answers persist to PostgreSQL and this dict stays empty.
+_ANSWERS_CACHE: dict[str, ChatAnswer] = {}
 
 
 class AnalyzeRequest(BaseModel):
@@ -344,18 +331,20 @@ async def analyze(req: AnalyzeRequest, request: Request,
                 ),
                 timeout=PIPELINE_TIMEOUT,
             )
-            path = STORE / f"{job_id}.json"
-            path.write_text(report.model_dump_json(indent=2), encoding="utf-8")
-            trace.event("job.persisted", f"report written to {path}",
-                        bytes=path.stat().st_size)
-            # Dual-write: persist to PostgreSQL (source of truth when DB is
-            # configured; file remains for backward compat / migration).
-            await db.save_report(
-                job_id, report.model_dump(),
-                name=req.name, location=req.location,
-                pipeline_mode=mode, user_email=x_hax_user,
-                client_ip=client_ip, user_id=user_id,
-            )
+            # Persist report — DB when configured, file fallback for tests/dev.
+            if db.is_enabled():
+                await db.save_report(
+                    job_id, report.model_dump(),
+                    name=req.name, location=req.location,
+                    pipeline_mode=mode, user_email=x_hax_user,
+                    client_ip=client_ip, user_id=user_id,
+                )
+                trace.event("job.persisted", f"report saved to database (job {job_id})")
+            else:
+                path = STORE / f"{job_id}.json"
+                path.write_text(report.model_dump_json(indent=2), encoding="utf-8")
+                trace.event("job.persisted", f"report written to {path}",
+                            bytes=path.stat().st_size)
             await db.update_job(job_id, status="completed", report_id=job_id)
             # Human-in-the-loop gate: the run is not "done" in Port until a
             # person reviews the report there and flips status to APPROVED.
@@ -505,15 +494,18 @@ async def resume(job_id: str, req: ResumeRequest):
 
 @app.get("/api/reports/{job_id}")
 async def get_report(job_id: str):
-    # Try PostgreSQL first (source of truth when DB is configured); fall
-    # back to the file store for backward compat / pre-migration reports.
-    db_report = await db.get_report(job_id)
-    if db_report is not None:
-        return db_report
+    # DB is the sole source of truth when configured.
+    if db.is_enabled():
+        report = await db.get_report(job_id)
+        if report is not None:
+            return report
+        raise HTTPException(
+            status_code=404,
+            detail=f"no report for job {job_id} — the run may have failed; check /api/jobs/{job_id}/trace",
+        )
+    # File fallback (tests/dev without DATABASE_URL).
     path = STORE / f"{job_id}.json"
     if not path.exists():
-        # A missing job report means the run failed before persisting — say so
-        # instead of crashing with a 500 FileNotFoundError.
         raise HTTPException(
             status_code=404,
             detail=f"no report for job {job_id} — the run may have failed; check /api/jobs/{job_id}/trace",
@@ -523,16 +515,19 @@ async def get_report(job_id: str):
 
 @app.get("/api/reports/{report_id}/review")
 async def get_review(report_id: str):
-    """Review state for a finished report. A report with no sidecar defaults
+    """Review state for a finished report. A report with no review row defaults
     to AWAITING_REVIEW — the pipeline's terminal state since PR #4."""
-    exists = await db.report_exists(report_id)
-    if exists is not None:
+    if db.is_enabled():
+        exists = await db.report_exists(report_id)
         if not exists:
             raise HTTPException(status_code=404, detail=f"unknown report {report_id}")
         db_review = await db.get_review(report_id)
         if db_review is not None:
             return db_review
-    elif not (STORE / f"{report_id}.json").exists():
+        return {"status": review.AWAITING, "reviewedBy": None,
+                "reviewedAt": None, "rationale": None}
+    # File fallback (tests/dev).
+    if not (STORE / f"{report_id}.json").exists():
         raise HTTPException(status_code=404, detail=f"unknown report {report_id}")
     return review.load(STORE, report_id)
 
@@ -541,15 +536,14 @@ async def get_review(report_id: str):
 async def post_review(report_id: str, req: ReviewDecisionRequest,
                       request: Request):
     """Human sign-off on the FINAL report, from inside the app where the gaps
-    are shown. Writes the sidecar, mirrors the decision to the Port
-    factory_run entity (fire-and-forget — Port down never fails this), and
+    are shown. Writes to PostgreSQL, mirrors to Port (fire-and-forget), and
     emits a `review.decided` trace event. 409 on an already-decided report
     unless `override: true` is passed explicitly."""
-    exists = await db.report_exists(report_id)
-    if exists is not None:
+    if db.is_enabled():
+        exists = await db.report_exists(report_id)
         if not exists:
             raise HTTPException(status_code=404, detail=f"unknown report {report_id}")
-        existing = await db.get_review(report_id) or {"status": review.AWAITING}
+        existing = await db.get_review(report_id) or {"status": review.AWAITING, "reviewedBy": None}
     else:
         if not (STORE / f"{report_id}.json").exists():
             raise HTTPException(status_code=404, detail=f"unknown report {report_id}")
@@ -558,20 +552,23 @@ async def post_review(report_id: str, req: ReviewDecisionRequest,
         raise HTTPException(
             status_code=409,
             detail=(f"report {report_id} already {existing['status']} "
-                    f"by {existing['reviewedBy']} — pass override=true to change the decision"),
+                    f"by {existing.get('reviewedBy')} — pass override=true to change the decision"),
         )
-    # Reuse the job's trace when it's still in memory (so the decision lands
-    # on the same replayable stream); otherwise a fresh job-scoped trace.
     trace = JOB_TRACES.get(report_id) or Trace(report_id)
-    result = review.decide(STORE, report_id, decision=req.decision,
-                           reviewer=req.reviewer, rationale=req.rationale,
-                           client=_port, trace=trace)
-    # Dual-write to PostgreSQL (source of truth when DB is configured).
-    review_ip = db.extract_client_ip(request)
-    await db.save_review(report_id, status=req.decision,
-                         reviewed_by=req.reviewer, rationale=req.rationale,
-                         client_ip=review_ip)
-    return result
+    # Write to DB (source of truth) or file fallback.
+    if db.is_enabled():
+        review_ip = db.extract_client_ip(request)
+        await db.save_review(report_id, status=req.decision,
+                             reviewed_by=req.reviewer, rationale=req.rationale,
+                             client_ip=review_ip)
+        result = {"status": req.decision, "reviewedBy": req.reviewer,
+                  "reviewedAt": None, "rationale": req.rationale}
+        trace.event("review.decided", f"{req.reviewer} {req.decision} report {report_id}",
+                    decision=req.decision, reviewer=req.reviewer, report_id=report_id)
+        return result
+    return review.decide(STORE, report_id, decision=req.decision,
+                         reviewer=req.reviewer, rationale=req.rationale,
+                         client=_port, trace=trace)
 
 
 @app.post("/api/reports/{report_id}/ask")
@@ -582,10 +579,9 @@ async def ask(report_id: str, req: AskRequest, request: Request):
     /api/jobs/{id}/stream endpoint, so the Ask rail reuses the transport the
     scan already uses rather than introducing a second streaming shape.
     """
-    # Check report existence in DB first, then file.
-    exists = await db.report_exists(report_id)
-    if exists is not None:
-        if not exists:
+    # Load report — DB when configured, file fallback for tests/dev.
+    if db.is_enabled():
+        if not await db.report_exists(report_id):
             raise HTTPException(status_code=404, detail=f"unknown report {report_id}")
         report = Report.model_validate(await db.get_report(report_id))
     else:
@@ -624,14 +620,16 @@ async def ask(report_id: str, req: AskRequest, request: Request):
                 ),
                 status, "Analyst",
             )
-            ANSWERS[ask_id] = answer
-            # Dual-write to PostgreSQL (survives restart; no-op without DB).
-            ask_ip = db.extract_client_ip(request)
-            await db.save_chat_answer(
-                ask_id, report_id=report_id, question=req.question,
-                answer=answer.answer, sources=answer.sources,
-                grounded=answer.grounded, client_ip=ask_ip,
-            )
+            # Persist answer — DB when configured, in-memory fallback for tests.
+            if db.is_enabled():
+                ask_ip = db.extract_client_ip(request)
+                await db.save_chat_answer(
+                    ask_id, report_id=report_id, question=req.question,
+                    answer=answer.answer, sources=answer.sources,
+                    grounded=answer.grounded, client_ip=ask_ip,
+                )
+            else:
+                _ANSWERS_CACHE[ask_id] = answer
             trace.event("job.done", f"ask {ask_id} complete")
             queue.put_nowait("__DONE__")
         except Exception as e:
@@ -646,33 +644,32 @@ async def ask(report_id: str, req: AskRequest, request: Request):
 
 @app.get("/api/asks/{ask_id}")
 async def get_answer(ask_id: str):
-    # Try DB first (source of truth when configured), then in-memory.
-    db_answer = await db.get_chat_answer(ask_id)
-    if db_answer is not None:
-        return db_answer
-    if ask_id not in ANSWERS:
+    # DB is the sole source of truth when configured.
+    if db.is_enabled():
+        db_answer = await db.get_chat_answer(ask_id)
+        if db_answer is not None:
+            return db_answer
         raise HTTPException(status_code=404, detail=f"no answer for {ask_id}")
-    return ANSWERS[ask_id].model_dump()
+    # In-memory fallback (tests/dev without DATABASE_URL).
+    if ask_id not in _ANSWERS_CACHE:
+        raise HTTPException(status_code=404, detail=f"no answer for {ask_id}")
+    return _ANSWERS_CACHE[ask_id].model_dump()
 
 
 @app.get("/api/projects")
 async def portfolio():
     """Portfolio dashboard: every completed report, worst first.
 
-    Archived ids (reports/archived.txt) are hidden from the listing only —
-    their reports stay fetchable by id so permalinks keep working. Review
-    sidecar files (*.review.json) are not reports and never list.
-
-    When PostgreSQL is configured, the listing is a single indexed query.
-    Without a database, it falls back to the file-glob O(N) scan.
+    Archived reports are hidden from the listing but remain fetchable by id so
+    permalinks keep working. When PostgreSQL is configured, the listing is a
+    single indexed query. Without a database, falls back to the file-glob scan.
     """
-    db_rows = await db.list_reports()
-    if db_rows is not None:
-        return db_rows
-    archived = _archived_ids()
+    if db.is_enabled():
+        return await db.list_reports() or []
+    # File fallback (tests/dev without DATABASE_URL).
     pairs = [(p.stem, Report.model_validate_json(p.read_text(encoding="utf-8")))
              for p in STORE.glob("*.json")
-             if p.stem not in archived and not p.name.endswith(".review.json")]
+             if not p.name.endswith(".review.json")]
     pairs.sort(key=lambda t: t[1].readiness)
     return [
         {"id": pid, "project": r.project, "location": r.location, "readiness": r.readiness,
