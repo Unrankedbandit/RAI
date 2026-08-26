@@ -95,6 +95,21 @@ wait_up() { # url name timeout_s
   return 1
 }
 wait_up "http://127.0.0.1:$API_PORT/api/health" "backend" 30
+# /api/health goes green before the grid archives are warmed into memory —
+# the smoke contract (grid/status loaded:true) fails while "warming" is true,
+# so a deploy isn't done until the index is actually built.
+grid_ready() {
+  for i in $(seq 1 180); do
+    if curl -sf "http://127.0.0.1:$API_PORT/api/grid/status" 2>/dev/null \
+       | grep -qE '"loaded"\s*:\s*true'; then
+      echo "grid warmed (loaded:true)"; return 0
+    fi
+    sleep 1
+  done
+  echo "ERROR: grid data never warmed — check rai-api-live logs"
+  return 1
+}
+grid_ready
 # The frontend restart outlives a 30s window when the box is busy (systemd stop
 # of next start can eat most of its 90s TimeoutStopSec before the new instance
 # boots) — give it 120s before declaring failure.
