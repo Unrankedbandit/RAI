@@ -39,6 +39,9 @@ async def _lifespan(_app: FastAPI):
     await db.init_pool()
     await db.run_migrations()
     await redis_state.init_client()
+    # Hatchet worker (durable pipeline execution) — starts in a daemon thread
+    # when HATCHET_CLIENT_TOKEN is set. No-op without a token.
+    _start_hatchet_worker()
     # Crash recovery: pipeline jobs live in process memory, so a restart
     # orphans their Port entities mid-flight. Sweep any RUNNING zombies to
     # FAILED/WorkerLost before serving — the catalog must never claim a run
@@ -51,6 +54,25 @@ async def _lifespan(_app: FastAPI):
     yield
     await db.close_pool()
     await redis_state.close_client()
+
+
+def _start_hatchet_worker() -> None:
+    """Start the Hatchet workflow worker in a daemon thread. No-op without
+    HATCHET_CLIENT_TOKEN — the pipeline falls back to asyncio.create_task."""
+    token = os.getenv("HATCHET_CLIENT_TOKEN", "")
+    if not token:
+        return
+    try:
+        import threading
+        from .hatchet_workflow import hatchet, pipeline_wf
+        if hatchet is None or pipeline_wf is None:
+            return
+        def _run():
+            hatchet.worker("rai-pipeline", slots=4, workflows=[pipeline_wf]).start()
+        threading.Thread(target=_run, daemon=True).start()
+        print("[hatchet] worker started (rai-pipeline, 4 slots)")
+    except Exception as e:
+        print(f"[hatchet] worker failed to start: {e}")
 
 
 app = FastAPI(title="Red Flag Agent Backend", lifespan=_lifespan)
@@ -467,6 +489,7 @@ async def health():
                      "env": os.getenv("APP_ENV", "local"),
                      "url": DATABASE_URL[:20] + "…" if DATABASE_URL else None},
         "redis": {"configured": redis_state.is_enabled()},
+        "hatchet": {"configured": bool(os.getenv("HATCHET_CLIENT_TOKEN"))},
         # Run admission control (see analyze): lets the dashboard and smoke
         # distinguish "busy" from "sick".
         "capacity": {"maxRuns": MAX_RUNS, "maxQueue": MAX_QUEUE,
