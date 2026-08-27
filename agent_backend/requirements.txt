@@ -19,3 +19,6 @@ pyproj
 # REDIS_URL unset; existing file/in-memory behavior is the fallback)
 asyncpg
 redis
+# Phase 3 durable execution — Hatchet workflow engine (no-op when
+# HATCHET_CLIENT_TOKEN unset; pipeline falls back to asyncio tasks)
+hatchet-sdk

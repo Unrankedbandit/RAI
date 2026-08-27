@@ -39,6 +39,9 @@ async def _lifespan(_app: FastAPI):
     await db.init_pool()
     await db.run_migrations()
     await redis_state.init_client()
+    # Hatchet worker (durable pipeline execution) — starts in a daemon thread
+    # when HATCHET_CLIENT_TOKEN is set. No-op without a token.
+    _start_hatchet_worker()
     # Crash recovery: pipeline jobs live in process memory, so a restart
     # orphans their Port entities mid-flight. Sweep any RUNNING zombies to
     # FAILED/WorkerLost before serving — the catalog must never claim a run
@@ -51,6 +54,30 @@ async def _lifespan(_app: FastAPI):
     yield
     await db.close_pool()
     await redis_state.close_client()
+
+
+def _start_hatchet_worker() -> None:
+    """Start the Hatchet workflow worker as a separate process. No-op without
+    HATCHET_CLIENT_TOKEN — the pipeline falls back to asyncio.create_task.
+
+    The worker must run as its own process (not a daemon thread) because
+    signal.signal() can only be called from the main thread."""
+    token = os.getenv("HATCHET_CLIENT_TOKEN", "")
+    if not token:
+        return
+    try:
+        import subprocess, sys
+        # Run the worker as a separate process alongside the API server
+        worker_script = os.path.join(os.path.dirname(__file__), "hatchet_worker.py")
+        subprocess.Popen(
+            [sys.executable, worker_script],
+            stdout=open("/tmp/hatchet-worker.log", "a"),
+            stderr=subprocess.STDOUT,
+            start_new_session=True,
+        )
+        print("[hatchet] worker started as separate process (logs: /tmp/hatchet-worker.log)")
+    except Exception as e:
+        print(f"[hatchet] worker failed to start: {e}")
 
 
 app = FastAPI(title="Red Flag Agent Backend", lifespan=_lifespan)
@@ -417,7 +444,26 @@ async def analyze(req: AnalyzeRequest, request: Request,
             # Mirror admission counter decrement to Redis.
             await redis_state.decr_active()
 
-    asyncio.create_task(work())
+    # Trigger the pipeline — Hatchet durable workflow when configured,
+    # asyncio background task as fallback (tests/dev without Hatchet).
+    if os.getenv("HATCHET_CLIENT_TOKEN"):
+        try:
+            from .hatchet_workflow import get_hatchet, get_workflow, PipelineInput
+            client = get_hatchet()
+            wf = get_workflow()
+            if client and wf:
+                ref = await wf.aio_run(PipelineInput(
+                    name=req.name, location=req.location, docs=req.docs,
+                    mode=mode, user=user_label, client_ip=client_ip,
+                ), wait_for_result=False)
+                trace.event("job.hatchet", f"workflow run {ref.workflow_run_id} started")
+            else:
+                asyncio.create_task(work())
+        except Exception as e:
+            trace.event("job.hatchet_error", f"Hatchet trigger failed, falling back to asyncio: {e}", level="warn")
+            asyncio.create_task(work())
+    else:
+        asyncio.create_task(work())
     return {"jobId": job_id}
 
 
@@ -467,6 +513,7 @@ async def health():
                      "env": os.getenv("APP_ENV", "local"),
                      "url": DATABASE_URL[:20] + "…" if DATABASE_URL else None},
         "redis": {"configured": redis_state.is_enabled()},
+        "hatchet": {"configured": bool(os.getenv("HATCHET_CLIENT_TOKEN"))},
         # Run admission control (see analyze): lets the dashboard and smoke
         # distinguish "busy" from "sick".
         "capacity": {"maxRuns": MAX_RUNS, "maxQueue": MAX_QUEUE,
