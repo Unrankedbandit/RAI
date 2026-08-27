@@ -455,6 +455,7 @@ async def analyze(req: AnalyzeRequest, request: Request,
                 ref = await wf.aio_run(PipelineInput(
                     name=req.name, location=req.location, docs=req.docs,
                     mode=mode, user=user_label, client_ip=client_ip,
+                    job_id=job_id,
                 ), wait_for_result=False)
                 trace.event("job.hatchet", f"workflow run {ref.workflow_run_id} started")
             else:
@@ -534,20 +535,43 @@ async def stream(job_id: str, from_idx: int = 0):
     async def events():
         idx = max(0, from_idx)
         terminal = False
+        redis_idx = 0
         while not terminal:
+            # Read from in-memory JOB_LOGS (asyncio pipeline) AND Redis Streams
+            # (Hatchet workflow) — the two sources are merged so the stream
+            # works regardless of which executor ran the pipeline.
             log = JOB_LOGS.get(job_id)
-            if log is None:
+            redis_log = await redis_state.get_logs(job_id, from_idx=redis_idx)
+
+            # Yield any new in-memory entries
+            if log is not None:
+                while idx < len(log):
+                    msg = log[idx]
+                    idx += 1
+                    if isinstance(msg, dict):
+                        yield f"data: {json.dumps({'event': msg})}\n\n"
+                        continue
+                    yield f"data: {json.dumps({'status': msg})}\n\n"
+                    if msg.startswith("__DONE__") or msg.startswith("__ERROR__"):
+                        terminal = True
+
+            # Yield any new Redis entries
+            if redis_log is not None:
+                for entry in redis_log:
+                    redis_idx += 1
+                    if isinstance(entry, dict):
+                        yield f"data: {json.dumps({'event': entry})}\n\n"
+                        continue
+                    yield f"data: {json.dumps({'status': entry})}\n\n"
+                    if entry.startswith("__DONE__") or entry.startswith("__ERROR__"):
+                        terminal = True
+
+            # If neither source has data and we've never yielded anything, the
+            # job is unknown — emit an error rather than polling forever.
+            if log is None and redis_log is None and idx == 0 and redis_idx == 0:
                 yield f"data: {json.dumps({'status': '__ERROR__ unknown job'})}\n\n"
                 return
-            while idx < len(log):
-                msg = log[idx]
-                idx += 1
-                if isinstance(msg, dict):
-                    yield f"data: {json.dumps({'event': msg})}\n\n"
-                    continue
-                yield f"data: {json.dumps({'status': msg})}\n\n"
-                if msg.startswith("__DONE__") or msg.startswith("__ERROR__"):
-                    terminal = True
+
             if not terminal:
                 await asyncio.sleep(0.25)
     return StreamingResponse(events(), media_type="text/event-stream")

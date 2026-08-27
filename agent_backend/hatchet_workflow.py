@@ -65,6 +65,7 @@ class PipelineInput(BaseModel):
     mode: str = "fast"
     user: str | None = None
     client_ip: str | None = None
+    job_id: str = ""  # API job ID — used for SSE narration and report persistence
 
 
 class PipelineOutput(BaseModel):
@@ -107,6 +108,12 @@ def get_workflow():
         trace = Trace(ctx.workflow_run_id)
         from .pipeline import _degrade, _agent
         from .agents.base import AgentDidNotConverge
+
+        # Narrate to the SSE stream via Redis (frontend reads from /api/jobs/{job_id}/stream)
+        async def narrate(msg: str):
+            await redis_state.append_log(input.job_id, f"[orchestrate] {msg}")
+
+        await narrate("building project profile + diligence plan")
 
         profile = await _degrade(
             _agent("Orchestrator", ORCHESTRATOR, ProjectProfile, "orchestrator", print, trace).run(
@@ -162,6 +169,8 @@ def get_workflow():
         profile = ProjectProfile(**data["profile"])
         fact_sets = [FactSet(**f) for f in data["fact_sets"]]
 
+        await redis_state.append_log(input.job_id, "[research] researching project against diligence components")
+
         if input.mode == "fast":
             findings = await _degrade(
                 _agent(
@@ -207,6 +216,8 @@ def get_workflow():
         trace = Trace(ctx.workflow_run_id)
         from .pipeline import _degrade, _agent
         data = ctx.task_output(research)
+
+        await redis_state.append_log(input.job_id, "[cross-examine] finding contradictions between documents")
         profile = ProjectProfile(**data["profile"])
         fact_sets = [FactSet(**f) for f in data["fact_sets"]]
         findings = [Findings(**f) for f in data["findings"]]
@@ -237,6 +248,8 @@ def get_workflow():
         trace = Trace(ctx.workflow_run_id)
         from .pipeline import _degrade, _agent, apply_readiness_rollup
         data = ctx.task_output(cross_examine)
+
+        await redis_state.append_log(input.job_id, "[score] weighted rubric → readiness + decision")
         profile = ProjectProfile(**data["profile"])
         findings = [Findings(**f) for f in data["findings"]]
         contradictions = ContradictionSet(**data["contradictions"])
@@ -269,6 +282,8 @@ def get_workflow():
         trace = Trace(ctx.workflow_run_id)
         from .pipeline import _degrade, _agent
         data = ctx.task_output(score)
+
+        await redis_state.append_log(input.job_id, "[liaison] drafting RFIs and agency actions")
         profile = ProjectProfile(**data["profile"])
         contradictions = ContradictionSet(**data["contradictions"])
         score_obj = Score(**data["score"])
@@ -329,15 +344,19 @@ def get_workflow():
             user=input.user,
         )
 
-        # Persist to DB
+        # Persist to DB — use the API's job_id (not the Hatchet run ID) so the
+        # frontend's /api/reports/{job_id} and /api/jobs/{job_id}/stream work.
+        report_id = input.job_id or ctx.workflow_run_id
         if db.is_enabled():
             await db.save_report(
-                ctx.workflow_run_id, report.model_dump(),
+                report_id, report.model_dump(),
                 name=input.name, location=input.location,
                 pipeline_mode=input.mode, user_email=input.user,
                 client_ip=input.client_ip,
             )
-            await db.save_cited_sources(ctx.workflow_run_id, report.model_dump())
+            await db.save_cited_sources(report_id, report.model_dump())
+            # Narrate completion to the SSE stream
+            await redis_state.append_log(report_id, "__DONE__")
 
         return {
             "job_id": ctx.workflow_run_id,
