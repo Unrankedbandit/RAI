@@ -57,20 +57,25 @@ async def _lifespan(_app: FastAPI):
 
 
 def _start_hatchet_worker() -> None:
-    """Start the Hatchet workflow worker in a daemon thread. No-op without
-    HATCHET_CLIENT_TOKEN — the pipeline falls back to asyncio.create_task."""
+    """Start the Hatchet workflow worker as a separate process. No-op without
+    HATCHET_CLIENT_TOKEN — the pipeline falls back to asyncio.create_task.
+
+    The worker must run as its own process (not a daemon thread) because
+    signal.signal() can only be called from the main thread."""
     token = os.getenv("HATCHET_CLIENT_TOKEN", "")
     if not token:
         return
     try:
-        import threading
-        from .hatchet_workflow import hatchet, pipeline_wf
-        if hatchet is None or pipeline_wf is None:
-            return
-        def _run():
-            hatchet.worker("rai-pipeline", slots=4, workflows=[pipeline_wf]).start()
-        threading.Thread(target=_run, daemon=True).start()
-        print("[hatchet] worker started (rai-pipeline, 4 slots)")
+        import subprocess, sys
+        # Run the worker as a separate process alongside the API server
+        worker_script = os.path.join(os.path.dirname(__file__), "hatchet_worker.py")
+        subprocess.Popen(
+            [sys.executable, worker_script],
+            stdout=open("/tmp/hatchet-worker.log", "a"),
+            stderr=subprocess.STDOUT,
+            start_new_session=True,
+        )
+        print("[hatchet] worker started as separate process (logs: /tmp/hatchet-worker.log)")
     except Exception as e:
         print(f"[hatchet] worker failed to start: {e}")
 
