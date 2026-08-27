@@ -444,7 +444,26 @@ async def analyze(req: AnalyzeRequest, request: Request,
             # Mirror admission counter decrement to Redis.
             await redis_state.decr_active()
 
-    asyncio.create_task(work())
+    # Trigger the pipeline — Hatchet durable workflow when configured,
+    # asyncio background task as fallback (tests/dev without Hatchet).
+    if os.getenv("HATCHET_CLIENT_TOKEN"):
+        try:
+            from .hatchet_workflow import get_hatchet, get_workflow, PipelineInput
+            client = get_hatchet()
+            wf = get_workflow()
+            if client and wf:
+                ref = await wf.aio_run(PipelineInput(
+                    name=req.name, location=req.location, docs=req.docs,
+                    mode=mode, user=user_label, client_ip=client_ip,
+                ), wait_for_result=False)
+                trace.event("job.hatchet", f"workflow run {ref.workflow_run_id} started")
+            else:
+                asyncio.create_task(work())
+        except Exception as e:
+            trace.event("job.hatchet_error", f"Hatchet trigger failed, falling back to asyncio: {e}", level="warn")
+            asyncio.create_task(work())
+    else:
+        asyncio.create_task(work())
     return {"jobId": job_id}
 
 
