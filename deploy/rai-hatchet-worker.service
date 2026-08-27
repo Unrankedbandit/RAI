@@ -1,0 +1,16 @@
+[Unit]
+Description=RAI Hatchet workflow worker — durable pipeline execution
+After=network.target rai-api-live.service
+
+[Service]
+WorkingDirectory=__DEPLOY_PATH__
+ExecStart=__DEPLOY_PATH__/.venv/bin/python agent_backend/hatchet_worker.py
+Restart=on-failure
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+Environment=HATCHET_CLIENT_TLS_STRATEGY=none
+Environment=HATCHET_CLIENT_HOST_PORT=127.0.0.1:7077
+EnvironmentFile=__DEPLOY_PATH__/agent_backend/.env
+
+[Install]
+WantedBy=default.target

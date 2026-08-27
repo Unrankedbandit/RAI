@@ -35,15 +35,27 @@ from .schemas import (
 )
 
 HATCHET_TOKEN = os.getenv("HATCHET_CLIENT_TOKEN", "")
-hatchet = None
-if HATCHET_TOKEN:
+
+# Lazy client — created on first call to get_hatchet(), not at module import.
+# Module-level creation breaks multiprocessing spawn (children re-import this
+# module and must not re-initialize the gRPC connection).
+_hatchet = None
+
+
+def get_hatchet():
+    """Return the Hatchet client, creating it on first call. Returns None when
+    HATCHET_CLIENT_TOKEN is not set."""
+    global _hatchet
+    if _hatchet is not None or not HATCHET_TOKEN:
+        return _hatchet
     from hatchet_sdk import Hatchet
     from hatchet_sdk.config import ClientConfig, ClientTLSConfig
-    hatchet = Hatchet(config=ClientConfig(
+    _hatchet = Hatchet(config=ClientConfig(
         token=HATCHET_TOKEN,
         host_port="127.0.0.1:7077",
         tls_config=ClientTLSConfig(strategy="none"),
     ))
+    return _hatchet
 
 
 class PipelineInput(BaseModel):
@@ -65,10 +77,24 @@ class PipelineOutput(BaseModel):
 
 # ── Workflow definition ──────────────────────────────────────────────
 # Only defined when Hatchet is configured — the module imports cleanly
-# without a token (tests, CI, local dev without Hatchet).
+# without a token (tests, CI, local dev without Hatchet). The workflow is
+# created lazily by get_workflow() so spawned child processes don't
+# re-initialize the gRPC connection at import time.
 
-if hatchet:
-    pipeline_wf = hatchet.workflow(name="rai-pipeline", input_validator=PipelineInput)
+_pipeline_wf = None
+
+
+def get_workflow():
+    """Return the Hatchet workflow, creating it on first call. Returns None
+    when HATCHET_CLIENT_TOKEN is not set."""
+    global _pipeline_wf
+    if _pipeline_wf is not None:
+        return _pipeline_wf
+    client = get_hatchet()
+    if client is None:
+        return None
+
+    pipeline_wf = client.workflow(name="rai-pipeline", input_validator=PipelineInput)
 
     @pipeline_wf.task(
         retries=2,
@@ -316,6 +342,9 @@ if hatchet:
             "contradiction_count": len(contradictions.contradictions),
         }
 
+    _pipeline_wf = pipeline_wf
+    return pipeline_wf
+
 
 def is_enabled() -> bool:
-    return hatchet is not None
+    return get_hatchet() is not None
