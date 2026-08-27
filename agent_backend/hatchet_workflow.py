@@ -300,6 +300,11 @@ def get_workflow():
     )
     async def compose_report(input: PipelineInput, ctx: Context) -> dict:
         """Compose the final report and persist to DB."""
+        # Initialize DB pool on the worker's event loop (the pool is loop-affine —
+        # asyncpg connections can't cross event loops). No-op if already enabled.
+        await db.init_pool()
+        await db.run_migrations()
+
         data = ctx.task_output(liaison)
         profile = ProjectProfile(**data["profile"])
         score_obj = Score(**data["score"])

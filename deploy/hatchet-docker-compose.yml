@@ -5,19 +5,16 @@ services:
     network_mode: host
     environment:
       DATABASE_URL: "postgresql://hatchet:hatchet@localhost:5432/hatchet?sslmode=disable"
-      SERVER_AUTH_COOKIE_DOMAIN: "rai-hatchet.josephbissell.com"
+      SERVER_AUTH_COOKIE_DOMAIN: "localhost"
       SERVER_AUTH_COOKIE_INSECURE: "t"
       SERVER_AUTH_SET_EMAIL_VERIFIED: "t"
       SERVER_GRPC_BIND_ADDRESS: "0.0.0.0"
       SERVER_GRPC_INSECURE: "t"
       SERVER_GRPC_BROADCAST_ADDRESS: "127.0.0.1:7077"
       SERVER_GRPC_PORT: "7077"
-      SERVER_URL: "https://rai-hatchet.josephbissell.com"
+      SERVER_URL: "http://localhost:8888"
       SERVER_INTERNAL_CLIENT_INTERNAL_GRPC_BROADCAST_ADDRESS: "127.0.0.1:7077"
-      # Port 8080 is in use on this box — Hatchet API on 8889 instead
       SERVER_PORT: "8889"
-      # CORS — allow the public domain
-      SERVER_CORS_ALLOWED_ORIGINS: "https://rai-hatchet.josephbissell.com"
     volumes:
       - hatchet_lite_config:/config
     restart: unless-stopped

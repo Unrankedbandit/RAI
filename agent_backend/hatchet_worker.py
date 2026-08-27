@@ -15,6 +15,16 @@ import sys
 # Ensure the project root is on the path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Load .env if present (systemd EnvironmentFile doesn't apply when run directly)
+_env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+if os.path.exists(_env_path):
+    with open(_env_path) as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, v = line.split("=", 1)
+                os.environ.setdefault(k.strip(), v.strip())
+
 # Hatchet Lite runs insecure gRPC on IPv4 — the client must match.
 os.environ.setdefault("HATCHET_CLIENT_TLS_STRATEGY", "none")
 os.environ.setdefault("HATCHET_CLIENT_HOST_PORT", "127.0.0.1:7077")
