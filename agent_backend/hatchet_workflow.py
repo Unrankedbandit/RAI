@@ -105,6 +105,11 @@ def get_workflow():
     )
     async def orchestrate(input: PipelineInput, ctx: Context) -> dict:
         """Build the project profile + diligence plan."""
+        # Initialize DB/Redis on the task runner's event loop (loop-affine —
+        # asyncpg/Redis connections can't cross event loops).
+        await db.init_pool()
+        await redis_state.init_client()
+
         trace = Trace(ctx.workflow_run_id)
         from .pipeline import _degrade, _agent
         from .agents.base import AgentDidNotConverge
