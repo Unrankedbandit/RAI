@@ -35,7 +35,15 @@ from .schemas import (
 )
 
 HATCHET_TOKEN = os.getenv("HATCHET_CLIENT_TOKEN", "")
-hatchet = Hatchet() if HATCHET_TOKEN else None
+hatchet = None
+if HATCHET_TOKEN:
+    from hatchet_sdk import Hatchet
+    from hatchet_sdk.config import ClientConfig, ClientTLSConfig
+    hatchet = Hatchet(config=ClientConfig(
+        token=HATCHET_TOKEN,
+        host_port="127.0.0.1:7077",
+        tls_config=ClientTLSConfig(strategy="none"),
+    ))
 
 
 class PipelineInput(BaseModel):
