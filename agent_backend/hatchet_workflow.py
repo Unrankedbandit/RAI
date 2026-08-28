@@ -58,6 +58,20 @@ def get_hatchet():
     return _hatchet
 
 
+def _narrate(job_id: str):
+    """Return a narrate function that writes structured SSE events to Redis.
+    The frontend reads these from /api/jobs/{job_id}/stream and drives the
+    staging tracker (phase events) and sub-agent boxes (agent events)."""
+    async def narrate(kind: str, msg: str, agent: str | None = None, phase: str | None = None):
+        ev = {"kind": kind, "msg": msg, "level": "info"}
+        if agent:
+            ev["agent"] = agent
+        if phase:
+            ev["phase"] = phase
+        await redis_state.append_log(job_id, ev)
+    return narrate
+
+
 class PipelineInput(BaseModel):
     name: str
     location: str
@@ -114,11 +128,9 @@ def get_workflow():
         from .pipeline import _degrade, _agent
         from .agents.base import AgentDidNotConverge
 
-        # Narrate to the SSE stream via Redis (frontend reads from /api/jobs/{job_id}/stream)
-        async def narrate(msg: str):
-            await redis_state.append_log(input.job_id, f"[orchestrate] {msg}")
-
-        await narrate("building project profile + diligence plan")
+        narrate = _narrate(input.job_id)
+        await narrate("phase", "building project profile + diligence plan", phase="orchestrate")
+        await narrate("agent.start", "Orchestrator starting", agent="Orchestrator", phase="orchestrate")
 
         profile = await _degrade(
             _agent("Orchestrator", ORCHESTRATOR, ProjectProfile, "orchestrator", print, trace).run(
@@ -129,6 +141,8 @@ def get_workflow():
             print, "Orchestrator",
         )
         profile.name = input.name
+
+        await narrate("agent.done", f"Orchestrator done — {profile.technology}, {profile.capacity_mw} MW", agent="Orchestrator", phase="orchestrate")
         return profile.model_dump()
 
     @pipeline_wf.task(
@@ -145,8 +159,12 @@ def get_workflow():
         profile_data = ctx.task_output(orchestrate)
         profile = ProjectProfile(**profile_data)
 
+        narrate = _narrate(input.job_id)
+        await narrate("phase", "parallel document extraction", phase="extract")
+
         fact_sets = []
         for doc in input.docs:
+            await narrate("agent.start", f"Extractor:{doc}", agent=f"Extractor:{doc}", phase="extract")
             fs = await _degrade(
                 _agent(f"Extractor:{doc}", DOC_EXTRACTOR, FactSet, "doc_extractor", print, trace).run(
                     f"Extract all structured facts from '{doc}' ({'PDF' if doc.endswith('.pdf') else 'XLSX'}).",
@@ -155,6 +173,7 @@ def get_workflow():
                 FactSet(doc=doc, facts=[], gaps=[f"extraction failed for {doc}"]),
                 print, f"Extractor:{doc}",
             )
+            await narrate("agent.done", f"Extractor:{doc} done", agent=f"Extractor:{doc}", phase="extract")
             fact_sets.append(fs.model_dump())
 
         return {"fact_sets": fact_sets, "profile": profile.model_dump()}
@@ -164,19 +183,105 @@ def get_workflow():
         retries=2,
         backoff_factor=2.0,
         backoff_max_seconds=30,
-        execution_timeout=timedelta(seconds=600),
+        execution_timeout=timedelta(seconds=300),
     )
-    async def research(input: PipelineInput, ctx: Context) -> dict:
-        """Research the project against diligence components."""
+    async def gap_analysis(input: PipelineInput, ctx: Context) -> dict:
+        """Gap analysis — what does a full diligence package need that the docs lack?"""
         trace = Trace(ctx.workflow_run_id)
         from .pipeline import _degrade, _agent
         data = ctx.task_output(extract_documents)
         profile = ProjectProfile(**data["profile"])
         fact_sets = [FactSet(**f) for f in data["fact_sets"]]
 
-        await redis_state.append_log(input.job_id, "[research] researching project against diligence components")
+        narrate = _narrate(input.job_id)
+        await narrate("phase", "auditing package completeness", phase="gap")
+
+        _gap_components = profile.components or ["financials"]
+        await narrate("phase", f"gap analysis — {len(_gap_components)} analyzers in parallel", phase="gap")
+
+        gap_parts = []
+        for c in _gap_components:
+            await narrate("agent.start", f"GapAnalyzer:{c} starting", agent=f"GapAnalyzer:{c}", phase="gap")
+            g = await _degrade(
+                _agent(f"GapAnalyzer:{c}", GAP_ANALYZER, GapAnalysis, "gap_analyzer", print, trace).run(
+                    f"For the '{c}' component only: compare the extracted facts "
+                    "against full diligence data requirements. List every missing "
+                    "data need for this component.",
+                    {"project": profile.model_dump(), "facts": [f.model_dump() for f in fact_sets]},
+                ),
+                GapAnalysis(needs=[]),
+                print, f"GapAnalyzer:{c}",
+            )
+            await narrate("agent.done", f"GapAnalyzer:{c} done", agent=f"GapAnalyzer:{c}", phase="gap")
+            gap_parts.append(g)
+
+        # Merge + dedupe on (component, missing[:80])
+        _seen: set[str] = set()
+        _merged: list[DataNeed] = []
+        for g in gap_parts:
+            for n in g.needs:
+                k = f"{n.component}::{n.missing[:80]}".lower()
+                if k not in _seen:
+                    _seen.add(k)
+                    _merged.append(n)
+        gap = GapAnalysis(needs=_merged)
+        return {**data, "gap": gap.model_dump()}
+
+    @pipeline_wf.task(
+        parents=[gap_analysis],
+        retries=2,
+        backoff_factor=2.0,
+        backoff_max_seconds=30,
+        execution_timeout=timedelta(seconds=600),
+    )
+    async def data_scouts(input: PipelineInput, ctx: Context) -> dict:
+        """Data acquisition — one scout per gap, pulling real data from public sources."""
+        trace = Trace(ctx.workflow_run_id)
+        from .pipeline import _degrade, _agent
+        data = ctx.task_output(gap_analysis)
+        gap = GapAnalysis(**data["gap"])
+
+        narrate = _narrate(input.job_id)
+        needs = gap.needs[:6]  # cap parallel scouts
+        await narrate("phase", f"{len(needs)} data gaps found — dispatching data scouts", phase="scouts")
+
+        acquired = []
+        for n in needs:
+            await narrate("agent.start", f"DataScout:{n.component} starting", agent=f"DataScout:{n.component}", phase="scouts")
+            a = await _degrade(
+                _agent(f"DataScout:{n.component}", DATA_SCOUT, AcquiredData, "data_scout", print, trace).run(
+                    f"Acquire this missing diligence data: {n.missing}\nWhy it matters: {n.why_it_matters}",
+                    {"project": data["profile"], "source_hint": n.source_hint},
+                ),
+                AcquiredData(component=n.component, still_missing=[n.missing]),
+                print, f"DataScout:{n.component}",
+            )
+            await narrate("agent.done", f"DataScout:{n.component} done", agent=f"DataScout:{n.component}", phase="scouts")
+            acquired.append(a)
+
+        return {**data, "acquired": [a.model_dump() for a in acquired]}
+
+    @pipeline_wf.task(
+        parents=[data_scouts],
+        retries=2,
+        backoff_factor=2.0,
+        backoff_max_seconds=30,
+        execution_timeout=timedelta(seconds=600),
+    )
+    async def research(input: PipelineInput, ctx: Context) -> dict:
+        """Research the project against diligence components."""
+        trace = Trace(ctx.workflow_run_id)
+        from .pipeline import _degrade, _agent
+        data = ctx.task_output(data_scouts)
+        profile = ProjectProfile(**data["profile"])
+        fact_sets = [FactSet(**f) for f in data["fact_sets"]]
+        acquired = [AcquiredData(**a) for a in data.get("acquired", [])]
+
+        narrate = _narrate(input.job_id)
+        await narrate("phase", "researching every diligence component", phase="research")
 
         if input.mode == "fast":
+            await narrate("agent.start", "Researcher starting", agent="Researcher", phase="research")
             findings = await _degrade(
                 _agent(
                     "Researcher:core", RESEARCHER, Findings, "researcher", print, trace,
@@ -191,23 +296,29 @@ def get_workflow():
                 Findings(component="core"),
                 print, "Researcher:core",
             )
-            return {"findings": [findings.model_dump()], "fact_sets": data["fact_sets"], "profile": data["profile"]}
+            await narrate("agent.done", "Researcher done", agent="Researcher", phase="research")
+            return {"findings": [findings.model_dump()], "fact_sets": data["fact_sets"],
+                    "profile": data["profile"], "acquired": data.get("acquired", [])}
 
-        # Deep mode: one researcher per component
+        # Deep mode: one researcher per component, with acquired data as context
         _components = profile.components or ["financials"]
         findings_list = []
         for comp in _components:
+            await narrate("agent.start", f"Researcher:{comp} starting", agent=f"Researcher:{comp}", phase="research")
             f = await _degrade(
                 _agent(f"Researcher:{comp}", RESEARCHER, Findings, "researcher", print, trace).run(
-                    f"Research the {comp} component for this project using the knowledge base and web.",
-                    {"project": profile.model_dump(), "facts": [f.model_dump() for f in fact_sets]},
+                    f"Research the '{comp}' component for this project and flag benchmark violations.",
+                    {"project": profile.model_dump(), "facts": [f.model_dump() for f in fact_sets],
+                     "acquired": [a.model_dump() for a in acquired if a.component == comp]},
                 ),
                 Findings(component=comp),
                 print, f"Researcher:{comp}",
             )
+            await narrate("agent.done", f"Researcher:{comp} done", agent=f"Researcher:{comp}", phase="research")
             findings_list.append(f.model_dump())
 
-        return {"findings": findings_list, "fact_sets": data["fact_sets"], "profile": data["profile"]}
+        return {"findings": findings_list, "fact_sets": data["fact_sets"],
+                "profile": data["profile"], "acquired": data.get("acquired", [])}
 
     @pipeline_wf.task(
         parents=[research],
@@ -222,10 +333,13 @@ def get_workflow():
         from .pipeline import _degrade, _agent
         data = ctx.task_output(research)
 
-        await redis_state.append_log(input.job_id, "[cross-examine] finding contradictions between documents")
+        narrate = _narrate(input.job_id)
+        await narrate("phase", "finding contradictions between documents", phase="cross_examine")
+        await narrate("agent.start", "CrossExaminer starting", agent="CrossExaminer", phase="cross_examine")
         profile = ProjectProfile(**data["profile"])
         fact_sets = [FactSet(**f) for f in data["fact_sets"]]
         findings = [Findings(**f) for f in data["findings"]]
+        acquired = [AcquiredData(**a) for a in data.get("acquired", [])]
 
         contradictions = await _degrade(
             _agent("CrossExaminer", CROSS_EXAMINER, ContradictionSet, "cross_examiner", print, trace).run(
@@ -233,12 +347,13 @@ def get_workflow():
                 {
                     "facts": [f.model_dump() for f in fact_sets],
                     "findings": [f.model_dump() for f in findings],
-                    "acquired": [],
+                    "acquired": [a.model_dump() for a in acquired],
                 },
             ),
             ContradictionSet(),
             print, "CrossExaminer",
         )
+        await narrate("agent.done", "CrossExaminer done", agent="CrossExaminer", phase="cross_examine")
         return {**data, "contradictions": contradictions.model_dump()}
 
     @pipeline_wf.task(
@@ -254,7 +369,9 @@ def get_workflow():
         from .pipeline import _degrade, _agent, apply_readiness_rollup
         data = ctx.task_output(cross_examine)
 
-        await redis_state.append_log(input.job_id, "[score] weighted rubric → readiness + decision")
+        narrate = _narrate(input.job_id)
+        await narrate("phase", "weighted rubric → readiness + decision", phase="score")
+        await narrate("agent.start", "Scorer starting", agent="Scorer", phase="score")
         profile = ProjectProfile(**data["profile"])
         findings = [Findings(**f) for f in data["findings"]]
         contradictions = ContradictionSet(**data["contradictions"])
@@ -273,6 +390,7 @@ def get_workflow():
             print, "Scorer",
         )
         score_obj = apply_readiness_rollup(score_obj, trace)
+        await narrate("agent.done", f"Scorer done — readiness {score_obj.readiness}, decision {score_obj.decision}", agent="Scorer", phase="score")
         return {**data, "score": score_obj.model_dump()}
 
     @pipeline_wf.task(
@@ -288,12 +406,15 @@ def get_workflow():
         from .pipeline import _degrade, _agent
         data = ctx.task_output(score)
 
-        await redis_state.append_log(input.job_id, "[liaison] drafting RFIs and agency actions")
+        narrate = _narrate(input.job_id)
+        await narrate("phase", "drafting RFIs and agency actions", phase="liaison")
+        await narrate("agent.start", "Liaison starting", agent="Liaison", phase="liaison")
         profile = ProjectProfile(**data["profile"])
         contradictions = ContradictionSet(**data["contradictions"])
         score_obj = Score(**data["score"])
         findings = [Findings(**f) for f in data["findings"]]
         fact_sets = [FactSet(**f) for f in data["fact_sets"]]
+        acquired = [AcquiredData(**a) for a in data.get("acquired", [])]
 
         all_flags = [flag for f in findings for flag in f.red_flags]
         action_pack = await _degrade(
@@ -305,12 +426,13 @@ def get_workflow():
                     "gaps": [g for f in fact_sets for g in f.gaps] + contradictions.coverage_gaps,
                     "score": score_obj.model_dump(),
                     "findings": [f.model_dump() for f in findings],
-                    "acquired": [],
+                    "acquired": [a.model_dump() for a in acquired],
                 },
             ),
             ActionPack(),
             print, "Liaison",
         )
+        await narrate("agent.done", "Liaison done", agent="Liaison", phase="liaison")
         return {**data, "action_pack": action_pack.model_dump()}
 
     @pipeline_wf.task(
@@ -332,6 +454,10 @@ def get_workflow():
         action_pack = ActionPack(**data["action_pack"])
         findings = [Findings(**f) for f in data["findings"]]
         fact_sets = [FactSet(**f) for f in data["fact_sets"]]
+        acquired = [AcquiredData(**a) for a in data.get("acquired", [])]
+
+        narrate = _narrate(input.job_id)
+        await narrate("phase", "assembling the typed report", phase="compose")
 
         all_flags = [flag for f in findings for flag in f.red_flags]
         report = Report(
@@ -345,7 +471,7 @@ def get_workflow():
             missing_info=[g for f in fact_sets for g in f.gaps] + contradictions.coverage_gaps,
             action_pack=action_pack,
             recommended_next_action=None,
-            acquired_data=[],
+            acquired_data=acquired,
             user=input.user,
         )
 
@@ -360,8 +486,10 @@ def get_workflow():
                 client_ip=input.client_ip,
             )
             await db.save_cited_sources(report_id, report.model_dump())
-            # Narrate completion to the SSE stream
-            await redis_state.append_log(report_id, "__DONE__")
+
+        # Narrate completion — the SSE stream's terminal frame
+        await narrate("agent.done", f"Report composed — readiness {score_obj.readiness}, decision {score_obj.decision}", phase="compose")
+        await redis_state.append_log(report_id, "__DONE__")
 
         return {
             "job_id": ctx.workflow_run_id,

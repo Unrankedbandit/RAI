@@ -536,6 +536,7 @@ async def stream(job_id: str, from_idx: int = 0):
         idx = max(0, from_idx)
         terminal = False
         redis_idx = 0
+        trace_yielded = False
         while not terminal:
             # Read from in-memory JOB_LOGS (asyncio pipeline) AND Redis Streams
             # (Hatchet workflow) — the two sources are merged so the stream
@@ -555,7 +556,17 @@ async def stream(job_id: str, from_idx: int = 0):
                     if msg.startswith("__DONE__") or msg.startswith("__ERROR__"):
                         terminal = True
 
-            # Yield any new Redis entries
+            # Yield the trace stream once (initial events from the analyze
+            # endpoint — http.request, job.mode, job.created, job.hatchet).
+            if not trace_yielded:
+                trace_log = await redis_state.get_trace(job_id)
+                if trace_log:
+                    for entry in trace_log:
+                        yield f"data: {json.dumps({'event': entry})}\n\n"
+                    trace_yielded = True
+
+            # Yield any new Redis log entries (workflow narration from the
+            # Hatchet worker — phase events, agent start/done, __DONE__).
             if redis_log is not None:
                 for entry in redis_log:
                     redis_idx += 1
@@ -568,7 +579,7 @@ async def stream(job_id: str, from_idx: int = 0):
 
             # If neither source has data and we've never yielded anything, the
             # job is unknown — emit an error rather than polling forever.
-            if log is None and redis_log is None and idx == 0 and redis_idx == 0:
+            if log is None and redis_log is None and idx == 0 and redis_idx == 0 and not trace_yielded:
                 yield f"data: {json.dumps({'status': '__ERROR__ unknown job'})}\n\n"
                 return
 
