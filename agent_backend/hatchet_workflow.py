@@ -61,13 +61,19 @@ def get_hatchet():
 def _narrate(job_id: str):
     """Return a narrate function that writes structured SSE events to Redis.
     The frontend reads these from /api/jobs/{job_id}/stream and drives the
-    staging tracker (phase events) and sub-agent boxes (agent events)."""
+    staging tracker (phase events) and sub-agent boxes (agent events).
+
+    The Redis client is initialized lazily on first write — the worker's
+    event loop may differ between steps, so we re-init if needed."""
     async def narrate(kind: str, msg: str, agent: str | None = None, phase: str | None = None):
         ev = {"kind": kind, "msg": msg, "level": "info"}
         if agent:
             ev["agent"] = agent
         if phase:
             ev["phase"] = phase
+        # Re-init if the client was closed between steps (loop-affine)
+        if not redis_state.is_enabled():
+            await redis_state.init_client()
         await redis_state.append_log(job_id, ev)
     return narrate
 
@@ -123,6 +129,7 @@ def get_workflow():
         # asyncpg/Redis connections can't cross event loops).
         await db.init_pool()
         await redis_state.init_client()
+        print(f"[hatchet] redis enabled: {redis_state.is_enabled()}, db enabled: {db.is_enabled()}")
 
         trace = Trace(ctx.workflow_run_id)
         from .pipeline import _degrade, _agent
